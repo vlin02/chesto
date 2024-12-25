@@ -1,0 +1,17 @@
+{
+  "name": "@chesto/ps",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@pkmn/client": "^0.6.30",
+    "@pkmn/data": "^0.9.25",
+    "@pkmn/dex": "^0.9.25",
+    "@pkmn/randoms": "^0.9.25",
+    "@pkmn/sim": "^0.9.25",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/ws": "^8.5.13"
+  }
+}
