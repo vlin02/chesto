@@ -35,19 +35,16 @@ function toCmd(choice: Choice) {
   }
 }
 
-export type ArenaEvent =
+export type Request =
+  | { retry: true }
   | {
-      type: "retry"
-      side: Side
+      retry: false
+      switch: boolean
     }
-  | {
-      type: "request"
-      side: Side
-      forceSwitch: boolean
-    }
-  | { side: undefined; type: "end" }
 
-export type ArenaAction = {
+export type Event = ["request", { side: Side; req: Request }] | ["end"]
+
+export type Action = {
   side: Side
   choice: Choice
 }
@@ -60,9 +57,9 @@ class Player {
   }
 }
 
-const SPLIT_REGEX = /^^\|split\|(.*)$/
+export type ArenaEmitter = EventEmitter<{ event: [Event] }>
 
-type ArenaEmitter = EventEmitter<{ event: [ArenaEvent] }>
+const SPLIT_REGEX = /^^\|split\|(.*)$/
 
 export class Arena {
   sim: Simulator
@@ -94,12 +91,11 @@ export class Arena {
   private flush() {
     this.sim.sendUpdates()
 
-    let events: ArenaEvent[] = []
+    let events: Event[] = []
 
     let i = 0
     while (i < this.chunks.length) {
       const [type, data] = this.chunks[i]
-      console.log(type, data)
 
       let lines = Array.isArray(data) ? data : [data]
 
@@ -150,10 +146,13 @@ export class Arena {
                 throw Error()
               }
 
-              events.push({
-                type: "retry",
-                side
-              })
+              events.push([
+                "request",
+                {
+                  side,
+                  req: { retry: true }
+                }
+              ])
 
               break
             }
@@ -164,11 +163,16 @@ export class Arena {
               const { requestType } = state.request!
 
               if (requestType === "move" || requestType === "switch") {
-                events.push({
-                  type: "request",
-                  side,
-                  forceSwitch: requestType === "switch"
-                })
+                events.push([
+                  "request",
+                  {
+                    side,
+                    req: {
+                      retry: false,
+                      switch: requestType === "switch"
+                    }
+                  }
+                ])
               }
 
               break
@@ -179,7 +183,7 @@ export class Arena {
           break
         }
         case "end": {
-          events.push({ side: undefined, type: "end" })
+          events.push(["end"])
           break
         }
         default:
@@ -196,7 +200,7 @@ export class Arena {
     }
   }
 
-  send({ side, choice }: ArenaAction) {
+  send({ side, choice }: Action) {
     this.sim.choose(side, toCmd(choice))
     this.flush()
   }
