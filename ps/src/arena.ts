@@ -66,7 +66,7 @@ const SPLIT_REGEX = /^^\|split\|(.*)$/
 
 type Emitter = EventEmitter<{ event: [Event] }>
 
-export class Environment {
+export class Arena {
   sim: Simulator
   formatId: ID
   p1: Agent
