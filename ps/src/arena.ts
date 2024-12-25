@@ -4,12 +4,11 @@ import { TeamGenerators } from "@pkmn/randoms"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import EventEmitter from "node:events"
+import { Side, SIDES } from "./battle.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 
-type Side = "p1" | "p2"
-
-type Choice =
+export type Choice =
   | {
       type: "switch"
       i: 0 | 1 | 2 | 3 | 4 | 5
@@ -36,7 +35,7 @@ function toCmd(choice: Choice) {
   }
 }
 
-type Event =
+export type ArenaEvent =
   | {
       type: "retry"
       side: Side
@@ -46,14 +45,14 @@ type Event =
       side: Side
       forceSwitch: boolean
     }
-  | { type: "end" }
+  | { side: undefined; type: "end" }
 
-type Action = {
+export type ArenaAction = {
   side: Side
   choice: Choice
 }
 
-class Agent {
+class Player {
   state: Client
 
   constructor() {
@@ -61,26 +60,25 @@ class Agent {
   }
 }
 
-const SIDES = ["p1", "p2"] as const
 const SPLIT_REGEX = /^^\|split\|(.*)$/
 
-type Emitter = EventEmitter<{ event: [Event] }>
+type ArenaEmitter = EventEmitter<{ event: [ArenaEvent] }>
 
 export class Arena {
   sim: Simulator
   formatId: ID
-  p1: Agent
-  p2: Agent
+  p1: Player
+  p2: Player
   closed: boolean
 
   private chunks: [string, string | string[]][] = []
 
-  emitter: Emitter
+  emitter: ArenaEmitter
 
   constructor({ formatId }: { formatId: ID }) {
     this.formatId = formatId
-    this.p1 = new Agent()
-    this.p2 = new Agent()
+    this.p1 = new Player()
+    this.p2 = new Player()
     this.chunks = []
     this.emitter = new EventEmitter()
     this.closed = false
@@ -96,11 +94,12 @@ export class Arena {
   private flush() {
     this.sim.sendUpdates()
 
-    let events: Event[] = []
+    let events: ArenaEvent[] = []
 
     let i = 0
     while (i < this.chunks.length) {
       const [type, data] = this.chunks[i]
+      console.log(type, data)
 
       let lines = Array.isArray(data) ? data : [data]
 
@@ -139,19 +138,22 @@ export class Arena {
           const { state } = agent
           state.add(line)
 
-          const [_, type, event] = line.split("|")
+          const [_, type, msg] = line.split("|")
 
           switch (type) {
             case "error": {
+              if (
+                ["Can't do anything:", "Can't undo:", "Can't make choices:"].some((x) =>
+                  msg.startsWith(x)
+                )
+              ) {
+                throw Error()
+              }
+
               events.push({
                 type: "retry",
                 side
               })
-
-              if (event.startsWith("[Unavailable choice]")) {
-                i += 2
-                continue
-              }
 
               break
             }
@@ -177,7 +179,7 @@ export class Arena {
           break
         }
         case "end": {
-          events.push({ type: "end" })
+          events.push({ side: undefined, type: "end" })
           break
         }
         default:
@@ -194,7 +196,7 @@ export class Arena {
     }
   }
 
-  send({ side, choice }: Action) {
+  send({ side, choice }: ArenaAction) {
     this.sim.choose(side, toCmd(choice))
     this.flush()
   }
@@ -217,45 +219,5 @@ export class Arena {
     this.closed = true
     this.sim.destroy()
     this.emitter.removeAllListeners()
-  }
-}
-
-export class EventStream {
-  private buf: Event[]
-  private resume?: (event: Event) => void
-  private done: boolean
-
-  constructor(emitter: Emitter) {
-    this.buf = []
-    this.done = false
-
-    emitter.on("event", (e) => {
-      this.buf.push(e)
-
-      if (this.resume) {
-        this.resume(this.buf.shift()!)
-        this.resume = undefined
-      }
-    })
-  }
-
-  async next() {
-    if (this.done) return ({ done: true } as const)
-
-    const event =
-      this.buf.shift() ??
-      (await new Promise<Event>((resolve) => {
-        this.resume = resolve
-      }))
-
-    if (event.type === "end") {
-      this.done = true
-    }
-
-    return { done: false, value: event } as const
-  }
-
-  [Symbol.asyncIterator]() {
-    return this
   }
 }

@@ -1,7 +1,7 @@
 import cluster from "cluster"
 import { WebSocketServer } from "ws"
 import { toID } from "@pkmn/sim"
-import { Arena, EventStream } from "./arena.js"
+import { Arena } from "./arena.js"
 
 if (cluster.isPrimary) {
   for (let i = 0; i < 5; i++) {
@@ -24,13 +24,14 @@ if (cluster.isPrimary) {
       arena.close()
     })
 
-    const events = new EventStream(arena.emitter)
-    arena.start()
+    arena.emitter.on("event", (event) => {
+      if (event.type === "end") {
+        arena.close()
+      }
 
-    for await (const event of events) {
       ws.send(JSON.stringify(event))
-    }
+    })
 
-    arena.close()
+    arena.start()
   })
 }
