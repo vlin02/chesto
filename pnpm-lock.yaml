@@ -26,11 +26,272 @@ importers:
         specifier: ^0.9.25
         version: 0.9.25
       '@pkmn/randoms':
-        specifier: ^0.9.25
-        version: 0.9.25
+        specifier: ^0.9.26
+        version: 0.9.26
+      '@pkmn/randoms-0.7.13':
+        specifier: npm:@pkmn/randoms@0.7.13
+        version: '@pkmn/randoms@0.7.13'
+      '@pkmn/randoms-0.7.14':
+        specifier: npm:@pkmn/randoms@0.7.14
+        version: '@pkmn/randoms@0.7.14'
+      '@pkmn/randoms-0.7.15':
+        specifier: npm:@pkmn/randoms@0.7.15
+        version: '@pkmn/randoms@0.7.15'
+      '@pkmn/randoms-0.7.16':
+        specifier: npm:@pkmn/randoms@0.7.16
+        version: '@pkmn/randoms@0.7.16'
+      '@pkmn/randoms-0.7.17':
+        specifier: npm:@pkmn/randoms@0.7.17
+        version: '@pkmn/randoms@0.7.17'
+      '@pkmn/randoms-0.7.18':
+        specifier: npm:@pkmn/randoms@0.7.18
+        version: '@pkmn/randoms@0.7.18'
+      '@pkmn/randoms-0.7.19':
+        specifier: npm:@pkmn/randoms@0.7.19
+        version: '@pkmn/randoms@0.7.19'
+      '@pkmn/randoms-0.7.20':
+        specifier: npm:@pkmn/randoms@0.7.20
+        version: '@pkmn/randoms@0.7.20'
+      '@pkmn/randoms-0.7.21':
+        specifier: npm:@pkmn/randoms@0.7.21
+        version: '@pkmn/randoms@0.7.21'
+      '@pkmn/randoms-0.7.22':
+        specifier: npm:@pkmn/randoms@0.7.22
+        version: '@pkmn/randoms@0.7.22'
+      '@pkmn/randoms-0.7.23':
+        specifier: npm:@pkmn/randoms@0.7.23
+        version: '@pkmn/randoms@0.7.23'
+      '@pkmn/randoms-0.7.24':
+        specifier: npm:@pkmn/randoms@0.7.24
+        version: '@pkmn/randoms@0.7.24'
+      '@pkmn/randoms-0.7.25':
+        specifier: npm:@pkmn/randoms@0.7.25
+        version: '@pkmn/randoms@0.7.25'
+      '@pkmn/randoms-0.7.26':
+        specifier: npm:@pkmn/randoms@0.7.26
+        version: '@pkmn/randoms@0.7.26'
+      '@pkmn/randoms-0.7.27':
+        specifier: npm:@pkmn/randoms@0.7.27
+        version: '@pkmn/randoms@0.7.27'
+      '@pkmn/randoms-0.7.28':
+        specifier: npm:@pkmn/randoms@0.7.28
+        version: '@pkmn/randoms@0.7.28'
+      '@pkmn/randoms-0.7.29':
+        specifier: npm:@pkmn/randoms@0.7.29
+        version: '@pkmn/randoms@0.7.29'
+      '@pkmn/randoms-0.7.30':
+        specifier: npm:@pkmn/randoms@0.7.30
+        version: '@pkmn/randoms@0.7.30'
+      '@pkmn/randoms-0.7.31':
+        specifier: npm:@pkmn/randoms@0.7.31
+        version: '@pkmn/randoms@0.7.31'
+      '@pkmn/randoms-0.7.32':
+        specifier: npm:@pkmn/randoms@0.7.32
+        version: '@pkmn/randoms@0.7.32'
+      '@pkmn/randoms-0.7.33':
+        specifier: npm:@pkmn/randoms@0.7.33
+        version: '@pkmn/randoms@0.7.33'
+      '@pkmn/randoms-0.7.34':
+        specifier: npm:@pkmn/randoms@0.7.34
+        version: '@pkmn/randoms@0.7.34'
+      '@pkmn/randoms-0.7.35':
+        specifier: npm:@pkmn/randoms@0.7.35
+        version: '@pkmn/randoms@0.7.35'
+      '@pkmn/randoms-0.7.36':
+        specifier: npm:@pkmn/randoms@0.7.36
+        version: '@pkmn/randoms@0.7.36'
+      '@pkmn/randoms-0.7.37':
+        specifier: npm:@pkmn/randoms@0.7.37
+        version: '@pkmn/randoms@0.7.37'
+      '@pkmn/randoms-0.7.38':
+        specifier: npm:@pkmn/randoms@0.7.38
+        version: '@pkmn/randoms@0.7.38'
+      '@pkmn/randoms-0.7.39':
+        specifier: npm:@pkmn/randoms@0.7.39
+        version: '@pkmn/randoms@0.7.39'
+      '@pkmn/randoms-0.7.40':
+        specifier: npm:@pkmn/randoms@0.7.40
+        version: '@pkmn/randoms@0.7.40'
+      '@pkmn/randoms-0.7.41':
+        specifier: npm:@pkmn/randoms@0.7.41
+        version: '@pkmn/randoms@0.7.41'
+      '@pkmn/randoms-0.7.42':
+        specifier: npm:@pkmn/randoms@0.7.42
+        version: '@pkmn/randoms@0.7.42'
+      '@pkmn/randoms-0.7.43':
+        specifier: npm:@pkmn/randoms@0.7.43
+        version: '@pkmn/randoms@0.7.43'
+      '@pkmn/randoms-0.7.44':
+        specifier: npm:@pkmn/randoms@0.7.44
+        version: '@pkmn/randoms@0.7.44'
+      '@pkmn/randoms-0.7.45':
+        specifier: npm:@pkmn/randoms@0.7.45
+        version: '@pkmn/randoms@0.7.45'
+      '@pkmn/randoms-0.7.46':
+        specifier: npm:@pkmn/randoms@0.7.46
+        version: '@pkmn/randoms@0.7.46'
+      '@pkmn/randoms-0.7.47':
+        specifier: npm:@pkmn/randoms@0.7.47
+        version: '@pkmn/randoms@0.7.47'
+      '@pkmn/randoms-0.7.48':
+        specifier: npm:@pkmn/randoms@0.7.48
+        version: '@pkmn/randoms@0.7.48'
+      '@pkmn/randoms-0.7.49':
+        specifier: npm:@pkmn/randoms@0.7.49
+        version: '@pkmn/randoms@0.7.49'
+      '@pkmn/randoms-0.7.50':
+        specifier: npm:@pkmn/randoms@0.7.50
+        version: '@pkmn/randoms@0.7.50'
+      '@pkmn/randoms-0.7.51':
+        specifier: npm:@pkmn/randoms@0.7.51
+        version: '@pkmn/randoms@0.7.51'
+      '@pkmn/randoms-0.7.52':
+        specifier: npm:@pkmn/randoms@0.7.52
+        version: '@pkmn/randoms@0.7.52'
+      '@pkmn/randoms-0.7.53':
+        specifier: npm:@pkmn/randoms@0.7.53
+        version: '@pkmn/randoms@0.7.53'
+      '@pkmn/randoms-0.7.54':
+        specifier: npm:@pkmn/randoms@0.7.54
+        version: '@pkmn/randoms@0.7.54'
+      '@pkmn/randoms-0.7.55':
+        specifier: npm:@pkmn/randoms@0.7.55
+        version: '@pkmn/randoms@0.7.55'
+      '@pkmn/randoms-0.7.56':
+        specifier: npm:@pkmn/randoms@0.7.56
+        version: '@pkmn/randoms@0.7.56'
+      '@pkmn/randoms-0.7.57':
+        specifier: npm:@pkmn/randoms@0.7.57
+        version: '@pkmn/randoms@0.7.57'
+      '@pkmn/randoms-0.7.58':
+        specifier: npm:@pkmn/randoms@0.7.58
+        version: '@pkmn/randoms@0.7.58'
+      '@pkmn/randoms-0.7.59':
+        specifier: npm:@pkmn/randoms@0.7.59
+        version: '@pkmn/randoms@0.7.59'
+      '@pkmn/randoms-0.8.0':
+        specifier: npm:@pkmn/randoms@0.8.0
+        version: '@pkmn/randoms@0.8.0'
+      '@pkmn/randoms-0.8.1':
+        specifier: npm:@pkmn/randoms@0.8.1
+        version: '@pkmn/randoms@0.8.1'
+      '@pkmn/randoms-0.8.2':
+        specifier: npm:@pkmn/randoms@0.8.2
+        version: '@pkmn/randoms@0.8.2'
+      '@pkmn/randoms-0.8.3':
+        specifier: npm:@pkmn/randoms@0.8.3
+        version: '@pkmn/randoms@0.8.3'
+      '@pkmn/randoms-0.8.4':
+        specifier: npm:@pkmn/randoms@0.8.4
+        version: '@pkmn/randoms@0.8.4'
+      '@pkmn/randoms-0.8.5':
+        specifier: npm:@pkmn/randoms@0.8.5
+        version: '@pkmn/randoms@0.8.5'
+      '@pkmn/randoms-0.8.6':
+        specifier: npm:@pkmn/randoms@0.8.6
+        version: '@pkmn/randoms@0.8.6'
+      '@pkmn/randoms-0.8.7':
+        specifier: npm:@pkmn/randoms@0.8.7
+        version: '@pkmn/randoms@0.8.7'
+      '@pkmn/randoms-0.8.8':
+        specifier: npm:@pkmn/randoms@0.8.8
+        version: '@pkmn/randoms@0.8.8'
+      '@pkmn/randoms-0.8.9':
+        specifier: npm:@pkmn/randoms@0.8.9
+        version: '@pkmn/randoms@0.8.9'
+      '@pkmn/randoms-0.9.0':
+        specifier: npm:@pkmn/randoms@0.9.0
+        version: '@pkmn/randoms@0.9.0'
+      '@pkmn/randoms-0.9.1':
+        specifier: npm:@pkmn/randoms@0.9.1
+        version: '@pkmn/randoms@0.9.1'
+      '@pkmn/randoms-0.9.10':
+        specifier: npm:@pkmn/randoms@0.9.10
+        version: '@pkmn/randoms@0.9.10'
+      '@pkmn/randoms-0.9.11':
+        specifier: npm:@pkmn/randoms@0.9.11
+        version: '@pkmn/randoms@0.9.11'
+      '@pkmn/randoms-0.9.12':
+        specifier: npm:@pkmn/randoms@0.9.12
+        version: '@pkmn/randoms@0.9.12'
+      '@pkmn/randoms-0.9.13':
+        specifier: npm:@pkmn/randoms@0.9.13
+        version: '@pkmn/randoms@0.9.13'
+      '@pkmn/randoms-0.9.14':
+        specifier: npm:@pkmn/randoms@0.9.14
+        version: '@pkmn/randoms@0.9.14'
+      '@pkmn/randoms-0.9.15':
+        specifier: npm:@pkmn/randoms@0.9.15
+        version: '@pkmn/randoms@0.9.15'
+      '@pkmn/randoms-0.9.16':
+        specifier: npm:@pkmn/randoms@0.9.16
+        version: '@pkmn/randoms@0.9.16'
+      '@pkmn/randoms-0.9.17':
+        specifier: npm:@pkmn/randoms@0.9.17
+        version: '@pkmn/randoms@0.9.17'
+      '@pkmn/randoms-0.9.18':
+        specifier: npm:@pkmn/randoms@0.9.18
+        version: '@pkmn/randoms@0.9.18'
+      '@pkmn/randoms-0.9.19':
+        specifier: npm:@pkmn/randoms@0.9.19
+        version: '@pkmn/randoms@0.9.19'
+      '@pkmn/randoms-0.9.2':
+        specifier: npm:@pkmn/randoms@0.9.2
+        version: '@pkmn/randoms@0.9.2'
+      '@pkmn/randoms-0.9.20':
+        specifier: npm:@pkmn/randoms@0.9.20
+        version: '@pkmn/randoms@0.9.20'
+      '@pkmn/randoms-0.9.21':
+        specifier: npm:@pkmn/randoms@0.9.21
+        version: '@pkmn/randoms@0.9.21'
+      '@pkmn/randoms-0.9.22':
+        specifier: npm:@pkmn/randoms@0.9.22
+        version: '@pkmn/randoms@0.9.22'
+      '@pkmn/randoms-0.9.23':
+        specifier: npm:@pkmn/randoms@0.9.23
+        version: '@pkmn/randoms@0.9.23'
+      '@pkmn/randoms-0.9.24':
+        specifier: npm:@pkmn/randoms@0.9.24
+        version: '@pkmn/randoms@0.9.24'
+      '@pkmn/randoms-0.9.25':
+        specifier: npm:@pkmn/randoms@0.9.25
+        version: '@pkmn/randoms@0.9.25'
+      '@pkmn/randoms-0.9.26':
+        specifier: npm:@pkmn/randoms@0.9.26
+        version: '@pkmn/randoms@0.9.26'
+      '@pkmn/randoms-0.9.3':
+        specifier: npm:@pkmn/randoms@0.9.3
+        version: '@pkmn/randoms@0.9.3'
+      '@pkmn/randoms-0.9.4':
+        specifier: npm:@pkmn/randoms@0.9.4
+        version: '@pkmn/randoms@0.9.4'
+      '@pkmn/randoms-0.9.5':
+        specifier: npm:@pkmn/randoms@0.9.5
+        version: '@pkmn/randoms@0.9.5'
+      '@pkmn/randoms-0.9.6':
+        specifier: npm:@pkmn/randoms@0.9.6
+        version: '@pkmn/randoms@0.9.6'
+      '@pkmn/randoms-0.9.7':
+        specifier: npm:@pkmn/randoms@0.9.7
+        version: '@pkmn/randoms@0.9.7'
+      '@pkmn/randoms-0.9.8':
+        specifier: npm:@pkmn/randoms@0.9.8
+        version: '@pkmn/randoms@0.9.8'
+      '@pkmn/randoms-0.9.9':
+        specifier: npm:@pkmn/randoms@0.9.9
+        version: '@pkmn/randoms@0.9.9'
       '@pkmn/sim':
-        specifier: ^0.9.25
-        version: 0.9.25
+        specifier: ^0.9.26
+        version: 0.9.26
+      '@pkmn/sim-0.7.59':
+        specifier: npm:@pkmn/sim@0.7.59
+        version: '@pkmn/sim@0.7.59'
+      '@pkmn/sim-0.8.9':
+        specifier: npm:@pkmn/sim@0.8.9
+        version: '@pkmn/sim@0.8.9'
+      '@pkmn/sim-0.9.26':
+        specifier: npm:@pkmn/sim@0.9.26
+        version: '@pkmn/sim@0.9.26'
       undici:
         specifier: ^7.2.0
         version: 7.2.0
@@ -255,14 +516,272 @@ packages:
     resolution: {integrity: sha512-QwkZqPT66kO4nbEOtR5VdKcsq28ntWuKehS1/ajSqpoWjO9B8odZfopSmQewfGay0paVE1vmWUx8qlyPKtj7tg==, tarball: https://registry.npmjs.org/@pkmn/protocol/-/protocol-0.6.30.tgz}
     hasBin: true
 
+  '@pkmn/randoms@0.7.13':
+    resolution: {integrity: sha512-L2JKy/QJrSfiHPCTfqSvdyBQeJZY1DHQkNoghlkwbpb6Am+4wBw0hcmImAEI4tHPdE5zpGBqq0J5wurx/bEQaA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.13.tgz}
+
+  '@pkmn/randoms@0.7.14':
+    resolution: {integrity: sha512-A3976Z4Pu8D3wmf7u2lrzGMRZhCUBQXV2cQC55m55eP1y+DHWoXxeEh4BIkeyfx1BcABy5inQ8ICXEHGxRSavQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.14.tgz}
+
+  '@pkmn/randoms@0.7.15':
+    resolution: {integrity: sha512-q1VesqYDUlnetrfXl56mHJx11HZAXRiAU/aBqZKPJHrIvoCm3TTnrL7PFLWtPkMasdrZwLraf0rdxElM1WR7+A==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.15.tgz}
+
+  '@pkmn/randoms@0.7.16':
+    resolution: {integrity: sha512-BtixHz5w8NTlewoWJPHgYOLnlPrSfsh9a/+uVun8QxvRTOIZO00bnHmvZv4cLlXXKMlAIXYWT0ClhOWSTeIpcA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.16.tgz}
+
+  '@pkmn/randoms@0.7.17':
+    resolution: {integrity: sha512-9JVedRn3ZBbIdCA7g3zFUkye358cZs+2mYRg4miY8+WeezOqHxmEzDUxlpjNuUftXUngCWSHznj123l4DTTbRQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.17.tgz}
+
+  '@pkmn/randoms@0.7.18':
+    resolution: {integrity: sha512-1N9vd0n9Pb1Il1hOsiiBJJV7AkabfHmCMA8hgToAZdPfJxEF4UTzMdv2G0UFWLxWF/7vPC4fdq3ZFCkCiQBTqA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.18.tgz}
+
+  '@pkmn/randoms@0.7.19':
+    resolution: {integrity: sha512-SVWJlNTvJZT2/fdBrFWcTSoP0+ZmZQ54iEWZh9mcJRXbaPUlxmFr5mvZTwONCYWhJXlMKur/xoCq9rKlg3P/PQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.19.tgz}
+
+  '@pkmn/randoms@0.7.20':
+    resolution: {integrity: sha512-O/IdV3YBK/fybggHUHEOUgaaZm7KW1VmYVigO3F8PpfWUcdd/tffIngA0TVZZi/hV2lY/vAUQ7b6C2Te7T+Q5g==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.20.tgz}
+
+  '@pkmn/randoms@0.7.21':
+    resolution: {integrity: sha512-zflqwHpfjIQBADnF8h+syf4UKD7MH6Q5zwBHOcrNr13FkoBb7xp8mpTPy8LNRCLI0YbUZ2eAuHtSipfS9Nrbsg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.21.tgz}
+
+  '@pkmn/randoms@0.7.22':
+    resolution: {integrity: sha512-IeIOC/8xSnLtLxB82l4QlOgLSpn3trMS6JRYq2Ft/pv07fJhtNr7zzBg9f7lAOmo83tM7mRpIGj0t2/LHxu0JQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.22.tgz}
+
+  '@pkmn/randoms@0.7.23':
+    resolution: {integrity: sha512-8H4NFUyFth8NIFXz3Vpl12IAmaJqHmmHyUhDTa+KNGLNdcEvTxk452Ka1ADvqZrUw6O2w4Nv3KHM4qpLij41IA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.23.tgz}
+
+  '@pkmn/randoms@0.7.24':
+    resolution: {integrity: sha512-lnrj4wBfnfZg//5/5ue+Gi2M1qirVmYXdb5TosaSAT+RpcgASkYVZK/IYXrxbEXNQ1e1FWJaRwo95fFy3gvxSQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.24.tgz}
+
+  '@pkmn/randoms@0.7.25':
+    resolution: {integrity: sha512-YL4FWNsLyASH5z+v0ZbZOgnfVnu3n26U/WnTRjIJOYOrYMHBoLhFq/S9gHefZo0VM6tCuJlIjcZK2rdZLnvWjg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.25.tgz}
+
+  '@pkmn/randoms@0.7.26':
+    resolution: {integrity: sha512-Ig1lYG8nXdF9PG7ZEC3YtUyd053PrI+hRxNNxt9jYmnrCLfLKFFRpjM5GsEi1TJ/GTbpkbQqJqd+UzRSqux0Ig==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.26.tgz}
+
+  '@pkmn/randoms@0.7.27':
+    resolution: {integrity: sha512-kIqYlr5NrwH24RP15+Z+Hvk7TEWoJ/sxOynHqkqQJ6aPjkf6q44OJAl0bpmipBuhGJRl0CUDws2KwqadBZx61w==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.27.tgz}
+
+  '@pkmn/randoms@0.7.28':
+    resolution: {integrity: sha512-Vf3Yb3gqkDkx0775k+yWnB3eVaGmbRGgSUwjlKbiLIeDfnSRUiLZHSVIEoqNg/emJx2kM6dVI2x74fRHNchIYQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.28.tgz}
+
+  '@pkmn/randoms@0.7.29':
+    resolution: {integrity: sha512-qERjY1T0VCtVU/hw77g5gADGQzzmMDpffgFvrp6BYdlQIy3eu5mEYGFESFN8zYr01PDUitb6cVWRtRM1yYs7ow==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.29.tgz}
+
+  '@pkmn/randoms@0.7.30':
+    resolution: {integrity: sha512-bDErYabMxY5WXIFUuqTPZ7iDILPAo6EsDdiOZIUDeuENRTdbrc8C66xFK7nWw1/kQsyPt1BovhoOVjbOCVvTXg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.30.tgz}
+
+  '@pkmn/randoms@0.7.31':
+    resolution: {integrity: sha512-6aml23teYBA4IJiUXHK4WSGpme7EqgNJw1y6c8+Qt7aJq+v0WLVrNua/zE+sm8vvPERD5T5EImLIDvg+ExkA1w==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.31.tgz}
+
+  '@pkmn/randoms@0.7.32':
+    resolution: {integrity: sha512-a7WJzfDQEWGXvTaAhPDjwK7xN1dr30YrcuOgzojymwn8+J2H8/GJUnox//oNYnv6b8ArlXX9JZdB5TcSW57gOQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.32.tgz}
+
+  '@pkmn/randoms@0.7.33':
+    resolution: {integrity: sha512-InHr7Y7oovTJAkMLLmXvaaB4mk99/taH+ZTF5JeXNyDR/2+sB99nMrhWKoBkESzUllEtrS0btsvE+sCk4yIEDQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.33.tgz}
+
+  '@pkmn/randoms@0.7.34':
+    resolution: {integrity: sha512-pCCCJ2nc86tM7V6FKLqsdy27p9NBlmh0OT0NMukJXjD1iCcEu05kLyI0vG9YwU0pSnlZne2/sOuxG8BRaEkpog==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.34.tgz}
+
+  '@pkmn/randoms@0.7.35':
+    resolution: {integrity: sha512-kT1kedaM+SypcCOCGTr8pWIGOyFmoMoZg3x81q3YcZaoH0xEqWO3sEEgYwXMHG/4B0vs6aWKiVcEzDbAmubJeA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.35.tgz}
+
+  '@pkmn/randoms@0.7.36':
+    resolution: {integrity: sha512-bU8nWQs9RHoAZbsa9NgPj1YeQ40ihOkLPCgGKUeW3E/8L1hdb7uYjMkk9iP2YZaQcgGggp8QmmXINVZoToDg9Q==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.36.tgz}
+
+  '@pkmn/randoms@0.7.37':
+    resolution: {integrity: sha512-8fnZ4gTtzG0zbyehlGUbvmnQeZyJf0JbAzG8ATCssTry/HMAgYQ4vbnVgOzPZrKd84yur7DqLKwRpJt4iEJsTA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.37.tgz}
+
+  '@pkmn/randoms@0.7.38':
+    resolution: {integrity: sha512-QdJq5WLV/AvBYxA8DN3bq7BbEnLb+Ce6W6khyDFI/F/O2JDRaFM5FTV2TEvfadQ9s1DEP2QtwJWW7oDR+4lPqg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.38.tgz}
+
+  '@pkmn/randoms@0.7.39':
+    resolution: {integrity: sha512-w1QyKaSEY7VxMq7N4xxR/FKByJ0n2uZms+AE2M2efkQWA+mb5UjyeRppGQ94Wkq5ZjEFI9oOkoRZ21GJgHRl2A==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.39.tgz}
+
+  '@pkmn/randoms@0.7.40':
+    resolution: {integrity: sha512-aNnbfizxr7eY8UkS57SFpy7GP3+tQLEannzJVdyz65JuiPpHMiKnXHq2t/ZuN9jAwIYULoL8gHmO02ExD4bX7g==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.40.tgz}
+
+  '@pkmn/randoms@0.7.41':
+    resolution: {integrity: sha512-WbpON7eBSw5qNizmiZU5i7A1bzbbLErdyN4VT97ewjdrJzVPULIS/tRg4N87ox9xih+mmfiZvgG9OgZs1rFAmQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.41.tgz}
+
+  '@pkmn/randoms@0.7.42':
+    resolution: {integrity: sha512-+72gxBR370UTsaIBbUJPyyYgzPmCkMleQQpabANoJDdq/9RABxduKCKV3put2i2T/45AqcXtOYRFOIqW/aIgkw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.42.tgz}
+
+  '@pkmn/randoms@0.7.43':
+    resolution: {integrity: sha512-KGFQfW46Nn3XoOB5DxeEfPrZbfWIlBdLOr2OjSTRETQks2JQqKzxQkdFGh9dmvVrTl/ZnQWC/mwsgGiTYK4yFg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.43.tgz}
+
+  '@pkmn/randoms@0.7.44':
+    resolution: {integrity: sha512-Uc8jIQffeMw++Q2O0WSvLTjvjFx79KPKZmrEzHpZA7DDBQbrxOUzhAMIDgWwTMkPO54ufFRTBHosrNYdJKE40A==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.44.tgz}
+
+  '@pkmn/randoms@0.7.45':
+    resolution: {integrity: sha512-0ld2VDpLfBYuh6Vrvo7m0ENEo9EqPgm+pDbaIENm15ZvgbHpRoc+S+PpSEepKn4Wb4eiIWgBol/gDre/UtCzVA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.45.tgz}
+
+  '@pkmn/randoms@0.7.46':
+    resolution: {integrity: sha512-zWuABrSNDS3nhnQKgaDD8wxaTMwI6q8dxc2X7w5TW3JYeVHpctvI8Advrpcj/Hr31hgEd9ZPKLvhNviUCs/vzg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.46.tgz}
+
+  '@pkmn/randoms@0.7.47':
+    resolution: {integrity: sha512-cYmoVgZc0VSWuUK7OJjXczThUgz1vGoW/yP6g+H8CSAw7JKjehcRqZWktdW6iPK09EHMWjf+esYDHxGifotVHg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.47.tgz}
+
+  '@pkmn/randoms@0.7.48':
+    resolution: {integrity: sha512-/JKE/e4GLGVvUXt+01SEaHL44Eqm7isHDK6NTAfvgKRzTBuc1RkbsQo+upL9yIMkwZ2UVNZiWh0EfoAywG5DqA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.48.tgz}
+
+  '@pkmn/randoms@0.7.49':
+    resolution: {integrity: sha512-3J/VnaYrh/+h+ZMYXsgPpr96sxYEwe6B3RKUIHWhc3s51Pk+g1GXnEVZJc7eHisqAUlcUXxbvTMd68Ouoy+EDQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.49.tgz}
+
+  '@pkmn/randoms@0.7.50':
+    resolution: {integrity: sha512-N/AIcfr7+3wBBrOBfvdzQ3yUWAywSJ+DgHIyE6ixX1LwuK9+H7GpUypkCqdSBabDdeIDSH1ngRSqnQfi9Kuaag==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.50.tgz}
+
+  '@pkmn/randoms@0.7.51':
+    resolution: {integrity: sha512-v99M8k5K0F46SfgxG4trvCFmwwKVThfOKsPxpWEdNSnuOVOE9PR2b7EJpLcdxgdosEH9MmppbtMrOVTymst9kQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.51.tgz}
+
+  '@pkmn/randoms@0.7.52':
+    resolution: {integrity: sha512-0MgVKumA1Hzcx294HTPR/M1b7xqIwPi5MhvH2aJAGipJiZFk/14YhfMly5iqgoKjKl6ACmuBNxvS7OKy8PNEng==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.52.tgz}
+
+  '@pkmn/randoms@0.7.53':
+    resolution: {integrity: sha512-4iMtipmF5bNXcOygUXTza9eidq7Tj/8iWBAOKW96sPL0qNICSLUPpxiF8MQf3i6+cMW/8F8y5E3Xu4jtM+CAjg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.53.tgz}
+
+  '@pkmn/randoms@0.7.54':
+    resolution: {integrity: sha512-ikLzX5IQ+G1k1P8fTbdiI1ZIR6XBtungbfods0s1A+L53VOiO4Nmg4Wi2FO8meibYUzDp0s2M9IUEw6PQqIrGw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.54.tgz}
+
+  '@pkmn/randoms@0.7.55':
+    resolution: {integrity: sha512-1YT7IXLP+PzLYxHc9coQ8k1Ru6gdd6fqMB4oTcla41isJVqXZwroumuaG/NHKaIDpn87/yaC3MOMvhElHZhexg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.55.tgz}
+
+  '@pkmn/randoms@0.7.56':
+    resolution: {integrity: sha512-eGz69M9RZkhj3cdCrEOQYG4s6gncX4l32QsuglX1fxHwD8Fj2ZmWy1jjihidnO8TkrGH7oVBKkyvPzWFELjNWg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.56.tgz}
+
+  '@pkmn/randoms@0.7.57':
+    resolution: {integrity: sha512-+kQqBgV5SVqDBPQVwCUnRr6kIVs9fmVhlcOqD5wcDWojb23J6CrBlR+Qi4ma02LM+5XPPcT2jcMPOOUn4FyVLA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.57.tgz}
+
+  '@pkmn/randoms@0.7.58':
+    resolution: {integrity: sha512-qFuBfDsuwK/j4Yi/lkrMFIUCKl5b2pppgiXYuzZvyYXn1Fg/HcZF2lJcvIKj3m1fJZMb+peu7SzGzRyrlcXc4g==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.58.tgz}
+
+  '@pkmn/randoms@0.7.59':
+    resolution: {integrity: sha512-eqpbZh3L/MTxqPtupvyyh9af3WkDeb1UIPFnpc+gpkWo+xV5TEWqOikwGS88CyfgmKm05HKdOrj8LZP9M3ADRA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.7.59.tgz}
+
+  '@pkmn/randoms@0.8.0':
+    resolution: {integrity: sha512-i8t8ttC2omoWo2sFUpsrktuX0pGeyQDGR4Io/Y/p88BJrLq5T+usElemppepNFEBYjJY4JIBSJ7YxpSJSDuxTA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.0.tgz}
+
+  '@pkmn/randoms@0.8.1':
+    resolution: {integrity: sha512-SVm4RgPXnPziSBkUJcSS7+sFytym4PGn5afBGgRr8ETvnrp1exGtuS0sqAiCikgB8m+QfleSoFf0m7uoos+v/w==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.1.tgz}
+
+  '@pkmn/randoms@0.8.2':
+    resolution: {integrity: sha512-pt5qdKBWaUh6XuIvdDIrL0tnWmUBqw2xNG344NrUgGlVg+DhEJAaE7s3GWJSPETrHis1oVucqAMQ1id85sbYRg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.2.tgz}
+
+  '@pkmn/randoms@0.8.3':
+    resolution: {integrity: sha512-n6N+xlR+ySU8PP0RJSTSmyjBQZuuWMQiUqyl+OiFbMKvq1BW+b0lIS9h2gp7BIm2h0ZjbZmyxPvRSUP1QFYbIw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.3.tgz}
+
+  '@pkmn/randoms@0.8.4':
+    resolution: {integrity: sha512-7WEqQvFa93jpaEV2Ev4xUCpco7sdJ48KoqEX/OmJyCTK4kTb869BviOUI5mFf6rnJBBioTVLM+iX3bhCNykceA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.4.tgz}
+
+  '@pkmn/randoms@0.8.5':
+    resolution: {integrity: sha512-W7Qp9peuEIrpQGFjLVdLMuRzFeCInBXvmJR4egiPa25GVeOttpQMKY7f0CpvpLUnMPNR+NJ1OLwH3cKq+K7kZQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.5.tgz}
+
+  '@pkmn/randoms@0.8.6':
+    resolution: {integrity: sha512-7UggO+cW/GagVUKnq0shye/q0Ki0cCwAJmGbONDIEU/XTASB2DS0C9+REZ4JA2+74oBAeQVqNy9o/QWK2nZZjQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.6.tgz}
+
+  '@pkmn/randoms@0.8.7':
+    resolution: {integrity: sha512-QT8J5B6AGO82R1W34ho5PmUSNL0sRbxgNxYGzanhJg69hQ2vRRkWNN62VYVoZzlMW24MfTeLJFr5nID6xRtxoQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.7.tgz}
+
+  '@pkmn/randoms@0.8.8':
+    resolution: {integrity: sha512-4Z3IBmm0auvpl9k5t/NnlQfRgqOBZfbrzLjwLLm8htcJfN36h8j8/7kxeDn9z/YukvCeLFKt4NLFFDS48PyDRg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.8.tgz}
+
+  '@pkmn/randoms@0.8.9':
+    resolution: {integrity: sha512-24IifE1tNKguCCM4e4vYJINOSTBUO+ep7O7NASS4cFaN1n4i4qjer5Iy0Lx6DM8wo5sOZgFDMXhq3D6R5N6KqQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.8.9.tgz}
+
+  '@pkmn/randoms@0.9.0':
+    resolution: {integrity: sha512-NdoJbtun6Qx1l/v9tR7tkERPCTYsGIbqZXH3hDByTI+ikGtuE6YA+eo4r42WjwHbq8GpA9F1gCzRIRUfaxY3rA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.0.tgz}
+
+  '@pkmn/randoms@0.9.1':
+    resolution: {integrity: sha512-bL7BaWCK9oEGgj6izs7XwvC9gE4VdRxPnfMGIlbY2P9uxIMUugnTub4ORDo++FVJQXXCMugvMmVONV6TXjo/LQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.1.tgz}
+
+  '@pkmn/randoms@0.9.10':
+    resolution: {integrity: sha512-obDCu62cQTw4IEaTpq3ncPX5D4PwQn9tsekblMFoDTjK9LbqBgVQsvwdSw1Xc6bUpjiUr5g0uxVvCKuAxlGHbA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.10.tgz}
+
+  '@pkmn/randoms@0.9.11':
+    resolution: {integrity: sha512-zJ8IyuCUzyyT6OZ+tabevAEjViHgCabaBeJPrLdGdNzFbcVCPnefEkrhG9MHo1/Z5dzwGRUXzNrpayCM6mvthw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.11.tgz}
+
+  '@pkmn/randoms@0.9.12':
+    resolution: {integrity: sha512-ObqVC785Y3qwv94kYrHqsKhtnqd0ZdxQGp5YNL+4rnqvWGpQttZsU/RCMLkTHZAf8LnVsfM712DfL/lFZTYvCw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.12.tgz}
+
+  '@pkmn/randoms@0.9.13':
+    resolution: {integrity: sha512-LcJ76Bp90IMxcdSX3EtFyZrG0OkXvOKOnO6oQML/1h0fVY0ZtJLb+wVcYu7jsMswRJ1/OqDfnnvo8zeJx8X+sw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.13.tgz}
+
+  '@pkmn/randoms@0.9.14':
+    resolution: {integrity: sha512-lMvQlQ/DGqEBrQRjJLUeqA3j4SDz2dQhRJw/x0neMNIkPqeCm7fCAdoV9RXZy5QosFFVQLGkHBk3BWwkbH07dg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.14.tgz}
+
+  '@pkmn/randoms@0.9.15':
+    resolution: {integrity: sha512-8yXi9t84U7L6SQIwTQWCGGife5AJb1cdHrzlfSsLA0A0unWpa8yVaXNHgEtqU6IscqYIFZ5Z6r0J2NsSSFyjsQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.15.tgz}
+
+  '@pkmn/randoms@0.9.16':
+    resolution: {integrity: sha512-ObJvrT0Elsev0Wp71Uq6wmIJdDfqpuRQpFdNRAWM/I7FOAjGKQq1QH1tbC897opR0+OMer6Ak5ueldgWTaGbgw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.16.tgz}
+
+  '@pkmn/randoms@0.9.17':
+    resolution: {integrity: sha512-a/CyecW/eprKnKJW+8C45wo8vYSVeDDLYe+hgUCe1tXWflY29a8mFPH7PhuEvNZT2fKBVwlFOtPPsTmIXy+N5Q==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.17.tgz}
+
+  '@pkmn/randoms@0.9.18':
+    resolution: {integrity: sha512-twARSaGvMTIUEvb1n3CdYqQHul+/hjbPVNGuXCtEzLGgSp3wJfkmDQ6MeJ1uutHYEYdPrUtUx49YH3imxr1KDQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.18.tgz}
+
+  '@pkmn/randoms@0.9.19':
+    resolution: {integrity: sha512-Z0xjVoppkt4eWr2vK0q+93DUANWBnyPNgQs0LJnoAKmJh9WGIP0uXsezSrbff3v+XVuviKpthwNcvGp4IhE+Ig==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.19.tgz}
+
+  '@pkmn/randoms@0.9.2':
+    resolution: {integrity: sha512-+2Mdx+JY/SU89e5SHP3nx84fVuYCHZXnDFSNwpfivF5kgnOzHrYGzHJDxFFai6bEjMwOtcIsJP9la8u3Avvcfw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.2.tgz}
+
+  '@pkmn/randoms@0.9.20':
+    resolution: {integrity: sha512-u4lEea9P2fHPbxTAIvk0lvpnINeipVbvlP0qZQkLnbwnPZg1pbP6m2XoXnBa/MW0Xa3cFBKJwuyImiTRs1FiEw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.20.tgz}
+
+  '@pkmn/randoms@0.9.21':
+    resolution: {integrity: sha512-QDXTv2IsDLUGolB9dhhR/PAh+tpG8cGByW4axHDSR3yPfSew/8V8cpBU8jskK/5UeHqb2EBUeiM33kxp2UFmoA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.21.tgz}
+
+  '@pkmn/randoms@0.9.22':
+    resolution: {integrity: sha512-MvYKkEVSp0qLW0mPq8n+wfcUGYJBwlsmZUPog7ZA+7b6+6F9fQoXR3B+Rt+LFhjFvhwzDTjdteOKdtxV8JFloQ==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.22.tgz}
+
+  '@pkmn/randoms@0.9.23':
+    resolution: {integrity: sha512-wxLVSdKiuLveBt6f3U+w8xbyQzr0ZNrlsIfCyi3c7DFPUzNrpkznFTmaw1aG9S/FWD9n1bVrj4LnkzcMF4WfPw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.23.tgz}
+
+  '@pkmn/randoms@0.9.24':
+    resolution: {integrity: sha512-Ijey/DjAPbkDLpFljT8sPuaKy1B4HfkWpnhUsVGEvofcP4hBhJTDI+euExUdYDfubI0AGW7EuHnETgGhw94uJw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.24.tgz}
+
   '@pkmn/randoms@0.9.25':
     resolution: {integrity: sha512-kA4/Dc65xrw+JpySUqLEYyJ3W8Q2lcxxgiwo+byYOkB8x3LWURfaowGX8qqESR50kf2O1/HPRs46VSaceO1Bcw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.25.tgz}
+
+  '@pkmn/randoms@0.9.26':
+    resolution: {integrity: sha512-uptjbEmmWswCjE4No888Abf0Ga40yVNcYkozhA+TpU8aym25JCcSWeemkYxgiAiqrhaMv8HNF+Us4onG7Vrn2Q==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.26.tgz}
+
+  '@pkmn/randoms@0.9.3':
+    resolution: {integrity: sha512-zeC6T4MOxYi3QNDJpuMA2ZRNKLlGRD7nLgZbBHU3zZGpjkDIo8PRK0/Bx+Drs0e4ihCLbtUhBR53xZcvoRiPHA==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.3.tgz}
+
+  '@pkmn/randoms@0.9.4':
+    resolution: {integrity: sha512-lIJbZOlhTrLm+ytVlb/EX1tqgiJO4LnwiPd+43ZlG0zODhuHvM4jMs1tx7ZdCsQaoPJynqZhQDoS3HfELuCrQg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.4.tgz}
+
+  '@pkmn/randoms@0.9.5':
+    resolution: {integrity: sha512-Qj0ROeuIRPdmxhfoAXq0C4tOPd6o014Jf3SeZkJhlKHQoCZtmQbyhnxAq6+jpgmbb5LDfnmq38TNzCVNYTTF7g==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.5.tgz}
+
+  '@pkmn/randoms@0.9.6':
+    resolution: {integrity: sha512-9xZqh98Agc6N/7AlZWXbHROL1e2hve0geotgyEfsxfB8T69Ck47mz02FHiQWbC4p5318OfcV3OANJ2Ix+rPf3Q==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.6.tgz}
+
+  '@pkmn/randoms@0.9.7':
+    resolution: {integrity: sha512-Gl6+Cg9AWNzTRpYYnE+VrPsqJQe2RxmYAqd4HS1tCuERhHVsdFQz9U32bkyC7bk3DjNab730uBEGJEtfYvdnuw==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.7.tgz}
+
+  '@pkmn/randoms@0.9.8':
+    resolution: {integrity: sha512-ZgXr4fXEaaUe9+s52BHe9/nDbdb7edNCdg8IJrzyP/S6LBdrf63HoijYbVhql53gNTYz9FovVvOgfHHBBqd5Xg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.8.tgz}
+
+  '@pkmn/randoms@0.9.9':
+    resolution: {integrity: sha512-vWR02ih5ZOwKuew6AOy3vhpQgGc3iB+bf7KY/2s2ifU3PxTtD6jJehBKv6E2pQ/ZJmmeYW2ES+jG2FKmHMaQMg==, tarball: https://registry.npmjs.org/@pkmn/randoms/-/randoms-0.9.9.tgz}
 
   '@pkmn/sets@5.1.2':
     resolution: {integrity: sha512-eMChlYko92ZdvNKqjcJ2PkzDmSc5kIbaKSrPU/bOnjcrOq8ZGjod3b7KcDxeXrZXQAS027O0uVhwIJbdMDe/Yw==, tarball: https://registry.npmjs.org/@pkmn/sets/-/sets-5.1.2.tgz}
 
+  '@pkmn/sim@0.7.59':
+    resolution: {integrity: sha512-x+q1VaCHxrQ7Wt5WNCElIbiGYfIgUXukVNr2i7M+cWqWegC8xJ8DiHEOk0VnKI1YjesWPb78u+Q29cVDZbI/ag==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.59.tgz}
+
+  '@pkmn/sim@0.8.9':
+    resolution: {integrity: sha512-+Y90pw/o0kE2vDl/hHzOKxoi6MUCWAKhagD+OPtR7FdC4E2OSl0Vaod8D6wBLRkjW+U11JURFoNVwTTOX6lnSA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.9.tgz}
+
   '@pkmn/sim@0.9.25':
     resolution: {integrity: sha512-gWiE3/DQdD89X0BQWkAq7VtFEQ2+C3NTySL7e2qSDHSOAwCvJXn6WFhZ96JoYe28Qg+794w7MvCjN6a4Cs5F/A==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.25.tgz}
+
+  '@pkmn/sim@0.9.26':
+    resolution: {integrity: sha512-9EE/xJrlpmb/8ooGmGiv8HHl7sIeMVqSj7S9z2CsJaGkTgEkHoymyuSvAq/7+HvnR/oNnmZjbWLQRtLeUiHQkg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.26.tgz}
 
   '@pkmn/streams@1.1.0':
     resolution: {integrity: sha512-Pp9k7gt4xd76DqTU+LQEUyzuaauM4bV1MlehVtX1NS7o9zMFtjw50MfaEQ62dIMZyzxNjsJGoLGBeY1iSYLsRA==, tarball: https://registry.npmjs.org/@pkmn/streams/-/streams-1.1.0.tgz}
@@ -1250,15 +1769,362 @@ snapshots:
     dependencies:
       '@pkmn/types': 4.0.0
 
+  '@pkmn/randoms@0.7.13':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.14':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.15':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.16':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.17':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.18':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.19':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.20':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.21':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.22':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.23':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.24':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.25':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.26':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.27':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.28':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.29':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.30':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.31':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.32':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.33':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.34':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.35':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.36':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.37':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.38':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.39':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.40':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.41':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.42':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.43':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.44':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.45':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.46':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.47':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.48':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.49':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.50':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.51':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.52':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.53':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.54':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.55':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.56':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.57':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.58':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.7.59':
+    dependencies:
+      '@pkmn/sim': 0.7.59
+
+  '@pkmn/randoms@0.8.0':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.1':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.2':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.3':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.4':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.5':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.6':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.7':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.8':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.8.9':
+    dependencies:
+      '@pkmn/sim': 0.8.9
+
+  '@pkmn/randoms@0.9.0':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.1':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.10':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.11':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.12':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.13':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.14':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.15':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.16':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.17':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.18':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.19':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.2':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.20':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.21':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.22':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.23':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.24':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
   '@pkmn/randoms@0.9.25':
     dependencies:
-      '@pkmn/sim': 0.9.25
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.26':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.3':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.4':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.5':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.6':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.7':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.8':
+    dependencies:
+      '@pkmn/sim': 0.9.26
+
+  '@pkmn/randoms@0.9.9':
+    dependencies:
+      '@pkmn/sim': 0.9.26
 
   '@pkmn/sets@5.1.2':
     dependencies:
       '@pkmn/types': 4.0.0
 
+  '@pkmn/sim@0.7.59':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.9':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
   '@pkmn/sim@0.9.25':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.26':
     dependencies:
       '@pkmn/sets': 5.1.2
       '@pkmn/streams': 1.1.0

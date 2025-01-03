@@ -20,4 +20,3 @@ for await (const line of rl) {
     counts.set(pfx, (counts.get(pfx) ?? 0) + 1)
   }
 }
-console.log(counts)

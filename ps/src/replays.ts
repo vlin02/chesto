@@ -13,11 +13,12 @@ const replayApi = new Pool("https://replay.pokemonshowdown.com/", {
   pipelining: 50
 })
 
-type Replay = {
+export type Replay = {
   uploadtime: number
   players: [string, string]
   rating: number
   id: string
+  inputlog: string
 }
 
 export async function fetchReplays(formatId: string) {

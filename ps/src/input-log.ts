@@ -1,5 +1,6 @@
-import { Battle, ID, PRNGSeed, toID } from "@pkmn/sim"
+import { ID, PRNGSeed, toID } from "@pkmn/sim"
 import { Side } from "./battle.js"
+import { Battle } from "./version.js"
 
 export function seekToStart(lines: string[], i: number) {
   let mark = { start: false, p1: false, p2: false }
@@ -48,7 +49,6 @@ export function seekToStart(lines: string[], i: number) {
 }
 
 export function register(battle: Battle, input: string) {
-  console.log(input)
   let j = input.indexOf(" ")
   const type = input.slice(1, j)
 
