@@ -8,6 +8,7 @@
     "@pkmn/dex": "^0.9.25",
     "@pkmn/randoms": "^0.9.25",
     "@pkmn/sim": "^0.9.25",
+    "undici": "^7.2.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
