@@ -95,11 +95,22 @@
     "@pkmn/sim-0.7.59": "npm:@pkmn/sim@0.7.59",
     "@pkmn/sim-0.8.9": "npm:@pkmn/sim@0.8.9",
     "@pkmn/sim-0.9.26": "npm:@pkmn/sim@0.9.26",
+    "bson": "^6.10.1",
+    "event-stream": "^4.0.1",
+    "protobufjs": "^7.4.0",
+    "split": "^1.0.1",
+    "split2": "^4.2.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "undici": "^7.2.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@types/ws": "^8.5.13"
+    "@types/split": "^1.0.5",
+    "@types/split2": "^4.2.3",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }

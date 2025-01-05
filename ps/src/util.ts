@@ -13,3 +13,11 @@ export function compare<T, V extends Comparable[]>(fn: (x: T) => V, dir: (1 | -1
     return 0
   }
 }
+
+export function partition<T>(arr: T[], size: number) {
+  const bins: T[][] = []
+  for (let i = 0; i < arr.length; i += size) {
+    bins.push(arr.slice(i, i + size))
+  }
+  return bins
+}

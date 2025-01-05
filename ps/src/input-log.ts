@@ -48,9 +48,9 @@ export function seekToStart(lines: string[], i: number) {
   throw Error()
 }
 
-export function register(battle: Battle, input: string) {
+export function apply(battle: Battle, input: string) {
   let j = input.indexOf(" ")
-  const type = input.slice(1, j)
+  const type = input.slice(1, j === -1 ? undefined : j)
 
   switch (type) {
     case "p1":

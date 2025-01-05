@@ -1,22 +1,15 @@
-import { createReadStream } from "fs"
-import { Listener } from "../listener.js"
-import { apply as apply, seekToStart } from "../input-log.js"
-import { VersionRegistry } from "../version.js"
-import { createInterface } from "readline"
-import { Replay } from "../replays.js"
+import { parentPort, workerData } from "worker_threads"
+import { Replay } from "./replays.js"
+import { apply, seekToStart } from "./input-log.js"
+import { Listener } from "./listener.js"
+import { VersionRegistry } from "./version.js"
 
+const lines: string[] = workerData
 
-const replaysStream = createReadStream("data/replays-2.jsonl")
-const lines = createInterface({
-  input: replaysStream,
-  crlfDelay: Infinity
-})
+for (const line of lines) {
+  const { id, uploadtime, inputlog }: Replay = JSON.parse(line)
 
-let cnt = 0
-
-for await (const line of lines) {
-  if (7884 < cnt) {
-    const { uploadtime, inputlog }: Replay = JSON.parse(line)
+  try {
     const inputs = inputlog.split("\n")
 
     let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
@@ -48,9 +41,8 @@ for await (const line of lines) {
       apply(battle, inputs[i])
       i += 1
     }
-
-    console.log(cnt)
+    parentPort!.postMessage(["done", id])
+  } catch (err) {
+    parentPort!.postMessage(["error", id])
   }
-
-  cnt += 1
 }
