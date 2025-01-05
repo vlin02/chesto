@@ -1,9 +1,9 @@
 export class BlockReader {
   private leftover: Buffer = Buffer.alloc(0)
 
-  load(chunk: Buffer): Buffer[] {
+  load(chunk: Buffer) {
     const seq = Buffer.concat([this.leftover, chunk])
-    const blocks: Buffer[] = []
+    const blocks = []
     let i = 0
 
     while (i + 4 <= seq.length) {
@@ -16,10 +16,12 @@ export class BlockReader {
     this.leftover = seq.subarray(i)
     return blocks
   }
-
-  static prefix(num: number): Buffer {
-    const buffer = Buffer.alloc(4)
-    buffer.writeUInt32BE(num)
-    return buffer
-  }
 }
+
+export function toUInt(num: number): Buffer {
+  const buffer = Buffer.alloc(4)
+  buffer.writeUInt32BE(num)
+  return buffer
+}
+
+export const CHUNK_SIZE = 1_000_000

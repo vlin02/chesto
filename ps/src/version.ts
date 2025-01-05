@@ -1,7 +1,7 @@
 import { Battle as Battle_0_8 } from "@pkmn/sim-0.8.9"
 import { Battle as Battle_0_9 } from "@pkmn/sim-0.9.26"
 
-export type Battle = Battle_0_8 | Battle_0_9
+export type AnyBattle = Battle_0_8 | Battle_0_9
 
 type Release = {
   timestamp: string
@@ -96,7 +96,7 @@ const RELEASES: Release[] = [
   { timestamp: "2025-01-01T19:18:37.073Z", randoms: "0.9.26", sim: "0.9.26" }
 ] as const
 
-export class VersionRegistry {
+export class VersionManager {
   desc: [number, Release][]
   randoms: Map<string, any>
   sim: Map<string, any>

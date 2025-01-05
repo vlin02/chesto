@@ -1,7 +1,7 @@
 import { parentPort } from "worker_threads"
 import { Replay } from "./replays.js"
-import { apply, seekToStart } from "./input-log.js"
-import { VersionRegistry } from "./version.js"
+import { VersionManager } from "./version.js"
+import { seekToStart, apply } from "./protocol.js"
 
 parentPort!.on("message", async (line: string) => {
   const replay: Replay = JSON.parse(line)
@@ -12,7 +12,7 @@ parentPort!.on("message", async (line: string) => {
 
   let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
 
-  const registry = new VersionRegistry()
+  const registry = new VersionManager()
   const Battle = await registry.setByUnixSeconds(uploadtime)
   if (!Battle) throw Error()
 

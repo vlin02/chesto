@@ -1,6 +1,39 @@
-import { ID, PRNGSeed, toID } from "@pkmn/sim"
-import { Side } from "./battle.js"
-import { Battle } from "./version.js"
+import { toID, ID, PRNGSeed } from "@pkmn/sim"
+import { AnyBattle } from "./version.js"
+
+export type Side = "p1" | "p2"
+export const SIDES = ["p1", "p2"] as const
+
+export type Decision =
+  | {
+      type: "switch"
+      i: 0 | 1 | 2 | 3 | 4 | 5
+    }
+  | {
+      type: "move"
+      i: 0 | 1 | 2 | 3
+      event?: "zmove" | "ultra" | "mega" | "dynamax" | "terastallize"
+    }
+  | {
+      type: "auto"
+    }
+
+export function make(x: Decision) {
+  switch (x.type) {
+    case "switch": {
+      const { i } = x
+      return `switch ${i + 1}`
+    }
+    case "move": {
+      const { i, event } = x
+      let cmd = `move ${i + 1}`
+      return event ? `${cmd} ${event}` : cmd
+    }
+    case "auto": {
+      return "default"
+    }
+  }
+}
 
 export function seekToStart(lines: string[], i: number) {
   let mark = { start: false, p1: false, p2: false }
@@ -48,7 +81,7 @@ export function seekToStart(lines: string[], i: number) {
   throw Error()
 }
 
-export function apply(battle: Battle, input: string) {
+export function apply(battle: AnyBattle, input: string) {
   let j = input.indexOf(" ")
   const type = input.slice(1, j === -1 ? undefined : j)
 

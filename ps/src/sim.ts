@@ -20,7 +20,7 @@ let done = false
 const inflight = () => nSent - nFinished
 
 const workers = [...Array(7)].map(() => {
-  const w = new Worker(resolve(import.meta.dirname, "b.js"))
+  const w = new Worker(resolve(import.meta.dirname, "sim-w.js"))
 
   w.on("message", (output) => {
     nFinished++

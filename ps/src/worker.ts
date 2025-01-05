@@ -1,8 +1,8 @@
 import { parentPort, workerData } from "worker_threads"
 import { Replay } from "./replays.js"
 import { apply, seekToStart } from "./input-log.js"
-import { Listener } from "./listener.js"
-import { VersionRegistry } from "./version.js"
+import { Client } from "./client.js"
+import { VersionManager } from "./version.js"
 
 const lines: string[] = workerData
 
@@ -14,9 +14,9 @@ for (const line of lines) {
 
     let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
 
-    const listener = new Listener()
+    const listener = new Client()
 
-    const registry = new VersionRegistry()
+    const registry = new VersionManager()
     const Battle = await registry.setByUnixSeconds(uploadtime)
     if (!Battle) throw Error()
 
@@ -36,7 +36,7 @@ for (const line of lines) {
 
     while (i < inputs.length) {
       battle.sendUpdates()
-      listener.flush()
+      listener.consume()
 
       apply(battle, inputs[i])
       i += 1
