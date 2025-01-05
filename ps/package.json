@@ -6,6 +6,7 @@
     "@pkmn/client": "^0.6.30",
     "@pkmn/data": "^0.9.25",
     "@pkmn/dex": "^0.9.25",
+    "@pkmn/protocol": "^0.6.30",
     "@pkmn/randoms": "^0.9.26",
     "@pkmn/randoms-0.7.13": "npm:@pkmn/randoms@0.7.13",
     "@pkmn/randoms-0.7.14": "npm:@pkmn/randoms@0.7.14",

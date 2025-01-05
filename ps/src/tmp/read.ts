@@ -39,12 +39,12 @@ for await (const chunk of reader) {
     const replay = deserialize(block)
     const { log } = replay
 
-    const buf = serialize({
-      ...replay,
-      log: log.map(toLog)
-    })
-    writer.write(toUInt(buf.byteLength))
-    writer.write(buf)
+    // const buf = serialize({
+    //   ...replay,
+    //   log: log.map(toLog)
+    // })
+    // writer.write(toUInt(buf.byteLength))
+    // writer.write(buf)
 
     if (++i % 1000 === 0) console.log(i)
   }

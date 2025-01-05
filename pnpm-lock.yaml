@@ -25,6 +25,9 @@ importers:
       '@pkmn/dex':
         specifier: ^0.9.25
         version: 0.9.25
+      '@pkmn/protocol':
+        specifier: ^0.6.30
+        version: 0.6.30
       '@pkmn/randoms':
         specifier: ^0.9.26
         version: 0.9.26

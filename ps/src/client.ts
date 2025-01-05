@@ -4,10 +4,14 @@ import { Dex } from "@pkmn/dex"
 import { Side, SIDES } from "./protocol.js"
 import { compare } from "./util.js"
 import { Log } from "./replay.js"
+import { Protocol } from "@pkmn/protocol"
 
 export type Event = ["choice", { side: Side; retry: boolean }] | ["turn"] | ["end"]
 
-export function toLog([type, v]: ["update", string[]] | ["sideupdate", string] | ["end", string]): Log {
+export function toLog([type, v]:
+  | ["update", string[]]
+  | ["sideupdate", string]
+  | ["end", string]): Log {
   switch (type) {
     case "update": {
       return [type, v]
@@ -25,11 +29,14 @@ export function toLog([type, v]: ["update", string[]] | ["sideupdate", string] |
           }
         ]
       } else {
-        return [type, { side, type: "request", request: JSON.parse(v.slice(j + 1)) }]
+        return [
+          type,
+          { side, type: "request", request: Protocol.parseRequest(v.slice(j + 1) as any) }
+        ]
       }
     }
     case "end": {
-      return [type, JSON.parse(v)]
+      return [type]
     }
   }
 }
@@ -98,8 +105,6 @@ export class Client {
             case "request": {
               const p = this[side]
               const { request } = v
-              console.log(request)
-              if (request.wait)
 
               p.request = request
               p.requestStatus = "applicable"
