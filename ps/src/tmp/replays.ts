@@ -1,56 +1,39 @@
-import { createReadStream } from "fs"
-import { Client } from "../client.js"
+import { Observer } from "../client.js"
+import { seekToStart } from "../protocol.js"
+import { Replay, Log } from "../replay.js"
 import { VersionManager } from "../version.js"
-import { createInterface } from "readline"
-import { Replay } from "../replays.js"
-import { apply, seekToStart } from "../protocol.js"
 
+async function processBattle({ uploadtime }: Replay, inputs: string[]) {
+  let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
 
-const replaysStream = createReadStream("data/replays-2.jsonl")
-const lines = createInterface({
-  input: replaysStream,
-  crlfDelay: Infinity
-})
+  const obs = new Observer()
 
-let cnt = 0
+  const registry = new VersionManager()
+  const Battle = await registry.setByUnixSeconds(uploadtime)
+  if (!Battle) throw Error()
 
-for await (const line of lines) {
-  if (7884 < cnt) {
-    const { uploadtime, inputlog }: Replay = JSON.parse(line)
-    const inputs = inputlog.split("\n")
+  let logs: Log[] = []
 
-    let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
+  const battle = new Battle({
+    formatid: formatId,
+    seed: seed.battle,
+    p1: {
+      name: "p1",
+      seed: seed.p1
+    },
+    p2: {
+      name: "p2",
+      seed: seed.p2
+    },
+    send: (...log) => logs.push(log as Log)
+  })
 
-    const listener = new Client()
+  while (i < inputs.length) {
+    battle.sendUpdates()
+    obs.consume(logs)
+    logs = []
 
-    const registry = new VersionManager()
-    const Battle = await registry.setByUnixSeconds(uploadtime)
-    if (!Battle) throw Error()
-
-    const battle = new Battle({
-      formatid: formatId,
-      seed: seed.battle,
-      p1: {
-        name: "p1",
-        seed: seed.p1
-      },
-      p2: {
-        name: "p2",
-        seed: seed.p2
-      },
-      send: listener.receive
-    })
-
-    while (i < inputs.length) {
-      battle.sendUpdates()
-      listener.consume()
-
-      apply(battle, inputs[i])
-      i += 1
-    }
-
-    console.log(cnt)
+    apply(battle, inputs[i])
+    i += 1
   }
-
-  cnt += 1
 }

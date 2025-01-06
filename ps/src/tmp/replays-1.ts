@@ -1,7 +1,4 @@
-import { format } from "url"
 import { Pool } from "undici"
-import { createWriteStream } from "fs"
-import stream from "stream/promises"
 
 const api = new Pool("https://pokemonshowdown.com", {
   connections: 10,
@@ -12,14 +9,6 @@ const replayApi = new Pool("https://replay.pokemonshowdown.com/", {
   connections: 2000,
   pipelining: 50
 })
-
-export type Replay = {
-  uploadtime: number
-  players: [string, string]
-  rating: number
-  id: string
-  inputlog: string
-}
 
 // export async function fetchReplays(formatId: string) {
 //   let { body } = await api.request({

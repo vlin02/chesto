@@ -1,9 +1,9 @@
 import { createReadStream, createWriteStream } from "fs"
-import { deserialize, serialize } from "v8"
+import { deserialize } from "v8"
 import { constants, createGunzip, createGzip } from "zlib"
-import { BlockReader, CHUNK_SIZE, toUInt } from "../stream.js"
+import { BlockReader, CHUNK_SIZE } from "../stream.js"
 import { finished } from "stream/promises"
-import { toLog } from "../client.js"
+import { Observer } from "../client.js"
 
 export function gunzip(path: string) {
   return createReadStream(path, { highWaterMark: CHUNK_SIZE }).pipe(
@@ -38,6 +38,9 @@ for await (const chunk of reader) {
   for (const block of blockr.load(chunk)) {
     const replay = deserialize(block)
     const { log } = replay
+
+    const client = new Observer()
+    client.consume(log)
 
     // const buf = serialize({
     //   ...replay,

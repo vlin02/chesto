@@ -1,7 +1,7 @@
 import { parentPort } from "worker_threads"
-import { Replay } from "./replays.js"
 import { VersionManager } from "./version.js"
 import { seekToStart, apply } from "./protocol.js"
+import { Replay } from "./replay.js"
 
 parentPort!.on("message", async (line: string) => {
   const replay: Replay = JSON.parse(line)

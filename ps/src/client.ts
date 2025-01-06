@@ -4,44 +4,10 @@ import { Dex } from "@pkmn/dex"
 import { Side, SIDES } from "./protocol.js"
 import { compare } from "./util.js"
 import { Log } from "./replay.js"
-import { Protocol } from "@pkmn/protocol"
 
 export type Event = ["choice", { side: Side; retry: boolean }] | ["turn"] | ["end"]
 
-export function toLog([type, v]:
-  | ["update", string[]]
-  | ["sideupdate", string]
-  | ["end", string]): Log {
-  switch (type) {
-    case "update": {
-      return [type, v]
-    }
-    case "sideupdate": {
-      const side = v.slice(0, 2) as Side
-      let j = v.indexOf("|", 4)
-      if (v.startsWith("error", 4)) {
-        return [
-          type,
-          {
-            side,
-            type: "error",
-            message: v.slice(j + 1)
-          }
-        ]
-      } else {
-        return [
-          type,
-          { side, type: "request", request: Protocol.parseRequest(v.slice(j + 1) as any) }
-        ]
-      }
-    }
-    case "end": {
-      return [type]
-    }
-  }
-}
-
-export class Client {
+export class Observer {
   p1: Battle
   p2: Battle
 
@@ -88,36 +54,32 @@ export class Client {
           break
         }
         case "sideupdate": {
-          const { side } = v
+          const line = v as string
 
-          switch (v.type) {
-            case "error": {
-              events.push([
-                "choice",
-                {
-                  side,
-                  retry: true
-                }
-              ])
+          const side = line.slice(0, 2) as Side
+          const p = this[side]
+          
+          p.add(line.slice(3))
 
-              break
-            }
-            case "request": {
-              const p = this[side]
-              const { request } = v
+          if (line.startsWith("request", 4)) {
+            p.update()
+            p.update()
 
-              p.request = request
-              p.requestStatus = "applicable"
-              p.update()
-
-              events.push([
-                "choice",
-                {
-                  side,
-                  retry: false
-                }
-              ])
-            }
+            events.push([
+              "choice",
+              {
+                side,
+                retry: false
+              }
+            ])
+          } else {
+            events.push([
+              "choice",
+              {
+                side,
+                retry: true
+              }
+            ])
           }
 
           break
