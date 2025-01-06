@@ -1,4 +1,4 @@
-import { Observer } from "../client.js"
+import { Observer } from "../observer.js"
 import { deserialize } from "v8"
 import { createWorker } from "./dist.js"
 

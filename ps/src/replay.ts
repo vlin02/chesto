@@ -1,4 +1,9 @@
-export type Log = ["update", string[]] | ["sideupdate", string] | ["end"]
+import { Side } from "./protocol.js"
+
+export type Log =
+  | ["update", string[]]
+  | ["sideupdate", Side, ...(["request", any] | ["error", string])]
+  | ["end"]
 
 export type Replay = {
   id: string

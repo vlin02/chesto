@@ -3,7 +3,7 @@ import { deserialize } from "v8"
 import { constants, createGunzip, createGzip } from "zlib"
 import { BlockReader, CHUNK_SIZE } from "../stream.js"
 import { finished } from "stream/promises"
-import { Observer } from "../client.js"
+import { Observer } from "../observer.js"
 
 export function gunzip(path: string) {
   return createReadStream(path, { highWaterMark: CHUNK_SIZE }).pipe(
