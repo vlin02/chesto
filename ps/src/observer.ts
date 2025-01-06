@@ -4,7 +4,6 @@ import { Dex } from "@pkmn/dex"
 import { Side, SIDES } from "./protocol.js"
 import { compare } from "./util.js"
 import { Log } from "./replay.js"
-import { parseRequest } from "./ps.js"
 
 export type Event = ["choice", { side: Side; retry: boolean }] | ["turn"] | ["end"]
 
@@ -20,13 +19,11 @@ export class Observer {
   consume(logs: Log[]) {
     let events: Event[] = []
 
-    for (const log of logs) {
-      const [type] = log
-
+    for (const [type, v] of logs) {
       switch (type) {
         case "update": {
           let j = 0
-          const lines = log[1]
+          const lines = v
 
           while (j < lines.length) {
             const line = lines[j]
@@ -57,14 +54,15 @@ export class Observer {
           break
         }
         case "sideupdate": {
-          const [, ...rest] = log
-          const [side, type, v] = rest
+          const line = v as string
 
+          const side = line.slice(0, 2) as Side
           const p = this[side]
 
-          if (type === "request") {
-            p.request = parseRequest(v)
-            p.requestStatus = "applicable"
+          p.add(line.slice(3))
+
+          if (line.startsWith("request", 4)) {
+            p.update()
             p.update()
 
             events.push([
