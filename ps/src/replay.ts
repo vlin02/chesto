@@ -29,11 +29,9 @@ export async function playback(uploadtime: number, inputs: string[]) {
     formatid: formatId,
     seed: seed.battle,
     p1: {
-      name: "p1",
       seed: seed.p1
     },
     p2: {
-      name: "p2",
       seed: seed.p2
     },
     send: (...log) => logs.push(log as Log)
