@@ -19,9 +19,10 @@ export type Replay = {
 export async function playback(uploadtime: number, inputs: string[]) {
   let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
 
-  const registry = new VersionManager()
-  const Battle = await registry.setByUnixSeconds(uploadtime)
-  if (!Battle) throw Error()
+  const vm = new VersionManager()
+  const release = vm.getNearest(uploadtime)
+  if (!release) throw Error()
+  const { Battle } = await vm.set(release)
 
   let logs: Log[] = []
 

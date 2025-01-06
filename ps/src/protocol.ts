@@ -68,8 +68,8 @@ export function seekToStart(lines: string[], i: number) {
       return [
         state as {
           formatId: ID
-          battle: PRNGSeed
           rated: boolean
+          battle: PRNGSeed
           p1: PRNGSeed
           p2: PRNGSeed
         },

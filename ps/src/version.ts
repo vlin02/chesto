@@ -111,24 +111,26 @@ export class VersionManager {
     this.sim = new Map()
   }
 
-  async setByUnixSeconds(unix: number) {
-    for (const [unix1, { randoms, sim }] of this.desc) {
+  getNearest(unix: number) {
+    for (const [unix1, release] of this.desc) {
       if (unix1 < unix) {
-        if (!this.randoms.has(randoms)) {
-          this.randoms.set(randoms, await import(`@pkmn/randoms-${randoms}`))
-        }
-        if (!this.sim.has(sim)) {
-          this.sim.set(sim, await import(`@pkmn/sim-${sim}`))
-        }
-
-        const { Teams, Battle } = this.sim.get(sim)
-        const { TeamGenerators } = this.randoms.get(randoms)
-        Teams.setGeneratorFactory(TeamGenerators)
-
-        return Battle as typeof Battle_0_8 | typeof Battle_0_9
+        return release
       }
     }
+  }
 
-    return false
+  async set({ randoms, sim }: Release) {
+    if (!this.randoms.has(randoms)) {
+      this.randoms.set(randoms, await import(`@pkmn/randoms-${randoms}`))
+    }
+    if (!this.sim.has(sim)) {
+      this.sim.set(sim, await import(`@pkmn/sim-${sim}`))
+    }
+
+    const { Teams, Battle } = this.sim.get(sim)
+    const { TeamGenerators } = this.randoms.get(randoms)
+    Teams.setGeneratorFactory(TeamGenerators)
+
+    return { Battle } as { Battle: typeof Battle_0_8 | typeof Battle_0_9 }
   }
 }

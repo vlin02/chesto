@@ -53,10 +53,6 @@ export function extractBattle(battle: Battle) {
     canUltraBurst,
     canMegaEvo
   } of p1.team) {
-    /*
-    stats direct calculation
-    */
-
     return {
       species_num: species.num,
       hp,
