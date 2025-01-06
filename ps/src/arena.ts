@@ -1,49 +1,54 @@
-// import cluster from "cluster"
-// import { WebSocketServer } from "ws"
-// import { toID } from "@pkmn/sim"
-// import { Battle } from "@pkmn/sim"
-// import { Observer } from "./client.js"
-// import { Decision, make, Side } from "./protocol.js"
+import cluster from "cluster"
+import { WebSocketServer } from "ws"
+import { toID } from "@pkmn/sim"
+import { Battle } from "@pkmn/sim"
+import { Decision, make, Side } from "./protocol.js"
+import { Observer } from "./observer.js"
+import { Log } from "./replay.js"
 
-// type Message = {
-//   side: Side
-//   decision: Decision
-// }
+type Message = {
+  side: Side
+  decision: Decision
+}
 
-// if (cluster.isPrimary) {
-//   for (let i = 0; i < 5; i++) {
-//     cluster.fork()
-//   }
-// } else {
-//   const wss = new WebSocketServer({ port: 8080 })
+const CORES = 7
 
-//   wss.on("connection", async (ws) => {
-//     const listener = new Observer()
+if (cluster.isPrimary) {
+  for (let i = 0; i < CORES; i++) {
+    cluster.fork()
+  }
+} else {
+  const wss = new WebSocketServer({ port: 8080 })
 
-//     const battle = new Battle({
-//       formatid: toID("gen9randombattle"),
-//       send: listener.receive,
-//       p1: {},
-//       p2: {}
-//     })
+  wss.on("connection", async (ws) => {
+    const observer = new Observer()
+    let logs: Log[] = []
 
-//     function sync() {
-//       const events = listener.flush()
-//       console.log(events)
-//       ws.send(JSON.stringify(events))
-//     }
+    const battle = new Battle({
+      formatid: toID("gen9randombattle"),
+      p1: {},
+      p2: {},
+      send: (...log) => logs.push(log as Log)
+    })
 
-//     ws.on("message", (data) => {
-//       const {side, decision}: Message = JSON.parse(data.toString())
-//       battle.choose(side, make(decision))
-//       sync()
-//     })
+    function update() {
+      battle.sendUpdates()
+      ws.send(JSON.stringify(observer.consume(logs)))
+      logs = []
+    }
 
-//     ws.on("close", () => {
-//       battle.destroy()
-//       console.log("closed")
-//     })
+    ws.on("message", (data) => {
+      const { side, decision }: Message = JSON.parse(data.toString())
+      battle.choose(side, make(decision))
 
-//     sync()
-//   })
-// }
+      update()
+    })
+
+    ws.on("close", () => {
+      battle.destroy()
+      console.log("closed")
+    })
+
+    update()
+  })
+}
