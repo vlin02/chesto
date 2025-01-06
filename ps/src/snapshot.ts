@@ -1,6 +1,6 @@
 import { Battle } from "@pkmn/client"
 
-export function parse(battle: Battle) {
+export function extractBattle(battle: Battle) {
   const { p1, p2 } = battle
 
   for (const {
@@ -57,7 +57,6 @@ export function parse(battle: Battle) {
     stats direct calculation
     */
 
-
     return {
       species_num: species.num,
       hp,
@@ -90,15 +89,14 @@ export function parse(battle: Battle) {
       name,
       nature,
       hpType,
-      volatiles,
+      volatiles: !!volatiles,
       statusStage,
       statusState,
       weighthg,
       speciesForme,
       position,
       evs,
-      ivs,
-
+      ivs
     }
   }
 }
