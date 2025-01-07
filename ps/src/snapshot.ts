@@ -4,95 +4,131 @@ export function extractBattle(battle: Battle) {
   const { p1, p2 } = battle
 
   for (const {
-    species,
-    hp,
-    maxhp,
+    // CONSIDERED
+    // does opp team poke have set ?
+    set,
+
     level,
     gender,
-    shiny,
-    baseMaxhp,
-    fainted,
-    status,
-    teraType,
     terastallized,
-    canTerastallize,
-    trapped,
-    timesAttacked,
-    hurtThisTurn,
-    volatiles,
-    hpcolor,
-    newlySwitched,
-    beingCalledBack,
+    hp,
+    maxhp,
+    baseMaxhp,
+    status,
+    fainted,
+    boosts,
+
+    // find cases where these are true ?
+    maybeTrapped,
+    maybeDisabled,
+
     statusStage,
     statusState,
-    boosts,
-    ability,
-    baseAbility,
+    volatiles,
+
+    item,
+    // is this any different than set nature ?
+    canTerastallize,
+    trapped,
+    moveSlots,
+
+    moveThisTurn,
+    hurtThisTurn,
+
+    weighthg,
+    types,
+    addedType,
+    switching,
+
+    isGrounded,
+    effectiveAbility,
+    isActive,
+
+    speciesForme,
+
+    // NOT BEING CONSIDERED
+
+    // only applies to zoroark
     illusion,
     revealedDetails,
-    item,
-    itemEffect,
+
+    // used to calculate item
     lastItem,
+
+    // not very relevant
+    itemEffect,
     lastItemEffect,
-    teamPreviewItem,
-    name,
-    nature,
-    hpType,
-    weighthg,
-    speciesForme,
-    position,
-    evs,
-    ivs,
-    moveSlots,
-    moveThisTurn,
+    lastMove,
+    lastMoveTargetLoc,
     movesUsedWhileActive,
+    timesAttacked,
+
+    // not applicable to randbat
+    teamPreviewItem,
+
+    // contextual
+    side,
+    slot,
+
+    // cosmetic
+    shiny,
+    name,
+    hpcolor,
+    // what is this for each team member?
+    originalIdent,
+    // make sure all of these details are included in the poke ?
+    searchid,
+    // does opp team update details ?
+    details,
+
+    // species forme - forme changes
+    baseSpeciesForme,
+
+    // prefer speciesForme
+    species,
+    baseSpecies,
+
+    // from set
+    ivs,
+    evs,
+    happiness,
+    hpType,
+    nature,
+
+    // same as slot
+    position,
+    // not useful in 1v1
+    ident,
+
+    // covered by effective ability
+    ability,
+    baseAbility,
+
+    // used by types
+    actualTypes,
+
+    // encoded by switching
+    newlySwitched,
+    beingCalledBack,
+
+    // not applicable to gen 9
     maxMoves,
     zMoves,
     canDynamax,
     canGigantamax,
+    canMegaEvo,
     canUltraBurst,
-    canMegaEvo
+
+    // derived from terastallize
+    teraType,
+    isTerastallized,
+
+    // derived from moveslots
+    moves,
+
+    //derived from this.item
+    hasItem
   } of p1.team) {
-    return {
-      species_num: species.num,
-      hp,
-      maxhp,
-      level,
-      gender,
-      shiny,
-      baseMaxhp,
-      fainted,
-      status,
-      teraType,
-      terastallized,
-      canTerastallize,
-      trapped,
-      timesAttacked,
-      hurtThisTurn,
-      hpcolor,
-      newlySwitched,
-      beingCalledBack,
-      boosts,
-      ability,
-      baseAbility,
-      illusion: !!illusion,
-      revealedDetails,
-      item,
-      itemEffect,
-      lastItem,
-      lastItemEffect,
-      teamPreviewItem,
-      name,
-      nature,
-      hpType,
-      volatiles: !!volatiles,
-      statusStage,
-      statusState,
-      weighthg,
-      speciesForme,
-      position,
-      evs,
-      ivs
-    }
+    return {}
   }
 }

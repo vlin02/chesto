@@ -1,7 +1,7 @@
 import { Battle } from "@pkmn/client"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
-import { Side, SIDES } from "./protocol.js"
+import { Side, SIDES } from "./battle.js"
 import { compare } from "./util.js"
 import { Log } from "./replay.js"
 

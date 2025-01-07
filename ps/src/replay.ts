@@ -1,48 +1,75 @@
-import { ObjectId } from "mongodb"
-import { apply, seekToStart } from "./protocol.js"
-import { VersionManager } from "./version.js"
+import { ID, PRNGSeed, toID } from "@pkmn/sim"
+import { AnyBattle } from "./version.js"
+import { Side } from "./battle.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 
-export type Replay = {
-  _id: ObjectId
-  id: string
-  uploadtime: number
-  players: [string, string]
-  rating: number
-  private: number
-  password: string | null
-  log: Log[]
-  inputlog: string
+type Header = {
+  formatId: ID
+  rated: boolean
+  seed: {
+    battle: PRNGSeed
+    p1: PRNGSeed
+    p2: PRNGSeed
+  }
 }
 
-export async function playback(uploadtime: number, inputs: string[]) {
-  let [{ formatId, ...seed }, i] = seekToStart(inputs, 0)
+export function seekToStart(lines: string[], i: number) {
+  let mark = { start: false, p1: false, p2: false }
+  let header: any = { seed: {} }
 
-  const vm = new VersionManager()
-  const release = vm.getNearest(uploadtime)
-  if (!release) throw Error()
-  const { Battle } = await vm.set(release)
+  for (; i < lines.length; i++) {
+    const line = lines[i]
+    let j = line.indexOf(" ")
+    const type = line.slice(0, j)
+    switch (type) {
+      case ">start": {
+        const { formatid, seed, rated } = JSON.parse(line.slice(j + 1))
+        header.seed.battle = seed
+        header.formatId = toID(formatid)
+        header.rated = rated
+        mark.start = true
+        break
+      }
+      case ">player": {
+        let k = line.indexOf(" ", j + 1)
+        const side = line.slice(j + 1, k) as Side
+        const { seed } = JSON.parse(line.slice(k + 1))
 
-  let logs: Log[] = []
+        header.seed[side] = seed
+        mark[side] = true
+        break
+      }
+    }
 
-  const battle = new Battle({
-    formatid: formatId,
-    seed: seed.battle,
-    p1: {
-      seed: seed.p1
-    },
-    p2: {
-      seed: seed.p2
-    },
-    send: (...log) => logs.push(log as Log)
-  })
-
-  while (i < inputs.length) {
-    battle.sendUpdates()
-    apply(battle, inputs[i])
-    i += 1
+    const { p1, p2, start } = mark
+    if (start && p1 && p2) {
+      return [header as Header, i + 1] as const
+    }
   }
 
-  return logs
+  throw Error()
+}
+
+export function apply(battle: AnyBattle, input: string) {
+  let j = input.indexOf(" ")
+  const type = input.slice(1, j === -1 ? undefined : j)
+
+  switch (type) {
+    case "p1":
+    case "p2":
+      battle.choose(type, input.slice(j + 1))
+      break
+    case "forcelose":
+      const side = input.slice(j + 1) as Side
+      battle.win(side)
+      break
+    case "forcetie":
+      battle.win(null)
+      break
+    case "chat":
+      break
+    default:
+      throw Error(type)
+  }
 }

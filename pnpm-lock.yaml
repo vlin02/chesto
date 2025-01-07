@@ -286,15 +286,258 @@ importers:
       '@pkmn/sim':
         specifier: ^0.9.26
         version: 0.9.26
+      '@pkmn/sim-0.7.13':
+        specifier: npm:@pkmn/sim@0.7.13
+        version: '@pkmn/sim@0.7.13'
+      '@pkmn/sim-0.7.14':
+        specifier: npm:@pkmn/sim@0.7.14
+        version: '@pkmn/sim@0.7.14'
+      '@pkmn/sim-0.7.15':
+        specifier: npm:@pkmn/sim@0.7.15
+        version: '@pkmn/sim@0.7.15'
+      '@pkmn/sim-0.7.16':
+        specifier: npm:@pkmn/sim@0.7.16
+        version: '@pkmn/sim@0.7.16'
+      '@pkmn/sim-0.7.17':
+        specifier: npm:@pkmn/sim@0.7.17
+        version: '@pkmn/sim@0.7.17'
+      '@pkmn/sim-0.7.18':
+        specifier: npm:@pkmn/sim@0.7.18
+        version: '@pkmn/sim@0.7.18'
+      '@pkmn/sim-0.7.19':
+        specifier: npm:@pkmn/sim@0.7.19
+        version: '@pkmn/sim@0.7.19'
+      '@pkmn/sim-0.7.20':
+        specifier: npm:@pkmn/sim@0.7.20
+        version: '@pkmn/sim@0.7.20'
+      '@pkmn/sim-0.7.21':
+        specifier: npm:@pkmn/sim@0.7.21
+        version: '@pkmn/sim@0.7.21'
+      '@pkmn/sim-0.7.22':
+        specifier: npm:@pkmn/sim@0.7.22
+        version: '@pkmn/sim@0.7.22'
+      '@pkmn/sim-0.7.23':
+        specifier: npm:@pkmn/sim@0.7.23
+        version: '@pkmn/sim@0.7.23'
+      '@pkmn/sim-0.7.24':
+        specifier: npm:@pkmn/sim@0.7.24
+        version: '@pkmn/sim@0.7.24'
+      '@pkmn/sim-0.7.25':
+        specifier: npm:@pkmn/sim@0.7.25
+        version: '@pkmn/sim@0.7.25'
+      '@pkmn/sim-0.7.26':
+        specifier: npm:@pkmn/sim@0.7.26
+        version: '@pkmn/sim@0.7.26'
+      '@pkmn/sim-0.7.27':
+        specifier: npm:@pkmn/sim@0.7.27
+        version: '@pkmn/sim@0.7.27'
+      '@pkmn/sim-0.7.28':
+        specifier: npm:@pkmn/sim@0.7.28
+        version: '@pkmn/sim@0.7.28'
+      '@pkmn/sim-0.7.29':
+        specifier: npm:@pkmn/sim@0.7.29
+        version: '@pkmn/sim@0.7.29'
+      '@pkmn/sim-0.7.30':
+        specifier: npm:@pkmn/sim@0.7.30
+        version: '@pkmn/sim@0.7.30'
+      '@pkmn/sim-0.7.31':
+        specifier: npm:@pkmn/sim@0.7.31
+        version: '@pkmn/sim@0.7.31'
+      '@pkmn/sim-0.7.32':
+        specifier: npm:@pkmn/sim@0.7.32
+        version: '@pkmn/sim@0.7.32'
+      '@pkmn/sim-0.7.33':
+        specifier: npm:@pkmn/sim@0.7.33
+        version: '@pkmn/sim@0.7.33'
+      '@pkmn/sim-0.7.34':
+        specifier: npm:@pkmn/sim@0.7.34
+        version: '@pkmn/sim@0.7.34'
+      '@pkmn/sim-0.7.35':
+        specifier: npm:@pkmn/sim@0.7.35
+        version: '@pkmn/sim@0.7.35'
+      '@pkmn/sim-0.7.36':
+        specifier: npm:@pkmn/sim@0.7.36
+        version: '@pkmn/sim@0.7.36'
+      '@pkmn/sim-0.7.37':
+        specifier: npm:@pkmn/sim@0.7.37
+        version: '@pkmn/sim@0.7.37'
+      '@pkmn/sim-0.7.38':
+        specifier: npm:@pkmn/sim@0.7.38
+        version: '@pkmn/sim@0.7.38'
+      '@pkmn/sim-0.7.39':
+        specifier: npm:@pkmn/sim@0.7.39
+        version: '@pkmn/sim@0.7.39'
+      '@pkmn/sim-0.7.40':
+        specifier: npm:@pkmn/sim@0.7.40
+        version: '@pkmn/sim@0.7.40'
+      '@pkmn/sim-0.7.41':
+        specifier: npm:@pkmn/sim@0.7.41
+        version: '@pkmn/sim@0.7.41'
+      '@pkmn/sim-0.7.42':
+        specifier: npm:@pkmn/sim@0.7.42
+        version: '@pkmn/sim@0.7.42'
+      '@pkmn/sim-0.7.43':
+        specifier: npm:@pkmn/sim@0.7.43
+        version: '@pkmn/sim@0.7.43'
+      '@pkmn/sim-0.7.44':
+        specifier: npm:@pkmn/sim@0.7.44
+        version: '@pkmn/sim@0.7.44'
+      '@pkmn/sim-0.7.45':
+        specifier: npm:@pkmn/sim@0.7.45
+        version: '@pkmn/sim@0.7.45'
+      '@pkmn/sim-0.7.46':
+        specifier: npm:@pkmn/sim@0.7.46
+        version: '@pkmn/sim@0.7.46'
+      '@pkmn/sim-0.7.47':
+        specifier: npm:@pkmn/sim@0.7.47
+        version: '@pkmn/sim@0.7.47'
+      '@pkmn/sim-0.7.48':
+        specifier: npm:@pkmn/sim@0.7.48
+        version: '@pkmn/sim@0.7.48'
+      '@pkmn/sim-0.7.49':
+        specifier: npm:@pkmn/sim@0.7.49
+        version: '@pkmn/sim@0.7.49'
+      '@pkmn/sim-0.7.50':
+        specifier: npm:@pkmn/sim@0.7.50
+        version: '@pkmn/sim@0.7.50'
+      '@pkmn/sim-0.7.51':
+        specifier: npm:@pkmn/sim@0.7.51
+        version: '@pkmn/sim@0.7.51'
+      '@pkmn/sim-0.7.52':
+        specifier: npm:@pkmn/sim@0.7.52
+        version: '@pkmn/sim@0.7.52'
+      '@pkmn/sim-0.7.53':
+        specifier: npm:@pkmn/sim@0.7.53
+        version: '@pkmn/sim@0.7.53'
+      '@pkmn/sim-0.7.54':
+        specifier: npm:@pkmn/sim@0.7.54
+        version: '@pkmn/sim@0.7.54'
+      '@pkmn/sim-0.7.55':
+        specifier: npm:@pkmn/sim@0.7.55
+        version: '@pkmn/sim@0.7.55'
+      '@pkmn/sim-0.7.56':
+        specifier: npm:@pkmn/sim@0.7.56
+        version: '@pkmn/sim@0.7.56'
+      '@pkmn/sim-0.7.57':
+        specifier: npm:@pkmn/sim@0.7.57
+        version: '@pkmn/sim@0.7.57'
+      '@pkmn/sim-0.7.58':
+        specifier: npm:@pkmn/sim@0.7.58
+        version: '@pkmn/sim@0.7.58'
       '@pkmn/sim-0.7.59':
         specifier: npm:@pkmn/sim@0.7.59
         version: '@pkmn/sim@0.7.59'
+      '@pkmn/sim-0.8.0':
+        specifier: npm:@pkmn/sim@0.8.0
+        version: '@pkmn/sim@0.8.0'
+      '@pkmn/sim-0.8.1':
+        specifier: npm:@pkmn/sim@0.8.1
+        version: '@pkmn/sim@0.8.1'
+      '@pkmn/sim-0.8.2':
+        specifier: npm:@pkmn/sim@0.8.2
+        version: '@pkmn/sim@0.8.2'
+      '@pkmn/sim-0.8.3':
+        specifier: npm:@pkmn/sim@0.8.3
+        version: '@pkmn/sim@0.8.3'
+      '@pkmn/sim-0.8.4':
+        specifier: npm:@pkmn/sim@0.8.4
+        version: '@pkmn/sim@0.8.4'
+      '@pkmn/sim-0.8.5':
+        specifier: npm:@pkmn/sim@0.8.5
+        version: '@pkmn/sim@0.8.5'
+      '@pkmn/sim-0.8.6':
+        specifier: npm:@pkmn/sim@0.8.6
+        version: '@pkmn/sim@0.8.6'
+      '@pkmn/sim-0.8.7':
+        specifier: npm:@pkmn/sim@0.8.7
+        version: '@pkmn/sim@0.8.7'
+      '@pkmn/sim-0.8.8':
+        specifier: npm:@pkmn/sim@0.8.8
+        version: '@pkmn/sim@0.8.8'
       '@pkmn/sim-0.8.9':
         specifier: npm:@pkmn/sim@0.8.9
         version: '@pkmn/sim@0.8.9'
+      '@pkmn/sim-0.9.0':
+        specifier: npm:@pkmn/sim@0.9.0
+        version: '@pkmn/sim@0.9.0'
+      '@pkmn/sim-0.9.1':
+        specifier: npm:@pkmn/sim@0.9.1
+        version: '@pkmn/sim@0.9.1'
+      '@pkmn/sim-0.9.10':
+        specifier: npm:@pkmn/sim@0.9.10
+        version: '@pkmn/sim@0.9.10'
+      '@pkmn/sim-0.9.11':
+        specifier: npm:@pkmn/sim@0.9.11
+        version: '@pkmn/sim@0.9.11'
+      '@pkmn/sim-0.9.12':
+        specifier: npm:@pkmn/sim@0.9.12
+        version: '@pkmn/sim@0.9.12'
+      '@pkmn/sim-0.9.13':
+        specifier: npm:@pkmn/sim@0.9.13
+        version: '@pkmn/sim@0.9.13'
+      '@pkmn/sim-0.9.14':
+        specifier: npm:@pkmn/sim@0.9.14
+        version: '@pkmn/sim@0.9.14'
+      '@pkmn/sim-0.9.15':
+        specifier: npm:@pkmn/sim@0.9.15
+        version: '@pkmn/sim@0.9.15'
+      '@pkmn/sim-0.9.16':
+        specifier: npm:@pkmn/sim@0.9.16
+        version: '@pkmn/sim@0.9.16'
+      '@pkmn/sim-0.9.17':
+        specifier: npm:@pkmn/sim@0.9.17
+        version: '@pkmn/sim@0.9.17'
+      '@pkmn/sim-0.9.18':
+        specifier: npm:@pkmn/sim@0.9.18
+        version: '@pkmn/sim@0.9.18'
+      '@pkmn/sim-0.9.19':
+        specifier: npm:@pkmn/sim@0.9.19
+        version: '@pkmn/sim@0.9.19'
+      '@pkmn/sim-0.9.2':
+        specifier: npm:@pkmn/sim@0.9.2
+        version: '@pkmn/sim@0.9.2'
+      '@pkmn/sim-0.9.20':
+        specifier: npm:@pkmn/sim@0.9.20
+        version: '@pkmn/sim@0.9.20'
+      '@pkmn/sim-0.9.21':
+        specifier: npm:@pkmn/sim@0.9.21
+        version: '@pkmn/sim@0.9.21'
+      '@pkmn/sim-0.9.22':
+        specifier: npm:@pkmn/sim@0.9.22
+        version: '@pkmn/sim@0.9.22'
+      '@pkmn/sim-0.9.23':
+        specifier: npm:@pkmn/sim@0.9.23
+        version: '@pkmn/sim@0.9.23'
+      '@pkmn/sim-0.9.24':
+        specifier: npm:@pkmn/sim@0.9.24
+        version: '@pkmn/sim@0.9.24'
+      '@pkmn/sim-0.9.25':
+        specifier: npm:@pkmn/sim@0.9.25
+        version: '@pkmn/sim@0.9.25'
       '@pkmn/sim-0.9.26':
         specifier: npm:@pkmn/sim@0.9.26
         version: '@pkmn/sim@0.9.26'
+      '@pkmn/sim-0.9.3':
+        specifier: npm:@pkmn/sim@0.9.3
+        version: '@pkmn/sim@0.9.3'
+      '@pkmn/sim-0.9.4':
+        specifier: npm:@pkmn/sim@0.9.4
+        version: '@pkmn/sim@0.9.4'
+      '@pkmn/sim-0.9.5':
+        specifier: npm:@pkmn/sim@0.9.5
+        version: '@pkmn/sim@0.9.5'
+      '@pkmn/sim-0.9.6':
+        specifier: npm:@pkmn/sim@0.9.6
+        version: '@pkmn/sim@0.9.6'
+      '@pkmn/sim-0.9.7':
+        specifier: npm:@pkmn/sim@0.9.7
+        version: '@pkmn/sim@0.9.7'
+      '@pkmn/sim-0.9.8':
+        specifier: npm:@pkmn/sim@0.9.8
+        version: '@pkmn/sim@0.9.8'
+      '@pkmn/sim-0.9.9':
+        specifier: npm:@pkmn/sim@0.9.9
+        version: '@pkmn/sim@0.9.9'
       bson:
         specifier: ^6.10.1
         version: 6.10.1
@@ -968,17 +1211,257 @@ packages:
   '@pkmn/sets@5.1.2':
     resolution: {integrity: sha512-eMChlYko92ZdvNKqjcJ2PkzDmSc5kIbaKSrPU/bOnjcrOq8ZGjod3b7KcDxeXrZXQAS027O0uVhwIJbdMDe/Yw==, tarball: https://registry.npmjs.org/@pkmn/sets/-/sets-5.1.2.tgz}
 
+  '@pkmn/sim@0.7.13':
+    resolution: {integrity: sha512-YdD0KThdKlIrUWF/K8wO4pfTFIh0h3KlAPuwtVyvrYYg8GxiwIHbg+nGdt5JnCG02TKaanXsacB2Mj482x15Jg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.13.tgz}
+
+  '@pkmn/sim@0.7.14':
+    resolution: {integrity: sha512-EWvPGFDBlLHzZF91asiyvfnidgePEk4dayb96naSmm9EvOc1g32nWPV2yIeIfTOGZNYYXsqNG1g19h6NoHd9uA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.14.tgz}
+
+  '@pkmn/sim@0.7.15':
+    resolution: {integrity: sha512-8w3oieXZSyufqIeuf3LEs2MWq22Af9+CES8Kspt1+DvFIxjUtVcuzu/fZKBdvjr86ri/7R5aEvG5ov8/MaNvgQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.15.tgz}
+
+  '@pkmn/sim@0.7.16':
+    resolution: {integrity: sha512-89C6wdE0WtYR9PO9sOYdDYOdauw+MczCDBOVnNijGnJZpa+78cR0zX5AovBkAwR5auytco10sf9wC5yNZ7RL8Q==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.16.tgz}
+
+  '@pkmn/sim@0.7.17':
+    resolution: {integrity: sha512-RidZvpj8HZrtuOJSzKJ6KtvuPIk8tHDtMq8VUMoqVNZfNv8mg4P+pLORwQrjCtxmxf4ALRweygtgGipXjW3tIA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.17.tgz}
+
+  '@pkmn/sim@0.7.18':
+    resolution: {integrity: sha512-1KdHHz5RIjK6g0zDQEBQizjCpcA5te3un72SvmNHq75bQaMwGRERjsRjcHrYR+qb7bl6XUMg06Lyqn9zKJYMxg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.18.tgz}
+
+  '@pkmn/sim@0.7.19':
+    resolution: {integrity: sha512-57M4e5K1qrwNiUwpg2d+vC1mHV/Uum+NlnWLC8r78Q/kSDNokAoulGm5pHLF8DtXJesKV/lJgYpRSD+qDJJcqA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.19.tgz}
+
+  '@pkmn/sim@0.7.20':
+    resolution: {integrity: sha512-2OsyFB+qvZSCQsEFqLJmhIb7SVsDQQX0zhLuebLLOuvYde68zTvcxRgjcINJjxntQOM0k1YdgtjwgjPcRkWPNg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.20.tgz}
+
+  '@pkmn/sim@0.7.21':
+    resolution: {integrity: sha512-TRFoqcrb+8vwo/6JAWzHBBIagnWBTRNOORqvHrAlUh0j1vvjD7hYcemxjY/yQTAPjGQdFKDOYRLFz4guMy6sng==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.21.tgz}
+
+  '@pkmn/sim@0.7.22':
+    resolution: {integrity: sha512-YY49KsA1ub15PbIvyYEzJTX9GbIRn6X4YMQOpQhAXbhA4WF1bz41U2eM3pdGvneKbH2H13Qp93HhEplKQeLGGw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.22.tgz}
+
+  '@pkmn/sim@0.7.23':
+    resolution: {integrity: sha512-H2P0XOlIF4bZ6MJAWW4WGnVYH7NM5/D1Q5eZXpciw+f5Axqx9+Mw+shd3zZ4LZtGaBrt28xnYs2rIfcs/lt3xg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.23.tgz}
+
+  '@pkmn/sim@0.7.24':
+    resolution: {integrity: sha512-fNyb9yjUfnWoCwV18YK8p9jqXyVUVl0V77CxxotpwEHJgkjnv2GLfYlJFkOQ6Uf4Q/gCQh0ylRdIqp8qWfL2kw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.24.tgz}
+
+  '@pkmn/sim@0.7.25':
+    resolution: {integrity: sha512-pII+EJI7/zejjRLv0EqsD39l61BP83T5uiCGyjMs76RbMD558FqUag+UDICNnPYieD/z29iQgscG+rWCyy3MUg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.25.tgz}
+
+  '@pkmn/sim@0.7.26':
+    resolution: {integrity: sha512-z8xprnO/XpgekOFjyOW7NkQrfRMXV2BUbYwm+iO3CwjIPx6HvYY8uK7PVUt1rREgtBgST54iH40OA3Y6TmyzYw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.26.tgz}
+
+  '@pkmn/sim@0.7.27':
+    resolution: {integrity: sha512-sUwzva6jBlP/jy+IuYdT9qw4BIgsgWnL+Od211edfQGL6LGLzM9q2Pzi9Fo+/N07lJc1xRlakmOaHPGeo4eikQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.27.tgz}
+
+  '@pkmn/sim@0.7.28':
+    resolution: {integrity: sha512-XhwDanQOyarF4f0+i96/KOvAaGJM3IDXTArOPOd9hjdBNLOjXnEvyMhZnjFgoJ7ZhubhwiP3EOTZReNX8McP2Q==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.28.tgz}
+
+  '@pkmn/sim@0.7.29':
+    resolution: {integrity: sha512-CHwlHplqp5hUm5ECYilf9LW7jJgEbQeh/iGeTEN33aTixnz5ho6qj2yFc4AuqNByFMUk9h6smgJVbucvjGUE6g==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.29.tgz}
+
+  '@pkmn/sim@0.7.30':
+    resolution: {integrity: sha512-YkIikipjNT9SDf8zs7q8dYoYtUfGklbYW32DJaGL619nEGrPuk22LEKwOcOXDP7/7XKFLIaDdpt4bd04rGFS0w==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.30.tgz}
+
+  '@pkmn/sim@0.7.31':
+    resolution: {integrity: sha512-13kMkKevX+stlqrdZPkAh0k/MfMo0Kej89GaStrQxOKHY/alSesdnZoBeTWuq13yYDzRmoCoYYbBMpe2dHm7FA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.31.tgz}
+
+  '@pkmn/sim@0.7.32':
+    resolution: {integrity: sha512-qmIsznidwn/3MbsnXHYhCHgKignqqr6bRZllEGF9Yhc6OmkDOGsVZU6MRUIR89A2dTO2qwZ4rigdQv8jQQ2bvw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.32.tgz}
+
+  '@pkmn/sim@0.7.33':
+    resolution: {integrity: sha512-8vKX9vtFFLSE5HT9IWNV4s3jxi5QhEZWVBqEg0liCimpEhc0DHingMEpPyWELNv7GPw5VKw7iQy7+WZx1hsh1g==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.33.tgz}
+
+  '@pkmn/sim@0.7.34':
+    resolution: {integrity: sha512-B6UCxcovtwaBgDdYvpnqvcb74CVvzO69CFcOYvlsMaRfiIlfCYBgWPAQIKRaWQmchk3s+AbaMRKlGre01swRWA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.34.tgz}
+
+  '@pkmn/sim@0.7.35':
+    resolution: {integrity: sha512-utp+bsPm6s0n2Z4JH8eJ2845HnDNPKCaUIq3LBwVrMUmca8VVaXypSsyquyJOZV0E3Gvus7bPOMuLT5KSXfU1A==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.35.tgz}
+
+  '@pkmn/sim@0.7.36':
+    resolution: {integrity: sha512-soNXHtOEcNLH1Io9FiRus4x+Ccwvh3fK6DiG8TODwPAHMv4xlBmRKeIoNVr2IljdD1h0CLrjzsm5G8xYwFAWhg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.36.tgz}
+
+  '@pkmn/sim@0.7.37':
+    resolution: {integrity: sha512-omLnjQcfs7QagcUROuadxDHSNYOVVyWoTvgGAp1zYKz7s8AVnxH+aVvh0EQGDYcvguDjTUTfzvPhonqvUTVEzQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.37.tgz}
+
+  '@pkmn/sim@0.7.38':
+    resolution: {integrity: sha512-KkIafBW+VKOMayIuBRw7ZZhAbdY/PSVmL3T+N1PEXJYNfd52+EB/q4cx72cY9yKsd6bB2NEde/4zTw8afYMIFA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.38.tgz}
+
+  '@pkmn/sim@0.7.39':
+    resolution: {integrity: sha512-jmMHuy8pbhbFQ3Q+G81T0nDlJoZOQnl0rbUN9lMLxIhgPuCeFXNGWAxI7FunHWMuiDt6rJlTBIkiJ35KnirK8A==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.39.tgz}
+
+  '@pkmn/sim@0.7.40':
+    resolution: {integrity: sha512-cBj9NtRHbtZOTfZR51mDOirgaVxFeEy7SviMJU7Zw5RiEnMlhu4GmKQ166awO8w+HxwGeUJ5gQgn4kR4Xj+Muw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.40.tgz}
+
+  '@pkmn/sim@0.7.41':
+    resolution: {integrity: sha512-2h7I4p8XNtKzr/3xdgpvOWkJ/aoFPKEKW5XDp/mv36XU9eiD+0csnDsH/vJ2BP8hZ+/qr5ahRw++jFQdVhbCIg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.41.tgz}
+
+  '@pkmn/sim@0.7.42':
+    resolution: {integrity: sha512-phnEuw1cdX7KOQhJb0DMUMQ71kXJvdFtX0G1negt3CWG+Hx7bdqTuHVX8NMzFqIwcPp65OJz46yiOVIzSX3cpg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.42.tgz}
+
+  '@pkmn/sim@0.7.43':
+    resolution: {integrity: sha512-YMnyE+E7Vd/g3PTLOF98NAsEZVBTsW1i5VZlaRMahPQfND6nmDhFvQd+fd6SBw/FKaKVNHzkb7B5gGYKdeqkQw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.43.tgz}
+
+  '@pkmn/sim@0.7.44':
+    resolution: {integrity: sha512-GTwC289/x/sE+3xdguyiK2Qq5L5stswwaQmW2eKyc4pLapco/TfLrOPf8AYz1WJaddnETJ6hqetahxKFAwl9/Q==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.44.tgz}
+
+  '@pkmn/sim@0.7.45':
+    resolution: {integrity: sha512-PV1nkoVU4JzT13/ouz8q23FI9XKQCrc1nX4MMQyeTmVtyDunLzA4e1TsrdkDsmLjRijH9VTTMxi+FpfJ/4aMYw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.45.tgz}
+
+  '@pkmn/sim@0.7.46':
+    resolution: {integrity: sha512-mk3diVcpDLc07rtd721FWeQlvrNSN8KyGIZ1XJptWJpVfq/vVIB0GgJeaz7zaVDwROST594AuOMq3BBxhBMbfQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.46.tgz}
+
+  '@pkmn/sim@0.7.47':
+    resolution: {integrity: sha512-9DA5EjSq/J6qRGm2NLrQUjDVaQ8DLLR4a2OwM/SJMrSEU/ZPkKtLxTdswFlx1bibPeyvOsoTZUkSJGAqOmfGgQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.47.tgz}
+
+  '@pkmn/sim@0.7.48':
+    resolution: {integrity: sha512-lf6WUdm7otp6e9v/MY2BZxqP3BPqGZ5+JPm1obrjVsLBO8FfrzvjfshtxaVUZ+mmS3Ss+YL4UVgLxaDcpIlLTA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.48.tgz}
+
+  '@pkmn/sim@0.7.49':
+    resolution: {integrity: sha512-aUEDxV8rjO0/WSQxOw/rDjPHBJnv4GeKzVJBnQSuC1KqQLoVKeRtCskokoB3kCShS36nnmPFkw/02UFLNX77hw==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.49.tgz}
+
+  '@pkmn/sim@0.7.50':
+    resolution: {integrity: sha512-j/xEmv+2dt5JQH/fNMnao/GvH71R6xOnB4KyfSweYYdMnfSGULKhIg+zJpRPXvQ/XfGUaC7xBOM5XWEQL27/rA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.50.tgz}
+
+  '@pkmn/sim@0.7.51':
+    resolution: {integrity: sha512-MO/z/eQpjVLO5uCCqRMmegwT8jpC5/4Kz95ImZWDE0yFEn4fgyWBg1OWsl3uR99+pmT6/TZzeaeN5Wn9vnpBOQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.51.tgz}
+
+  '@pkmn/sim@0.7.52':
+    resolution: {integrity: sha512-A1eZ7mrX5jI9c/BfG+6xSVEceibzuEtT7yKfk96pV5R0OLBY3GsMYqHtv2YkcG5jyrzqMt2wCdQDyQxnu3c2tQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.52.tgz}
+
+  '@pkmn/sim@0.7.53':
+    resolution: {integrity: sha512-iFyyA3whzmmnOgMJjzP8P9xrSmZsRL/HMJiBpFFt5Qwi2OwgW72mLtbbnf4g3dNf+JfJjnXBAay9FtLIYV9sOA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.53.tgz}
+
+  '@pkmn/sim@0.7.54':
+    resolution: {integrity: sha512-aHjmA6wqxcmjAgZufycAxKmtOIa9dsuMU8nyXcEMRYte2yCWkpbgd/3xzEVxuoio6qBJd1zpdbhdr943Mz8V0w==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.54.tgz}
+
+  '@pkmn/sim@0.7.55':
+    resolution: {integrity: sha512-iU/7v55mJifQS3cHySPrj6n/dO4cPKZffbAPq2rC3Rd9Nkw5obnpX0z0ss1cwqVNTnXbDxmvZwj/q3VrP7KyEQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.55.tgz}
+
+  '@pkmn/sim@0.7.56':
+    resolution: {integrity: sha512-IicDrc9Ij0hPQuoLT1RMHPjz2vaBdVD4Or/PK9XQfyHyozA0w07jFXZs5YcydBwZc4VwbD2geGVx+In8vmcKAg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.56.tgz}
+
+  '@pkmn/sim@0.7.57':
+    resolution: {integrity: sha512-Ibw+cGn8+CVHzwCaZZqKGV0G9BfbL52bNrkiNxhGf30ShQ+JNEaMboG3z2xl6PW1YLkSohcQFkIx3qSzXSrBUg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.57.tgz}
+
+  '@pkmn/sim@0.7.58':
+    resolution: {integrity: sha512-u2KzZJIRjJ4gJgXHg1mTMxvEwXbmcw5SzZmapQl4er2OuDEOtn6Yish+4nJI93VLGK3z7ulCLOAuE8mb/SPNqA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.58.tgz}
+
   '@pkmn/sim@0.7.59':
     resolution: {integrity: sha512-x+q1VaCHxrQ7Wt5WNCElIbiGYfIgUXukVNr2i7M+cWqWegC8xJ8DiHEOk0VnKI1YjesWPb78u+Q29cVDZbI/ag==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.59.tgz}
 
+  '@pkmn/sim@0.8.0':
+    resolution: {integrity: sha512-lQvn33FCgkfDigJnvczqeX45hiCqZNqy1uZygy8xi9HXFgVOeYyzNYHKfiY5zxmE/fNpxAfnvY/zqANpbk26zA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.0.tgz}
+
+  '@pkmn/sim@0.8.1':
+    resolution: {integrity: sha512-1n8l0JRWqLiRfkjfag25YAOsnvsZNYrHAMBLsEZAheTzTGqSayc+55E+bQYyQVN8DOur7E71mvn/bPFOVkJp+Q==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.1.tgz}
+
+  '@pkmn/sim@0.8.2':
+    resolution: {integrity: sha512-PYclK0OC9MXY9e7/89HP+mjymou4TyszaIiRq/7DAj/+f/aUFtryYR/wbfdf++3yh8ma0tw3il/zw/GaMCXsHg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.2.tgz}
+
+  '@pkmn/sim@0.8.3':
+    resolution: {integrity: sha512-2JGJjptVqtIZOUHBGVM5AKl/qUEY3ntduKXi3zqh+/q1ZTTT7/2zpoMKrh5bCTcHjzdW6RdU7wxn2NjO+LI1nA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.3.tgz}
+
+  '@pkmn/sim@0.8.4':
+    resolution: {integrity: sha512-4faqQ2LD3dNB27QcJPssEJ3kVzuMa0G/xawAhjPxK9m5MzcX/MAI+tRI/rZLdpdC5Q3kLf0gTc6pUJkRAD8D7A==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.4.tgz}
+
+  '@pkmn/sim@0.8.5':
+    resolution: {integrity: sha512-EcHfSVs0gH53TraQAyHwwPPo8okJ0X/mzh6FG8+sHdBup782acKYNOmopFNUBpYdpNoKYlXUK2buHNe39dfyoQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.5.tgz}
+
+  '@pkmn/sim@0.8.6':
+    resolution: {integrity: sha512-aEaNmRW1AJTaKo/HGIi6heNLU7dyzQ3GSWfA3BUxKFcxvaDjwE1858l/Kl3qRuOJmEMFE/qvs8gFZpx27OVOiA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.6.tgz}
+
+  '@pkmn/sim@0.8.7':
+    resolution: {integrity: sha512-iGnw17CrMCZfwL/M7qw++bCgdooraK0w99zjYfSwWWGEB5cmXKiDl6fpvnx6zT4Zfj2BCFj0oe2xnRN4nj/qAQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.7.tgz}
+
+  '@pkmn/sim@0.8.8':
+    resolution: {integrity: sha512-6uOoNGdms8vMVVwwc6Rlldvm2atzeTLBe7bq9/9XuJd057LkP0UHK8D4PpXTyXgXV8mh+0+Y7eIzo1iQSNRmrA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.8.tgz}
+
   '@pkmn/sim@0.8.9':
     resolution: {integrity: sha512-+Y90pw/o0kE2vDl/hHzOKxoi6MUCWAKhagD+OPtR7FdC4E2OSl0Vaod8D6wBLRkjW+U11JURFoNVwTTOX6lnSA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.9.tgz}
+
+  '@pkmn/sim@0.9.0':
+    resolution: {integrity: sha512-OT3i5P/KkmU4zOM/Wq+Wf2O4/bZSwSZc5kj2YgQkecz8CYEZnbVxgXNv0Tm/7KoiRB6KIA47oycftf2LI5BToQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.0.tgz}
+
+  '@pkmn/sim@0.9.1':
+    resolution: {integrity: sha512-7L2usNuHTGBI7QyYsGqluBV2q4yezeEnh3wZY3GgRQlHCIPB8hdszRu1Ze9v8sP/tv+wi2S7tHUpEHR5OyLr8Q==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.1.tgz}
+
+  '@pkmn/sim@0.9.10':
+    resolution: {integrity: sha512-FlJn3jyxQGW3AyHW7Epm8zb6Q7JIUz2nOfiVx0XMi/mWgGC8y6Zoo/QQZ4mDFga2FINh9/S35WI8cSv7nX5AJQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.10.tgz}
+
+  '@pkmn/sim@0.9.11':
+    resolution: {integrity: sha512-2rFk0anEYjbBYTWGsyL2ZdaUU2H+UhxIh8gsw40zCPSdYbu8q711wAUE+CJmlCPWGpMS1sjuoYbNoiKcyO7y/A==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.11.tgz}
+
+  '@pkmn/sim@0.9.12':
+    resolution: {integrity: sha512-yqpxydmG5h1FkDO7uveEf2gRbJKsLUnnnwo3zyfd2Ar0ym4ERrtIKvLgTzQWfhg9nRejM+Njmb8O1iY4Y/U65g==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.12.tgz}
+
+  '@pkmn/sim@0.9.13':
+    resolution: {integrity: sha512-zW8vbk2z4z//2+s/Xp/kBlMC6qQfvbcJE/NygVjbFFqFvhu4ZIYr8OiTkNxZTa6bsPcgvqomgjJsb4dx/CYUNQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.13.tgz}
+
+  '@pkmn/sim@0.9.14':
+    resolution: {integrity: sha512-b0l8Hms1M76ClDgiZNKtIkrukOo6pKwcT2BuakJE7chk21u/yrg0Dse6gy8YEWuzNTBUscbmMG9em0GvOvwbhg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.14.tgz}
+
+  '@pkmn/sim@0.9.15':
+    resolution: {integrity: sha512-8fJelCkYr6QT/d7cJk5QiJUuDvXLk7076qbeUzdNww5bEuIM8rsp6VOq/tdZ4+STLq5splvhqIsOP3ycpVyiHA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.15.tgz}
+
+  '@pkmn/sim@0.9.16':
+    resolution: {integrity: sha512-6Dt7iCJJqWCpA1ev+8vtbrWkbmYeqIgV35xfnMvkl1flne+UCg9Vz9ugxdb8M3FsaDkqoSA+TmFOjo9Uv4ZwjA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.16.tgz}
+
+  '@pkmn/sim@0.9.17':
+    resolution: {integrity: sha512-1HMAB7qIydtnoydk/XmZHKDT0QWYa7J1PAFpE+ALfpEoTt+l8uurIhPloqLx+3bBiFCKi9E3e88z4dxrdzMhkg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.17.tgz}
+
+  '@pkmn/sim@0.9.18':
+    resolution: {integrity: sha512-8dB/TK6MqSL3ytOoGf1OU30DPU2HsRJ9vWxWQ0x1qlBbdaSp28PpAoR7C39x4HaBcBRrd/DgwRTZR8xDUU24zA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.18.tgz}
+
+  '@pkmn/sim@0.9.19':
+    resolution: {integrity: sha512-gW6hLNcmzepVm5wbwzjql2Fn+9GFccL+V5zLDw/iuO2i0isXCvW5II5F8uRNH4bq03V8Yx+5SYffqbsoPNmDjg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.19.tgz}
+
+  '@pkmn/sim@0.9.2':
+    resolution: {integrity: sha512-tW6LMNkSWQhwi1BfQGa7JirlvCwRl1Pk+uxhU1bIO3Jgs0pfEwUOuynzIUT1QLU+3PRGWgRQ3f9f+6A5kQ8PaA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.2.tgz}
+
+  '@pkmn/sim@0.9.20':
+    resolution: {integrity: sha512-nbDPEZYzAUWdeFzL8Dn4wFen0/P5F2mVR7cfHR/Ke8rzAa0BzR3wDWFyglPiorHbQx0/DvYtfKswk2OR6yU6vg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.20.tgz}
+
+  '@pkmn/sim@0.9.21':
+    resolution: {integrity: sha512-ZW8qL9um0UphQ73R0fh6HyrnpPAmUxPn6kgsZ+D5ywfdOV0wESCXmukEqaYGNAVyTkJkJmUu9hRotz5BNDykzg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.21.tgz}
+
+  '@pkmn/sim@0.9.22':
+    resolution: {integrity: sha512-2ohzlufSgNPeBm529w9Ika9ckzI27coHRXC14LL+6jKg0byC2ehXVuPsp/PyxfETMIDniVtCRxG19bpxVxUYrg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.22.tgz}
+
+  '@pkmn/sim@0.9.23':
+    resolution: {integrity: sha512-BRKxQnguua0/fw6k/Lcmi+oD2OLrwCaVeY2L3ARtAZJc8zxLthhtxA5AQkazxkITTNzblrFa99nUiiFkAwBKLg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.23.tgz}
+
+  '@pkmn/sim@0.9.24':
+    resolution: {integrity: sha512-yR7CqNGL8b1vx52GaL/SBRLQ0Tyy94vgUqnQXBTv/Nz42mZ31XV8ryC2y4P0h9RuLds6dFoAzJS9jTjssOeMvA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.24.tgz}
 
   '@pkmn/sim@0.9.25':
     resolution: {integrity: sha512-gWiE3/DQdD89X0BQWkAq7VtFEQ2+C3NTySL7e2qSDHSOAwCvJXn6WFhZ96JoYe28Qg+794w7MvCjN6a4Cs5F/A==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.25.tgz}
 
   '@pkmn/sim@0.9.26':
     resolution: {integrity: sha512-9EE/xJrlpmb/8ooGmGiv8HHl7sIeMVqSj7S9z2CsJaGkTgEkHoymyuSvAq/7+HvnR/oNnmZjbWLQRtLeUiHQkg==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.26.tgz}
+
+  '@pkmn/sim@0.9.3':
+    resolution: {integrity: sha512-P+fqJZrv9By9Mju5E9NAuVltul2Ad2sji0KIpu2aet3aAzo+sk1g1IKtSXTs/5+W9yrk+Jm/w5DfppZDv0YX7g==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.3.tgz}
+
+  '@pkmn/sim@0.9.4':
+    resolution: {integrity: sha512-L2bQ4Fdq3EK00zCUnZX9DbCA23U1B9M7CAbp3mgNA+04A5rEzWcK+eS2ryAVlFGLkls3uY3mKx3JgUQ1nj+CAA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.4.tgz}
+
+  '@pkmn/sim@0.9.5':
+    resolution: {integrity: sha512-1GcfIrFaP+m0dCcE/5/0aWQk+u3RF5EA4kT2XppFNLMYrDlLr0eTNjnTSBjIUZi0j1FUHjepXgrFPluqrFZdKQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.5.tgz}
+
+  '@pkmn/sim@0.9.6':
+    resolution: {integrity: sha512-qo2tv/EB96lJBdPI4mXPCu0UwZMxNEZ/m82xV1nCAdf462h+3Mktbj31jjuKdCvUJtYXMreN+0j5gFQItKVJfA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.6.tgz}
+
+  '@pkmn/sim@0.9.7':
+    resolution: {integrity: sha512-Fe1CYMjpK1ELetwZcKD+7BPpiCG70Kl0nFq/E7b6NhDFUJV43vjggyl8Bztq9nIxOGpH3d8jeqzGiZ4V+vzJGQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.7.tgz}
+
+  '@pkmn/sim@0.9.8':
+    resolution: {integrity: sha512-YRndko6Q8fUf1WDM40EyQki4DLRTlW3cGApDaHDs4o695liNJM9geUD6xjH0CRDTZ5PNS7d780zvFUFyLmox7w==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.8.tgz}
+
+  '@pkmn/sim@0.9.9':
+    resolution: {integrity: sha512-sJm8ViZ1JjkVdbVpiGZ+zFHfMp1ufHZ1ntatBLAn1hqNLIn/U42M+N/oC0nRpYCAxqOC1MenGeZT6MRm9qf5XQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.9.9.tgz}
 
   '@pkmn/streams@1.1.0':
     resolution: {integrity: sha512-Pp9k7gt4xd76DqTU+LQEUyzuaauM4bV1MlehVtX1NS7o9zMFtjw50MfaEQ62dIMZyzxNjsJGoLGBeY1iSYLsRA==, tarball: https://registry.npmjs.org/@pkmn/streams/-/streams-1.1.0.tgz}
@@ -2788,12 +3271,377 @@ snapshots:
     dependencies:
       '@pkmn/types': 4.0.0
 
+  '@pkmn/sim@0.7.13':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.14':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.15':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.16':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.17':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.18':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.19':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.20':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.21':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.22':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.23':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.24':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.25':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.26':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.27':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.28':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.29':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.30':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.31':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.32':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.33':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.34':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.35':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.36':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.37':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.38':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.39':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.40':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.41':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.42':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.43':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.44':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.45':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.46':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.47':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.48':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.49':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.50':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.51':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.52':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.53':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.54':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.55':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.56':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.57':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.7.58':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
   '@pkmn/sim@0.7.59':
     dependencies:
       '@pkmn/sets': 5.1.2
       '@pkmn/streams': 1.1.0
 
+  '@pkmn/sim@0.8.0':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.1':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.2':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.3':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.4':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.5':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.6':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.7':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.8':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
   '@pkmn/sim@0.8.9':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.0':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.1':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.10':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.11':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.12':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.13':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.14':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.15':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.16':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.17':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.18':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.19':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.2':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.20':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.21':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.22':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.23':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.24':
     dependencies:
       '@pkmn/sets': 5.1.2
       '@pkmn/streams': 1.1.0
@@ -2804,6 +3652,41 @@ snapshots:
       '@pkmn/streams': 1.1.0
 
   '@pkmn/sim@0.9.26':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.3':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.4':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.5':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.6':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.7':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.8':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.9.9':
     dependencies:
       '@pkmn/sets': 5.1.2
       '@pkmn/streams': 1.1.0
