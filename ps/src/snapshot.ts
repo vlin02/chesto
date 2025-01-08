@@ -1,6 +1,6 @@
 import { Battle } from "@pkmn/client"
 
-export function extractBattle(battle: Battle) {
+function extractBattle(battle: Battle) {
   const { p1, p2 } = battle
 
   for (const {
