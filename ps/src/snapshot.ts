@@ -1,41 +1,113 @@
 import { Battle } from "@pkmn/client"
+import { Stats, StatusName } from "@pkmn/data"
+
+function scale(lo: number, hi: number, v: number, neg = false) {
+  if (neg) lo = (lo + hi) / 2
+  return (v - lo) / (hi - lo)
+}
+
+const TYPES = [
+  "Normal",
+  "Fighting",
+  "Flying",
+  "Poison",
+  "Ground",
+  "Rock",
+  "Bug",
+  "Ghost",
+  "Steel",
+  "Fire",
+  "Water",
+  "Grass",
+  "Electric",
+  "Psychic",
+  "Ice",
+  "Dragon",
+  "Dark",
+  "Fairy",
+  "Stellar"
+] as const
+
+const VOLATILES = [
+  "leechseed",
+  "futuresight",
+  "protosynthesis",
+  "quarkdrive",
+  "substitute",
+  "taunt",
+  "yawn",
+  "confusion",
+  "charge",
+  "throatchop",
+  "encore",
+  "disable",
+  "flashfire",
+  "magnetrise",
+  "slowstart",
+  "doomdesire",
+  "attract",
+  "saltcure",
+  "noretreat"
+] as const
+type Volatile = keyof typeof VOLATILES
+
+type Type = keyof typeof TYPES
+
+const STATUSES = ["slp", "psn", "brn", "frz", "par", "tox"]
+
+function statusToIndex(status: StatusName) {
+  return STATUSES.indexOf(status)
+}
 
 function extractBattle(battle: Battle) {
-  const { p1, p2 } = battle
+  const {
+    gens,
+    gen,
+    field,
+    p1,
+    p2,
+    p3,
+    p4,
+    sides,
+    turn,
+    gameType,
+    rated,
+    rules,
+    tier,
+    teamPreviewCount,
+    speciesClause,
+    kickingInactive,
+    totalTimeLeft,
+    graceTimeLeft,
+    lastMove,
+    request,
+    requestStatus
+  } = battle
+
+  const stats = new Stats(gens.dex)
 
   for (const {
     // CONSIDERED
-    // does opp team poke have set ?
-    set,
-
     level,
-    gender,
+
+    teraType,
+    canTerastallize,
     terastallized,
+
     hp,
-    maxhp,
-    baseMaxhp,
     status,
     fainted,
     boosts,
+    gender,
 
-    // find cases where these are true ?
-    maybeTrapped,
-    maybeDisabled,
-
-    statusStage,
     statusState,
     volatiles,
 
-    item,
-    // is this any different than set nature ?
-    canTerastallize,
+    item: itemId,
     trapped,
+    maybeTrapped,
+
     moveSlots,
-
-    moveThisTurn,
-    hurtThisTurn,
-
-    weighthg,
     types,
     addedType,
     switching,
@@ -45,90 +117,49 @@ function extractBattle(battle: Battle) {
     isActive,
 
     speciesForme,
-
-    // NOT BEING CONSIDERED
-
-    // only applies to zoroark
-    illusion,
-    revealedDetails,
-
-    // used to calculate item
-    lastItem,
-
-    // not very relevant
-    itemEffect,
-    lastItemEffect,
-    lastMove,
-    lastMoveTargetLoc,
-    movesUsedWhileActive,
-    timesAttacked,
-
-    // not applicable to randbat
-    teamPreviewItem,
-
-    // contextual
-    side,
-    slot,
-
-    // cosmetic
-    shiny,
-    name,
-    hpcolor,
-    // what is this for each team member?
-    originalIdent,
-    // make sure all of these details are included in the poke ?
-    searchid,
-    // does opp team update details ?
-    details,
-
-    // species forme - forme changes
-    baseSpeciesForme,
-
-    // prefer speciesForme
-    species,
-    baseSpecies,
-
-    // from set
-    ivs,
-    evs,
-    happiness,
-    hpType,
-    nature,
-
-    // same as slot
-    position,
-    // not useful in 1v1
-    ident,
-
-    // covered by effective ability
-    ability,
-    baseAbility,
-
-    // used by types
-    actualTypes,
-
-    // encoded by switching
-    newlySwitched,
-    beingCalledBack,
-
-    // not applicable to gen 9
-    maxMoves,
-    zMoves,
-    canDynamax,
-    canGigantamax,
-    canMegaEvo,
-    canUltraBurst,
-
-    // derived from terastallize
-    teraType,
-    isTerastallized,
-
-    // derived from moveslots
-    moves,
-
-    //derived from this.item
-    hasItem
   } of p1.team) {
-    return {}
+    const { baseStats } = gen.species.get(speciesForme)!
+    const { sleepTurns, toxicTurns } = statusState
+
+    const abilityId = effectiveAbility()
+
+    return {
+      level: scale(level, 76, 100),
+      hp: scale(hp, 200, 400),
+      gender,
+      stats: Object.fromEntries(
+        (["hp", "atk", "def", "spa", "spd", "spe"] as const).map((k) => {
+          return [k, scale(stats.calc(k, baseStats.hp, 31, 85, level), 100, 300)]
+        })
+      ),
+      teraType: teraType! as string as Type,
+      terastallized: !!terastallized,
+      canTerastallize: !!canTerastallize,
+      status: status ?? null,
+      fainted,
+      boosts: Object.fromEntries(
+        Object.entries(boosts).map(([k, v]) => {
+          return [k, scale(v, -6, 6, true)]
+        })
+      ),
+      sleepTurnsLeft: status === "slp" ? [1 - sleepTurns, 3 - sleepTurns] : [0, 0],
+      toxicTurns,
+      itemId: itemId ?? null,
+      abilityId: abilityId ?? null,
+      maybeTrapped: !!maybeTrapped,
+      trapped: !!trapped,
+      types: types as string[] as Type[],
+      addedType: addedType ? (addedType as string as Type) : null,
+      switching: switching ?? null,
+      grounded: isGrounded(),
+      active: isActive(),
+      volatiles: Object.keys(volatiles).filter((v) => VOLATILES.includes(v as any)) as Volatile[],
+      moves: moveSlots.map(({ id, ppUsed }) => {
+        return {
+          id,
+          ppLeft
+        }
+      })
+    }
   }
 }
