@@ -122,6 +122,7 @@ type WeatherName = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
 
 const POVS = ["ally", "foe"] as const
 type AllyMember = {
+  revealed: boolean
   lvl: number
   species: string
   gender: "M" | "F" | null
@@ -156,7 +157,6 @@ type FoeMember = {
   boosts: {
     [k in BoostName]?: number
   }
-
   status: {
     name: StatusName
     turns: number
@@ -170,18 +170,12 @@ type FoeMember = {
 
 type Volatile = { turn?: number; singleMove?: boolean; singleTurn?: boolean }
 
-type Condition = {
-  turn?: number
-  layers?: number
-}
-
 type Ally = {
   tera: {
     name: string
   } | null
   hazards: { [k: string]: number }
   screens: { [k: string]: number }
-  revealed: Set<string>
   active?: {
     name: string
     volatiles: { [k: string]: Volatile }
@@ -195,7 +189,6 @@ type Foe = {
   tera: {
     name: string
   } | null
-  revealed: Set<string>
   active?: {
     name: string
     volatiles: { [k: string]: Volatile }
@@ -256,8 +249,8 @@ export class Observer {
 
   constructor(side: Side) {
     this.side = side
-    this.ally = { tera: null, revealed: new Set(), team: {}, hazards: {}, screens: {} }
-    this.foe = { tera: null, revealed: new Set(), team: {}, hazards: {}, screens: {} }
+    this.ally = { tera: null, team: {}, hazards: {}, screens: {} }
+    this.foe = { tera: null, team: {}, hazards: {}, screens: {} }
     this.weather = null
     this.fields = {}
     this.turn = 0
@@ -268,6 +261,10 @@ export class Observer {
     const side = s.slice(0, 2) as Side
     const name = s.slice(i + 2)
     return { pov: this.side === side ? "ally" : "foe", name } as const
+  }
+
+  getMember({ pov, name }: { pov: POV; name: string }) {
+    return this[pov].team[name]
   }
 
   read(line: string) {
@@ -322,6 +319,7 @@ export class Observer {
               gender,
               lvl,
               fnt: false,
+              revealed: false,
               teraType,
               ability,
               item,
@@ -353,7 +351,9 @@ export class Observer {
         const { pov, name } = this.parseLabel(p.args[0])
         const traits = parseTraits(p.args[1])
 
-        this[pov].revealed.add(name)
+        if (pov === "ally") {
+          this[pov].team[name].revealed = true
+        }
 
         if (pov === "foe") {
           const { team } = this[pov]
@@ -368,6 +368,10 @@ export class Observer {
             }
           }
         }
+
+        const { status } = this[pov].team[name]
+
+        if (status?.name === "tox") status.turns! = 0
 
         break
       }
@@ -396,12 +400,27 @@ export class Observer {
 
         break
       }
+      case "-curestatus": {
+        p = piped(line, p.i, 2)
+        const { pov, name } = this.parseLabel(p.args[0])
+        const memb = this[pov].team[name]
+
+        memb.status = null
+
+        p = piped(line, p.i, -1)
+        const { from } = parseTags(p.args)
+        const { ability } = parseEntity(from ?? "")
+        if (ability) memb.ability = ability
+
+        break
+      }
       case "move": {
         p = piped(line, p.i, 2)
         const label = this.parseLabel(p.args[0])
-        const pov = this[label.pov]
-        const { volatiles } = pov.active!
-        const { moves } = pov.team[label.name]
+        const side = this[label.pov]
+        const { volatiles } = side.active!
+        const memb = side.team[label.name]
+        const { moves, status } = memb
 
         const name = p.args[1]
 
@@ -416,10 +435,14 @@ export class Observer {
         }
 
         {
+          if (status?.name === "slp") status.turns++
+        }
+
+        {
           const { from } = tags
           if (from) {
             const { ability } = parseEntity(from)
-            if (ability) pov.team[name].ability = ability
+            if (ability) side.team[name].ability = ability
           }
         }
 
@@ -427,24 +450,17 @@ export class Observer {
           switch (name) {
             case "Outrage": {
               if (tags["from"] !== "lockedmove" && tags["notarget"] != "") {
-                volatiles["outrage"] = { turn: 0 }
+                volatiles["Locked Move"] = { turn: 0 }
               }
               break
             }
           }
         }
 
-        for (const k in volatiles) {
-          if (volatiles[k].singleMove) delete volatiles[k]
-        }
-
         if (!(name in moves)) moves[name] = { ppUsed: 0 }
         moves[name].ppUsed += 1
         break
       }
-      // case "-start": {
-
-      // }
       case "-heal": {
         p = piped(line, p.i, 2)
         const { pov, name } = this.parseLabel(p.args[0])
@@ -555,13 +571,6 @@ export class Observer {
       }
       case "upkeep": {
         const { fields, weather } = this
-        for (const pov of POVS) {
-          const { team } = this[pov]
-          for (const name in team) {
-            const { status } = team[name]
-            if (status) status.turns += 1
-          }
-        }
 
         for (const name in fields) {
           fields[name]++
@@ -580,7 +589,11 @@ export class Observer {
         for (const pov of POVS) {
           const side = this[pov]
           const { screens } = side
-          const { volatiles } = this[pov].active!
+          const { volatiles, name } = this[pov].active!
+
+          const { status } = side.team[name]
+          if (status?.name === "tox") status.turns!++
+
           for (const k in volatiles) {
             if (volatiles[k].turn !== undefined) volatiles[k].turn += 1
             if (k in SINGLE_TURN) delete volatiles[k]
