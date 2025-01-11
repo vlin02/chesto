@@ -11,8 +11,8 @@ export type Replay = {
   rating: number
   private: number
   password: string | null
-  log: Log[][] | null
-  inputlog: string
+  outputs: Log[][] | null
+  inputs: string[]
 }
 
 export async function createReplays(db: Db, name: string) {

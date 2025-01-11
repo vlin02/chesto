@@ -1,5 +1,5 @@
 import { Battle } from "@pkmn/client"
-import { Generations } from "@pkmn/data"
+import { Generations, TypeName } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { Side, SIDES } from "./battle.js"
 import { compare } from "./util.js"
@@ -7,13 +7,73 @@ import { Log } from "./replay.js"
 
 export type Event = ["choice", { side: Side; retry: boolean }] | ["turn"] | ["end"]
 
-export class Observer {
-  p1: Battle
-  p2: Battle
+function parsePokemonId(s: string) {
+  const side = s.slice(0, 2) as Side
+  const speciesId = s.slice(5)
+  return [side, speciesId] as const
+}
+
+export class View {
+  side: Side
+
+  p1: {
+    terastallized?: [string, TypeName]
+    revealed: Set<string>
+    active?: string
+  }
+
+  p2: {
+    terastallized?: [string, TypeName]
+    revealed: Set<string>
+    active?: string
+  }
 
   constructor() {
-    this.p1 = new Battle(new Generations(Dex))
-    this.p2 = new Battle(new Generations(Dex))
+    this.p1 = { revealed: new Set() }
+    this.p2 = { revealed: new Set() }
+  }
+
+  add(line: string) {
+    const parts = line.split("|")
+    if (parts[1] === "-terastallize") {
+      const [side, speciesId] = parsePokemonId(parts[2])
+      this[side].terastallized = [speciesId, parts[3] as TypeName]
+    }
+
+    if (parts[1] === "switch" || parts[1] === "drag") {
+      const [side, speciesId] = parsePokemonId(parts[2])
+      this[side].revealed.add(speciesId)
+      this[side].active = speciesId
+    }
+
+    if (parts[1] === "replace") {
+      const [side, speciesId] = parsePokemonId(parts[2])
+      const s = this[side]
+      s.revealed.delete(s.active!)
+      s.active = speciesId
+      s.revealed.add(speciesId)
+    }
+  }
+}
+
+export class Observer {
+  p1: {
+    b: Battle
+    v: View
+  }
+  p2: {
+    b: Battle
+    v: View
+  }
+
+  constructor() {
+    this.p1 = { b: new Battle(new Generations(Dex)), v: new View() }
+    this.p2 = { b: new Battle(new Generations(Dex)), v: new View() }
+  }
+
+  private add(side: Side, line: string) {
+    this[side].b.add(line)
+    this[side].v.add(line)
   }
 
   consume(logs: Log[]) {
@@ -38,7 +98,7 @@ export class Observer {
               const shared = lines[j + 2]
 
               for (const side of SIDES) {
-                this[side].add(secretSide === side ? secret : shared)
+                this.add(side, secretSide === side ? secret : shared)
               }
 
               j += 3
@@ -46,7 +106,7 @@ export class Observer {
             }
 
             for (const side of SIDES) {
-              this[side].add(lines[j])
+              this.add(side, lines[j])
             }
 
             j += 1
@@ -57,13 +117,13 @@ export class Observer {
           const line = v as string
 
           const side = line.slice(0, 2) as Side
-          const p = this[side]
+          const { b } = this[side]
 
-          p.add(line.slice(3))
+          this.add(side, line.slice(3))
 
           if (line.startsWith("request", 4)) {
-            p.update()
-            p.update()
+            b.update()
+            b.update()
 
             events.push([
               "choice",

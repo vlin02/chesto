@@ -73,7 +73,7 @@ function eq(a: number, b: number) {
 
 {
   const { effects } = extractMove(gen.moves.get("outrage")!)
-  const [volatile, p] = effects.self.volatile!
+  const [volatile, p] = effects.ally.volatile!
   assert(volatile === "lockedmove", volatile)
   assert(eq(p, 1))
 }
@@ -115,12 +115,12 @@ function eq(a: number, b: number) {
 
 {
   const { effects } = extractMove(gen.moves.get("lightscreen")!)
-  assert(effects.self.sideCondition === "lightscreen")
+  assert(effects.ally.sideCondition === "lightscreen")
 }
 
 {
   const { effects } = extractMove(gen.moves.get("protect")!)
-  const [volatile, p] = effects.self.volatile!
+  const [volatile, p] = effects.ally.volatile!
   assert(volatile === "protect")
   assert(p === 1)
 }

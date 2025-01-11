@@ -1,57 +1,7 @@
-import { Battle, Pokemon, WeatherName } from "@pkmn/client"
+import { Battle, Pokemon, TerrainName, WeatherName } from "@pkmn/client"
 import { BoostID, BoostsTable, Generation, HitEffect, Move, Stats, StatusName } from "@pkmn/data"
-
-function scale(v: number, lo: number, hi: number, neg = false) {
-  if (neg) lo = (lo + hi) / 2
-  return (v - lo) / (hi - lo)
-}
-
-const TYPES = [
-  "Normal",
-  "Fighting",
-  "Flying",
-  "Poison",
-  "Ground",
-  "Rock",
-  "Bug",
-  "Ghost",
-  "Steel",
-  "Fire",
-  "Water",
-  "Grass",
-  "Electric",
-  "Psychic",
-  "Ice",
-  "Dragon",
-  "Dark",
-  "Fairy",
-  "Stellar"
-] as const
-
-const VOLATILES = [
-  "leechseed",
-  "futuresight",
-  "protosynthesis",
-  "quarkdrive",
-  "substitute",
-  "taunt",
-  "yawn",
-  "confusion",
-  "charge",
-  "throatchop",
-  "encore",
-  "disable",
-  "flashfire",
-  "magnetrise",
-  "slowstart",
-  "doomdesire",
-  "attract",
-  "saltcure",
-  "noretreat"
-] as const
-type Volatile = keyof typeof VOLATILES
-
-type Type = keyof typeof TYPES
+import { Side, SIDES } from "./battle.js"
+import { View } from "./view.js"
 
 type Effect = {
   boosts: { [k in BoostID]?: [number, number] }
@@ -84,16 +34,88 @@ function applyHitEffect(
   }
 }
 
-function extractPokemon(gen: Generation, stats: Stats, pokemon: Pokemon) {
+export function extractBattle(b: Battle, v: View, [ally, foe]: Side[]) {
+  const [p1, p2] = [b[ally], b[foe]]
+
   const {
-    // CONSIDERED
+    field: { weather, weatherState, terrain, terrainState, pseudoWeather }
+  } = b
+
+  const { gen } = b
+  const stats = new Stats(gen.dex)
+
+  return {
+    weather: weather
+      ? {
+          id: weatherState.id as WeatherName,
+          turnsLeft: [weatherState.minDuration, weatherState.maxDuration]
+        }
+      : null,
+    terrain: terrain
+      ? {
+          id: terrainState.id as TerrainName,
+          turnsLeft: [terrainState.minDuration, terrainState.maxDuration]
+        }
+      : null,
+    pseudoWeathers: Object.values(pseudoWeather).map((x) => {
+      return {
+        id: x.id,
+        turnsLeft: [x.minDuration, x.maxDuration]
+      }
+    }),
+    ally: {
+      team: p1.team.slice(-6).map((pkmn) => {
+        return {
+          details: extractPokemon(gen, stats, pkmn, v),
+          moves: pkmn.moveSlots.map((m) => {
+            const m1 = gen.moves.get(m.id)!
+            return {
+              id: m.id,
+              details: extractMove(gen.moves.get(m.id)!),
+              ppLeft: m1.pp - m.ppUsed
+            }
+          })
+        }
+      }),
+      sideConditions: Object.values(p1.sideConditions).map(({ name, minDuration, maxDuration }) => {
+        return {
+          id: name,
+          turnsLeft: [minDuration, maxDuration]
+        }
+      })
+    },
+    foe: {
+      team: p2.team.slice(-6).map((pkmn) => {
+        return {
+          details: extractPokemon(gen, stats, pkmn, v),
+          moves: pkmn.moveSlots.map((m) => {
+            const m1 = gen.moves.get(m.id)!
+            return {
+              id: m.id,
+              details: extractMove(gen.moves.get(m.id)!),
+              ppLeft: m1.pp - m.ppUsed
+            }
+          })
+        }
+      }),
+      sideConditions: Object.values(p2.sideConditions).map(({ name, minDuration, maxDuration }) => {
+        return {
+          id: name,
+          turnsLeft: [minDuration, maxDuration]
+        }
+      })
+    }
+  }
+}
+
+export function extractPokemon(gen: Generation, stats: Stats, pkmn: Pokemon, view: View) {
+  const {
     level,
 
     teraType,
-    canTerastallize,
-    terastallized,
 
     hp,
+    maxhp,
     status,
     fainted,
     boosts,
@@ -106,159 +128,58 @@ function extractPokemon(gen: Generation, stats: Stats, pokemon: Pokemon) {
     trapped,
     maybeTrapped,
 
-    moveSlots,
     types,
     addedType,
     switching,
 
-    isGrounded,
-    effectiveAbility,
-    isActive,
+    speciesForme
+  } = pkmn
 
-    speciesForme,
-
-    // NOT BEING CONSIDERED
-
-    // being computed via stats
-    maxhp,
-
-    // always 0
-    statusStage,
-
-    // only differs on dynamax
-    baseMaxhp,
-
-    // never true
-    maybeDisabled,
-
-    // only applies to zoroark
-    illusion,
-    revealedDetails,
-
-    // used to calculate item
-    lastItem,
-
-    // not very relevant
-    itemEffect,
-    lastItemEffect,
-    lastMove,
-    lastMoveTargetLoc,
-    movesUsedWhileActive,
-    timesAttacked,
-    moveThisTurn,
-    hurtThisTurn,
-    weighthg,
-
-    // not applicable to randbat
-    teamPreviewItem,
-
-    // contextual
-    side,
-    slot,
-
-    // cosmetic
-    shiny,
-    name,
-    hpcolor,
-    // what is this for each team member?
-    originalIdent,
-    // make sure all of these details are included in the poke ?
-    searchid,
-    // does opp team update details ?
-    details,
-
-    // species forme - forme changes
-    baseSpeciesForme,
-
-    // prefer speciesForme
-    species,
-    baseSpecies,
-
-    // set not available
-    set,
-    ivs,
-    evs,
-    happiness,
-    hpType,
-    nature,
-
-    // same as slot
-    position,
-    // not useful in 1v1
-    ident,
-
-    // covered by effective ability
-    ability,
-    baseAbility,
-
-    // used by types
-    actualTypes,
-
-    // encoded by switching
-    newlySwitched,
-    beingCalledBack,
-
-    // not applicable to gen 9
-    maxMoves,
-    zMoves,
-    canDynamax,
-    canGigantamax,
-    canMegaEvo,
-    canUltraBurst,
-
-    isTerastallized,
-
-    // derived from moveslots
-    moves,
-
-    //derived from this.item
-    hasItem
-  } = pokemon
+  const side = view[SIDES[pkmn.side.n]]
 
   const { baseStats } = gen.species.get(speciesForme)!
   const { sleepTurns, toxicTurns } = statusState
 
-  const abilityId = effectiveAbility()
+  const abilityId = pkmn.effectiveAbility()
 
   return {
-    level: scale(level, 76, 100),
-    hp: scale(hp, 200, 400),
+    id: pkmn.baseSpecies.id,
+    active: side.active === pkmn.name,
+    status: status ?? null,
+    fainted,
+    boosts,
+    hpLeft: maxhp === 0 ? 1 : hp / maxhp,
+    teraType: teraType ?? null,
+    terastallized: side.terastallized?.[0] === pkmn.name,
+
+    sleepTurnsLeft: status === "slp" ? [1 - sleepTurns, 3 - sleepTurns] : [0, 0],
+    toxicTurns,
+    maybeTrapped: !!maybeTrapped,
+    trapped: !!trapped,
+    switching: switching ?? null,
+    revealed: side.revealed.has(pkmn.name),
+
+    grounded: pkmn.isGrounded(),
+
+    level,
     gender,
     stats: Object.fromEntries(
       (["hp", "atk", "def", "spa", "spd", "spe"] as const).map((k) => {
-        return [k, scale(stats.calc(k, baseStats.hp, 31, 85, level), 100, 300)]
+        return [k, stats.calc(k, baseStats[k], 31, 85, level)]
       })
     ),
-    teraType: teraType! as string as Type,
-    terastallized: !!terastallized,
-    canTerastallize: !!canTerastallize,
-    status: status ?? null,
-    fainted,
-    boosts: Object.fromEntries(
-      Object.entries(boosts).map(([k, v]) => {
-        return [k, scale(v, -6, 6, true)]
-      })
-    ),
-    sleepTurnsLeft: status === "slp" ? [1 - sleepTurns, 3 - sleepTurns] : [0, 0],
-    toxicTurns,
     itemId: itemId ?? null,
     abilityId: abilityId ?? null,
-    maybeTrapped: !!maybeTrapped,
-    trapped: !!trapped,
-    types: types as string[] as Type[],
-    addedType: addedType ? (addedType as string as Type) : null,
-    switching: switching ?? null,
-    grounded: isGrounded(),
-    active: isActive(),
-    volatiles: Object.keys(volatiles).filter((v) => VOLATILES.includes(v as any)) as Volatile[]
+    types,
+    addedType: addedType ?? null,
+    volatiles: Object.keys(volatiles)
   }
 }
 
-export function extractMove(move: Move, ppUsed = 0) {
+export function extractMove(move: Move) {
   const {
     basePower,
     accuracy,
-    pp,
     category,
     type,
     priority,
@@ -299,22 +220,11 @@ export function extractMove(move: Move, ppUsed = 0) {
     breaksProtect,
     ignoreAbility,
     willCrit,
-    noPPBoosts,
-
-    // NOT CONSIDERED
-
-    // covered by secondaries
-    secondary,
-
-    // only used by curse, but not very useful unless given the description
-    nonGhostTarget,
-
-    // only applies in doubles & specifically dragon darts
-    smartTarget
+    noPPBoosts
   } = move
 
-  const effects: { self: Effect; foe: Effect } = {
-    self: {
+  const effects: { ally: Effect; foe: Effect } = {
+    ally: {
       boosts: {}
     },
     foe: {
@@ -325,12 +235,12 @@ export function extractMove(move: Move, ppUsed = 0) {
   if (selfBoost) {
     const { boosts } = selfBoost
     if (boosts) {
-      applyBoosts(effects.self, boosts)
+      applyBoosts(effects.ally, boosts)
     }
   }
 
   if (self) {
-    applyHitEffect(effects.self, self)
+    applyHitEffect(effects.ally, self)
   }
 
   if (secondaries) {
@@ -338,7 +248,7 @@ export function extractMove(move: Move, ppUsed = 0) {
       const { chance, self } = secondary
       if (!chance) continue
       if (self) {
-        applyHitEffect(effects.self, self, chance / 100)
+        applyHitEffect(effects.ally, self, chance / 100)
       } else {
         applyHitEffect(effects.foe, secondary, chance / 100)
       }
@@ -347,7 +257,7 @@ export function extractMove(move: Move, ppUsed = 0) {
 
   switch (target) {
     case "self":
-      applyHitEffect(effects.self, move, 1)
+      applyHitEffect(effects.ally, move, 1)
       break
     case "normal":
       applyHitEffect(effects.foe, move, 1)
@@ -371,7 +281,7 @@ export function extractMove(move: Move, ppUsed = 0) {
   if (sideCondition) {
     switch (target) {
       case "allySide":
-        effects.self.sideCondition = sideCondition
+        effects.ally.sideCondition = sideCondition
         break
       case "foeSide":
         effects.foe.sideCondition = sideCondition
@@ -382,7 +292,6 @@ export function extractMove(move: Move, ppUsed = 0) {
   }
 
   return {
-    ppLeft: pp - ppUsed,
     accuracy: accuracy === true ? 1 : accuracy / 100,
     category,
     type,
@@ -393,26 +302,25 @@ export function extractMove(move: Move, ppUsed = 0) {
     pseudoWeather: pseudoWeather ?? null,
     terrain: terrain ?? null,
 
-    // attack
     critRatio: category === "Status" ? 0 : critRatio,
-    basePower: scale(basePower, 0, 200),
+    basePower,
     damageByLevel: damage === "level",
     statOverride: {
       defensive: overrideDefensiveStat || overrideDefensivePokemon || null,
       offensive: overrideOffensiveStat || overrideOffensivePokemon || null
     },
-    multiHit: {
-      times: Array.isArray(multihit) ? multihit : [multihit ?? 0, multihit ?? 0],
-      recheckAcc: !!multiaccuracy
-    },
+    multiHit: multihit
+      ? {
+          times: Array.isArray(multihit) ? multihit : [multihit, multihit],
+          recheckAcc: !!multiaccuracy
+        }
+      : null,
     willCrit: !!willCrit,
 
     effects,
 
-    // heal % of user hp
     heal: heal ? heal[0] / heal[1] : 0,
 
-    // steal % of foe hp
     drain: drain ? drain[0] / drain[1] : 0,
 
     recoil: recoil ? recoil[0] / recoil[1] : 0,

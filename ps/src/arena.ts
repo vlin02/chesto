@@ -3,7 +3,7 @@ import { WebSocketServer } from "ws"
 import { toID } from "@pkmn/sim"
 import { Battle } from "@pkmn/sim"
 import { Decision, make, Side } from "./battle.js"
-import { Observer } from "./observer.js"
+import { Observer } from "./view.js"
 import { Log } from "./replay.js"
 
 type Message = {

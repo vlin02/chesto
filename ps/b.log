@@ -1,0 +1,1057 @@
+|request|{"active":[{"moves":[{"move":"Gunk Shot","id":"gunkshot","pp":8,"maxpp":8,"target":"normal","disabled":false},{"move":"Shadow Sneak","id":"shadowsneak","pp":48,"maxpp":48,"target":"normal","disabled":false},{"move":"Knock Off","id":"knockoff","pp":32,"maxpp":32,"target":"normal","disabled":false},{"move":"Drain Punch","id":"drainpunch","pp":16,"maxpp":16,"target":"normal","disabled":false}],"canTerastallize":"Dark"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Muk","details":"Muk, L86, F","condition":"321/321","active":true,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"337/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"leftovers","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+' {\n' +
+  '\x1B[32m+  side: "p1"\x1B[39m\n' +
+  '\x1B[32m+  ally: {\x1B[39m\n' +
+  '\x1B[32m+    tera: null\x1B[39m\n' +
+  '\x1B[32m+    revealed: {\x1B[39m\n' +
+  '\x1B[32m+    }\x1B[39m\n' +
+  '\x1B[32m+    team: {\x1B[39m\n' +
+  '\x1B[32m+      Muk: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Muk"\x1B[39m\n' +
+  '\x1B[32m+        gender: "F"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 86\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+        teraType: "Dark"\x1B[39m\n' +
+  '\x1B[32m+        ability: "poisontouch"\x1B[39m\n' +
+  '\x1B[32m+        item: "choiceband"\x1B[39m\n' +
+  '\x1B[32m+        stats: {\x1B[39m\n' +
+  '\x1B[32m+          atk: 230\x1B[39m\n' +
+  '\x1B[32m+          def: 178\x1B[39m\n' +
+  '\x1B[32m+          spa: 161\x1B[39m\n' +
+  '\x1B[32m+          spd: 221\x1B[39m\n' +
+  '\x1B[32m+          spe: 135\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        hp: [\x1B[39m\n' +
+  '\x1B[32m+          321\x1B[39m\n' +
+  '\x1B[32m+          321\x1B[39m\n' +
+  '\x1B[32m+        ]\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+          gunkshot: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          shadowsneak: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          knockoff: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          drainpunch: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '\x1B[32m+      Seviper: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Seviper"\x1B[39m\n' +
+  '\x1B[32m+        gender: "F"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 93\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+        teraType: "Poison"\x1B[39m\n' +
+  '\x1B[32m+        ability: "infiltrator"\x1B[39m\n' +
+  '\x1B[32m+        item: "lifeorb"\x1B[39m\n' +
+  '\x1B[32m+        stats: {\x1B[39m\n' +
+  '\x1B[32m+          atk: 239\x1B[39m\n' +
+  '\x1B[32m+          def: 164\x1B[39m\n' +
+  '\x1B[32m+          spa: 239\x1B[39m\n' +
+  '\x1B[32m+          spd: 164\x1B[39m\n' +
+  '\x1B[32m+          spe: 174\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        hp: [\x1B[39m\n' +
+  '\x1B[32m+          287\x1B[39m\n' +
+  '\x1B[32m+          287\x1B[39m\n' +
+  '\x1B[32m+        ]\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+          glare: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          gunkshot: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          earthquake: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          flamethrower: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '\x1B[32m+      Gallade: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Gallade"\x1B[39m\n' +
+  '\x1B[32m+        gender: "M"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 81\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+        teraType: "Grass"\x1B[39m\n' +
+  '\x1B[32m+        ability: "sharpness"\x1B[39m\n' +
+  '\x1B[32m+        item: "choiceband"\x1B[39m\n' +
+  '\x1B[32m+        stats: {\x1B[39m\n' +
+  '\x1B[32m+          atk: 249\x1B[39m\n' +
+  '\x1B[32m+          def: 152\x1B[39m\n' +
+  '\x1B[32m+          spa: 152\x1B[39m\n' +
+  '\x1B[32m+          spd: 233\x1B[39m\n' +
+  '\x1B[32m+          spe: 176\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        hp: [\x1B[39m\n' +
+  '\x1B[32m+          243\x1B[39m\n' +
+  '\x1B[32m+          243\x1B[39m\n' +
+  '\x1B[32m+        ]\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+          sacredsword: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          nightslash: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          psychocut: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          leafblade: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '\x1B[32m+      Whiscash: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Whiscash"\x1B[39m\n' +
+  '\x1B[32m+        gender: "M"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 88\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+        teraType: "Poison"\x1B[39m\n' +
+  '\x1B[32m+        ability: "oblivious"\x1B[39m\n' +
+  '\x1B[32m+        item: "leftovers"\x1B[39m\n' +
+  '\x1B[32m+        stats: {\x1B[39m\n' +
+  '\x1B[32m+          atk: 188\x1B[39m\n' +
+  '\x1B[32m+          def: 179\x1B[39m\n' +
+  '\x1B[32m+          spa: 184\x1B[39m\n' +
+  '\x1B[32m+          spd: 175\x1B[39m\n' +
+  '\x1B[32m+          spe: 156\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        hp: [\x1B[39m\n' +
+  '\x1B[32m+          337\x1B[39m\n' +
+  '\x1B[32m+          337\x1B[39m\n' +
+  '\x1B[32m+        ]\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+          icebeam: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          spikes: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          earthquake: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          hydropump: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '\x1B[32m+      Regidrago: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Regidrago"\x1B[39m\n' +
+  '\x1B[32m+        gender: null\x1B[39m\n' +
+  '\x1B[32m+        lvl: 77\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+        teraType: "Dragon"\x1B[39m\n' +
+  '\x1B[32m+        ability: "dragonsmaw"\x1B[39m\n' +
+  '\x1B[32m+        item: "choicescarf"\x1B[39m\n' +
+  '\x1B[32m+        stats: {\x1B[39m\n' +
+  '\x1B[32m+          atk: 199\x1B[39m\n' +
+  '\x1B[32m+          def: 122\x1B[39m\n' +
+  '\x1B[32m+          spa: 199\x1B[39m\n' +
+  '\x1B[32m+          spd: 122\x1B[39m\n' +
+  '\x1B[32m+          spe: 168\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        hp: [\x1B[39m\n' +
+  '\x1B[32m+          435\x1B[39m\n' +
+  '\x1B[32m+          435\x1B[39m\n' +
+  '\x1B[32m+        ]\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+          dragonenergy: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          earthquake: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          outrage: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          dracometeor: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '\x1B[32m+      Polteageist: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Polteageist-Antique"\x1B[39m\n' +
+  '\x1B[32m+        gender: null\x1B[39m\n' +
+  '\x1B[32m+        lvl: 79\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+        teraType: "Psychic"\x1B[39m\n' +
+  '\x1B[32m+        ability: "cursedbody"\x1B[39m\n' +
+  '\x1B[32m+        item: "whiteherb"\x1B[39m\n' +
+  '\x1B[32m+        stats: {\x1B[39m\n' +
+  '\x1B[32m+          atk: 107\x1B[39m\n' +
+  '\x1B[32m+          def: 148\x1B[39m\n' +
+  '\x1B[32m+          spa: 257\x1B[39m\n' +
+  '\x1B[32m+          spd: 226\x1B[39m\n' +
+  '\x1B[32m+          spe: 156\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        hp: [\x1B[39m\n' +
+  '\x1B[32m+          224\x1B[39m\n' +
+  '\x1B[32m+          224\x1B[39m\n' +
+  '\x1B[32m+        ]\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+          shellsmash: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          shadowball: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          strengthsap: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+          storedpower: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 0\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '\x1B[32m+    }\x1B[39m\n' +
+  '\x1B[32m+    active: "Muk"\x1B[39m\n' +
+  '\x1B[32m+  }\x1B[39m\n' +
+  '\x1B[32m+  foe: {\x1B[39m\n' +
+  '\x1B[32m+    tera: null\x1B[39m\n' +
+  '\x1B[32m+    revealed: {\x1B[39m\n' +
+  '\x1B[32m+    }\x1B[39m\n' +
+  '\x1B[32m+    team: {\x1B[39m\n' +
+  '\x1B[32m+    }\x1B[39m\n' +
+  '\x1B[32m+  }\x1B[39m\n' +
+  '\x1B[32m+  name: "Player 1"\x1B[39m\n' +
+  '\x1B[32m+  fields: {\x1B[39m\n' +
+  '\x1B[32m+  }\x1B[39m\n' +
+  '\x1B[32m+  weather: null\x1B[39m\n' +
+  ' }\n'
+-----
+|t:|1736483303
+''
+-----
+|gametype|singles
+''
+-----
+|player|p1|Player 1||
+''
+-----
+|player|p2|Player 2||
+''
+-----
+|teamsize|p1|6
+''
+-----
+|teamsize|p2|6
+''
+-----
+|gen|9
+''
+-----
+|tier|[Gen 9] Random Battle
+''
+-----
+|rule|Species Clause: Limit one of each Pokémon
+''
+-----
+|rule|HP Percentage Mod: HP is shown in percentages
+''
+-----
+|rule|Sleep Clause Mod: Limit one foe put to sleep
+''
+-----
+|rule|Illusion Level Mod: Illusion disguises the Pokémon's true level
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|start
+''
+-----
+|switch|p1a: Muk|Muk, L86, F|321/321
+''
+-----
+|switch|p2a: Misdreavus|Misdreavus, L90, F|100/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '\x1B[32m+      Misdreavus: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Misdreavus"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 90\x1B[39m\n' +
+  '\x1B[32m+        gender: "F"\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 1\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|turn|1
+' {\n\x1B[32m+  turn: 1\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Gunk Shot","id":"gunkshot","pp":8,"maxpp":8,"target":"normal","disabled":true},{"move":"Shadow Sneak","id":"shadowsneak","pp":48,"maxpp":48,"target":"normal","disabled":true},{"move":"Knock Off","id":"knockoff","pp":31,"maxpp":32,"target":"normal","disabled":false},{"move":"Drain Punch","id":"drainpunch","pp":16,"maxpp":16,"target":"normal","disabled":true}],"canTerastallize":"Dark"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":true,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"337/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"leftovers","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|switch|p2a: Tyranitar|Tyranitar, L79, M|100/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '\x1B[32m+      Tyranitar: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Tyranitar"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 79\x1B[39m\n' +
+  '\x1B[32m+        gender: "M"\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 1\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+{ from: 'ability: Sand Stream', of: 'p2a: Tyranitar' }
+|-weather|Sandstorm|[from] ability: Sand Stream|[of] p2a: Tyranitar
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '\x1B[32m+        ability: "Sand Stream"\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  '\x1B[31m-  weather: null\x1B[39m\n' +
+  '\x1B[32m+  weather: {\x1B[39m\n' +
+  '\x1B[32m+    name: "Sandstorm"\x1B[39m\n' +
+  '\x1B[32m+    turns: 0\x1B[39m\n' +
+  '\x1B[32m+  }\x1B[39m\n' +
+  ' }\n'
+-----
+|move|p1a: Muk|Knock Off|p2a: Tyranitar
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Muk: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Knock Off: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-resisted|p2a: Tyranitar
+''
+-----
+|-damage|p2a: Tyranitar|83/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '\x1B[31m-        hpRatio: 1\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.83\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-enditem|p2a: Tyranitar|Leftovers|[from] move: Knock Off|[of] p1a: Muk
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '\x1B[32m+        item: null\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|-weather|Sandstorm|[upkeep]
+''
+-----
+|-damage|p1a: Muk|301/321|[from] Sandstorm
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Muk: {\n' +
+  '         hp: [\n' +
+  '\x1B[32m+          301\x1B[39m\n' +
+  '           ...\n' +
+  '\x1B[31m-          321\x1B[39m\n' +
+  '         ]\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|upkeep
+' {\n   weather: {\n\x1B[31m-    turns: 0\x1B[39m\n\x1B[32m+    turns: 1\x1B[39m\n   }\n }\n'
+-----
+|turn|2
+' {\n\x1B[31m-  turn: 1\x1B[39m\n\x1B[32m+  turn: 2\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Ice Beam","id":"icebeam","pp":16,"maxpp":16,"target":"normal","disabled":false},{"move":"Spikes","id":"spikes","pp":32,"maxpp":32,"target":"foeSide","disabled":false},{"move":"Earthquake","id":"earthquake","pp":16,"maxpp":16,"target":"allAdjacent","disabled":false},{"move":"Hydro Pump","id":"hydropump","pp":8,"maxpp":8,"target":"normal","disabled":false}],"canTerastallize":"Poison"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"337/337","active":true,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"leftovers","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":false,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|switch|p1a: Whiscash|Whiscash, L88, M|337/337
+''
+-----
+|move|p2a: Tyranitar|Dragon Dance|p2a: Tyranitar
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Dragon Dance: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-boost|p2a: Tyranitar|atk|1
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '         boosts: {\n' +
+  '\x1B[32m+          1: null\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-boost|p2a: Tyranitar|spe|1
+''
+-----
+|
+''
+-----
+|-weather|Sandstorm|[upkeep]
+' {\n   weather: {\n\x1B[31m-    turns: 1\x1B[39m\n\x1B[32m+    turns: 0\x1B[39m\n   }\n }\n'
+-----
+|upkeep
+' {\n   weather: {\n\x1B[31m-    turns: 0\x1B[39m\n\x1B[32m+    turns: 1\x1B[39m\n   }\n }\n'
+-----
+|turn|3
+' {\n\x1B[31m-  turn: 2\x1B[39m\n\x1B[32m+  turn: 3\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Ice Beam","id":"icebeam","pp":16,"maxpp":16,"target":"normal","disabled":false},{"move":"Spikes","id":"spikes","pp":32,"maxpp":32,"target":"foeSide","disabled":false},{"move":"Earthquake","id":"earthquake","pp":16,"maxpp":16,"target":"allAdjacent","disabled":false},{"move":"Hydro Pump","id":"hydropump","pp":7,"maxpp":8,"target":"normal","disabled":false}],"canTerastallize":"Poison"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":true,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":false,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|move|p2a: Tyranitar|Knock Off|p1a: Whiscash
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Knock Off: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-damage|p1a: Whiscash|136/337
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Whiscash: {\n' +
+  '         hp: [\n' +
+  '\x1B[32m+          136\x1B[39m\n' +
+  '           ...\n' +
+  '\x1B[31m-          337\x1B[39m\n' +
+  '         ]\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-enditem|p1a: Whiscash|Leftovers|[from] move: Knock Off|[of] p2a: Tyranitar
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Whiscash: {\n' +
+  '\x1B[31m-        item: "leftovers"\x1B[39m\n' +
+  '\x1B[32m+        item: null\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|move|p1a: Whiscash|Hydro Pump|p2a: Tyranitar
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Whiscash: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Hydro Pump: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-supereffective|p2a: Tyranitar
+''
+-----
+|-damage|p2a: Tyranitar|32/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Tyranitar: {\n' +
+  '\x1B[31m-        hpRatio: 0.83\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.32\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|-weather|Sandstorm|[upkeep]
+' {\n   weather: {\n\x1B[31m-    turns: 1\x1B[39m\n\x1B[32m+    turns: 0\x1B[39m\n   }\n }\n'
+-----
+|upkeep
+' {\n   weather: {\n\x1B[31m-    turns: 0\x1B[39m\n\x1B[32m+    turns: 1\x1B[39m\n   }\n }\n'
+-----
+|turn|4
+' {\n\x1B[31m-  turn: 3\x1B[39m\n\x1B[32m+  turn: 4\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Ice Beam","id":"icebeam","pp":16,"maxpp":16,"target":"normal","disabled":false},{"move":"Spikes","id":"spikes","pp":32,"maxpp":32,"target":"foeSide","disabled":false},{"move":"Earthquake","id":"earthquake","pp":14,"maxpp":16,"target":"allAdjacent","disabled":false},{"move":"Hydro Pump","id":"hydropump","pp":7,"maxpp":8,"target":"normal","disabled":false}],"canTerastallize":"Poison"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":true,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":false,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|switch|p2a: Deoxys|Deoxys-Defense, L84|100/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '\x1B[32m+      Deoxys: {\x1B[39m\n' +
+  '\x1B[32m+        species: "Deoxys-Defense"\x1B[39m\n' +
+  '\x1B[32m+        lvl: 84\x1B[39m\n' +
+  '\x1B[32m+        gender: null\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 1\x1B[39m\n' +
+  '\x1B[32m+        boosts: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        moves: {\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '\x1B[32m+        status: null\x1B[39m\n' +
+  '\x1B[32m+        fnt: false\x1B[39m\n' +
+  '\x1B[32m+      }\x1B[39m\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-ability|p2a: Deoxys|Pressure
+''
+-----
+|move|p1a: Whiscash|Earthquake|p2a: Deoxys
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Whiscash: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Earthquake: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-damage|p2a: Deoxys|73/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        hpRatio: 1\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.73\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|-weather|Sandstorm|[upkeep]
+' {\n   weather: {\n\x1B[31m-    turns: 1\x1B[39m\n\x1B[32m+    turns: 0\x1B[39m\n   }\n }\n'
+-----
+|-damage|p2a: Deoxys|67/100|[from] Sandstorm
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        hpRatio: 0.73\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.67\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-heal|p2a: Deoxys|73/100|[from] item: Leftovers
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[32m+        item: "Leftovers"\x1B[39m\n' +
+  '\x1B[31m-        hpRatio: 0.67\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.73\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|upkeep
+' {\n   weather: {\n\x1B[31m-    turns: 0\x1B[39m\n\x1B[32m+    turns: 1\x1B[39m\n   }\n }\n'
+-----
+|turn|5
+' {\n\x1B[31m-  turn: 4\x1B[39m\n\x1B[32m+  turn: 5\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Gunk Shot","id":"gunkshot","pp":8,"maxpp":8,"target":"normal","disabled":false},{"move":"Shadow Sneak","id":"shadowsneak","pp":48,"maxpp":48,"target":"normal","disabled":false},{"move":"Knock Off","id":"knockoff","pp":31,"maxpp":32,"target":"normal","disabled":false},{"move":"Drain Punch","id":"drainpunch","pp":16,"maxpp":16,"target":"normal","disabled":false}],"canTerastallize":"Dark"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":true,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|switch|p1a: Muk|Muk, L86, F|301/321
+''
+-----
+|move|p2a: Deoxys|Cosmic Power|p2a: Deoxys
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Cosmic Power: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-boost|p2a: Deoxys|def|1
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         boosts: {\n' +
+  '\x1B[32m+          1: null\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-boost|p2a: Deoxys|spd|1
+''
+-----
+|
+''
+-----
+|-weather|none
+' {\n' +
+  '\x1B[31m-  weather: {\x1B[39m\n' +
+  '\x1B[31m-    name: "Sandstorm"\x1B[39m\n' +
+  '\x1B[31m-    turns: 1\x1B[39m\n' +
+  '\x1B[31m-  }\x1B[39m\n' +
+  '\x1B[32m+  weather: null\x1B[39m\n' +
+  ' }\n'
+-----
+|-heal|p2a: Deoxys|79/100|[from] item: Leftovers
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        hpRatio: 0.73\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.79\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|upkeep
+''
+-----
+|turn|6
+' {\n\x1B[31m-  turn: 5\x1B[39m\n\x1B[32m+  turn: 6\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Gunk Shot","id":"gunkshot","pp":8,"maxpp":8,"target":"normal","disabled":true},{"move":"Shadow Sneak","id":"shadowsneak","pp":48,"maxpp":48,"target":"normal","disabled":true},{"move":"Knock Off","id":"knockoff","pp":29,"maxpp":32,"target":"normal","disabled":false},{"move":"Drain Punch","id":"drainpunch","pp":16,"maxpp":16,"target":"normal","disabled":true}],"canTerastallize":"Dark"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":true,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":false,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|-terastallize|p2a: Deoxys|Steel
+''
+-----
+|move|p2a: Deoxys|Cosmic Power|p2a: Deoxys
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         moves: {\n' +
+  '           Cosmic Power: {\n' +
+  '\x1B[31m-            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 2\x1B[39m\n' +
+  '           }\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-boost|p2a: Deoxys|def|1
+''
+-----
+|-boost|p2a: Deoxys|spd|1
+''
+-----
+|move|p1a: Muk|Knock Off|p2a: Deoxys
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Muk: {\n' +
+  '         moves: {\n' +
+  '           Knock Off: {\n' +
+  '\x1B[31m-            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 2\x1B[39m\n' +
+  '           }\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-damage|p2a: Deoxys|61/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        hpRatio: 0.79\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 0.61\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-enditem|p2a: Deoxys|Leftovers|[from] move: Knock Off|[of] p1a: Muk
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        item: "Leftovers"\x1B[39m\n' +
+  '\x1B[32m+        item: null\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|upkeep
+''
+-----
+|turn|7
+' {\n\x1B[31m-  turn: 6\x1B[39m\n\x1B[32m+  turn: 7\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Glare","id":"glare","pp":48,"maxpp":48,"target":"normal","disabled":false},{"move":"Gunk Shot","id":"gunkshot","pp":8,"maxpp":8,"target":"normal","disabled":false},{"move":"Earthquake","id":"earthquake","pp":16,"maxpp":16,"target":"allAdjacent","disabled":false},{"move":"Flamethrower","id":"flamethrower","pp":24,"maxpp":24,"target":"normal","disabled":false}],"canTerastallize":"Poison"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"287/287","active":true,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":false,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|switch|p1a: Seviper|Seviper, L93, F|287/287
+''
+-----
+|move|p2a: Deoxys|Recover|p2a: Deoxys
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Recover: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-heal|p2a: Deoxys|100/100
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        hpRatio: 0.61\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: 1\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|upkeep
+''
+-----
+|turn|8
+' {\n\x1B[31m-  turn: 7\x1B[39m\n\x1B[32m+  turn: 8\x1B[39m\n }\n'
+-----
+|request|{"active":[{"moves":[{"move":"Glare","id":"glare","pp":46,"maxpp":48,"target":"normal","disabled":false},{"move":"Gunk Shot","id":"gunkshot","pp":8,"maxpp":8,"target":"normal","disabled":false},{"move":"Earthquake","id":"earthquake","pp":16,"maxpp":16,"target":"allAdjacent","disabled":false},{"move":"Flamethrower","id":"flamethrower","pp":24,"maxpp":24,"target":"normal","disabled":false}],"canTerastallize":"Poison"}],"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"81/287","active":true,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":false,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|move|p2a: Deoxys|Stored Power|p1a: Seviper
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Stored Power: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-supereffective|p1a: Seviper
+''
+-----
+|-damage|p1a: Seviper|81/287
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Seviper: {\n' +
+  '         hp: [\n' +
+  '\x1B[32m+          81\x1B[39m\n' +
+  '           ...\n' +
+  '\x1B[31m-          287\x1B[39m\n' +
+  '         ]\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|move|p1a: Seviper|Glare|p2a: Deoxys
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Seviper: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Glare: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-status|p2a: Deoxys|par
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        status: null\x1B[39m\n' +
+  '\x1B[32m+        status: {\x1B[39m\n' +
+  '\x1B[32m+          name: "par"\x1B[39m\n' +
+  '\x1B[32m+          turns: 0\x1B[39m\n' +
+  '\x1B[32m+        }\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|upkeep
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         status: {\n' +
+  '\x1B[31m-          turns: 0\x1B[39m\n' +
+  '\x1B[32m+          turns: 1\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|turn|9
+' {\n\x1B[31m-  turn: 8\x1B[39m\n\x1B[32m+  turn: 9\x1B[39m\n }\n'
+-----
+|request|{"wait":true,"side":{"name":"Player 1","id":"p1","pokemon":[{"ident":"p1: Seviper","details":"Seviper, L93, F","condition":"53/287","active":true,"stats":{"atk":239,"def":164,"spa":239,"spd":164,"spe":174},"moves":["glare","gunkshot","earthquake","flamethrower"],"baseAbility":"infiltrator","item":"lifeorb","pokeball":"pokeball","ability":"infiltrator","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Muk","details":"Muk, L86, F","condition":"301/321","active":false,"stats":{"atk":230,"def":178,"spa":161,"spd":221,"spe":135},"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"baseAbility":"poisontouch","item":"choiceband","pokeball":"pokeball","ability":"poisontouch","commanding":false,"reviving":false,"teraType":"Dark","terastallized":""},{"ident":"p1: Gallade","details":"Gallade, L81, M","condition":"243/243","active":false,"stats":{"atk":249,"def":152,"spa":152,"spd":233,"spe":176},"moves":["sacredsword","nightslash","psychocut","leafblade"],"baseAbility":"sharpness","item":"choiceband","pokeball":"pokeball","ability":"sharpness","commanding":false,"reviving":false,"teraType":"Grass","terastallized":""},{"ident":"p1: Whiscash","details":"Whiscash, L88, M","condition":"136/337","active":false,"stats":{"atk":188,"def":179,"spa":184,"spd":175,"spe":156},"moves":["icebeam","spikes","earthquake","hydropump"],"baseAbility":"oblivious","item":"","pokeball":"pokeball","ability":"oblivious","commanding":false,"reviving":false,"teraType":"Poison","terastallized":""},{"ident":"p1: Regidrago","details":"Regidrago, L77","condition":"435/435","active":false,"stats":{"atk":199,"def":122,"spa":199,"spd":122,"spe":168},"moves":["dragonenergy","earthquake","outrage","dracometeor"],"baseAbility":"dragonsmaw","item":"choicescarf","pokeball":"pokeball","ability":"dragonsmaw","commanding":false,"reviving":false,"teraType":"Dragon","terastallized":""},{"ident":"p1: Polteageist","details":"Polteageist-Antique, L79","condition":"224/224","active":false,"stats":{"atk":107,"def":148,"spa":257,"spd":226,"spe":156},"moves":["shellsmash","shadowball","strengthsap","storedpower"],"baseAbility":"cursedbody","item":"whiteherb","pokeball":"pokeball","ability":"cursedbody","commanding":false,"reviving":false,"teraType":"Psychic","terastallized":""}]}}
+''
+-----
+|
+''
+-----
+|t:|1736483303
+''
+-----
+|move|p1a: Seviper|Earthquake|p2a: Deoxys
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Seviper: {\n' +
+  '         moves: {\n' +
+  '\x1B[32m+          Earthquake: {\x1B[39m\n' +
+  '\x1B[32m+            ppUsed: 1\x1B[39m\n' +
+  '\x1B[32m+          }\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|-supereffective|p2a: Deoxys
+''
+-----
+|-crit|p2a: Deoxys
+''
+-----
+|-damage|p2a: Deoxys|0 fnt
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '\x1B[31m-        hpRatio: 1\x1B[39m\n' +
+  '\x1B[32m+        hpRatio: null\x1B[39m\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|faint|p2a: Deoxys
+''
+-----
+|-damage|p1a: Seviper|53/287|[from] item: Life Orb
+' {\n' +
+  '   ally: {\n' +
+  '     team: {\n' +
+  '       Seviper: {\n' +
+  '         hp: [\n' +
+  '\x1B[31m-          81\x1B[39m\n' +
+  '\x1B[32m+          53\x1B[39m\n' +
+  '           ...\n' +
+  '         ]\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|upkeep
+' {\n' +
+  '   foe: {\n' +
+  '     team: {\n' +
+  '       Deoxys: {\n' +
+  '         status: {\n' +
+  '\x1B[31m-          turns: 1\x1B[39m\n' +
+  '\x1B[32m+          turns: 2\x1B[39m\n' +
+  '         }\n' +
+  '       }\n' +
+  '     }\n' +
+  '   }\n' +
+  ' }\n'
+-----
+|
+''
+-----
+|win|Player 2
+' {\n\x1B[32m+  winner: "foe"\x1B[39m\n }\n'
+-----
+|end|{"winner":"Player 2","seed":[5964,29378,57492,52042],"turns":9,"p1":"Player 1","p2":"Player 2","p1team":[{"name":"Muk","species":"Muk","gender":"","shiny":false,"level":86,"moves":["gunkshot","shadowsneak","knockoff","drainpunch"],"ability":"Poison Touch","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Choice Band","teraType":"Dark","role":"Bulky Attacker"},{"name":"Seviper","species":"Seviper","gender":"","shiny":false,"level":93,"moves":["glare","gunkshot","earthquake","flamethrower"],"ability":"Infiltrator","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Life Orb","teraType":"Poison","role":"Fast Attacker"},{"name":"Gallade","species":"Gallade","gender":"M","shiny":false,"level":81,"moves":["sacredsword","nightslash","psychocut","leafblade"],"ability":"Sharpness","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Choice Band","teraType":"Grass","role":"Fast Attacker"},{"name":"Whiscash","species":"Whiscash","gender":"","shiny":false,"level":88,"moves":["icebeam","spikes","earthquake","hydropump"],"ability":"Oblivious","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Leftovers","teraType":"Poison","role":"Bulky Support"},{"name":"Regidrago","species":"Regidrago","gender":"N","shiny":false,"level":77,"moves":["dragonenergy","earthquake","outrage","dracometeor"],"ability":"Dragon's Maw","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Choice Scarf","teraType":"Dragon","role":"Fast Attacker"},{"name":"Polteageist","species":"Polteageist-Antique","gender":"N","shiny":false,"level":79,"moves":["shellsmash","shadowball","strengthsap","storedpower"],"ability":"Cursed Body","evs":{"hp":85,"atk":0,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":0,"def":31,"spa":31,"spd":31,"spe":31},"item":"White Herb","teraType":"Psychic","role":"Setup Sweeper"}],"p2team":[{"name":"Misdreavus","species":"Misdreavus","gender":"","shiny":false,"level":90,"moves":["drainingkiss","willowisp","shadowball","calmmind"],"ability":"Levitate","evs":{"hp":85,"atk":0,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":0,"def":31,"spa":31,"spd":31,"spe":31},"item":"Eviolite","teraType":"Fairy","role":"Bulky Setup"},{"name":"Deoxys","species":"Deoxys-Defense","gender":"N","shiny":false,"level":84,"moves":["recover","nightshade","cosmicpower","storedpower"],"ability":"Pressure","evs":{"hp":85,"atk":0,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":0,"def":31,"spa":31,"spd":31,"spe":31},"item":"Leftovers","teraType":"Steel","role":"Bulky Setup"},{"name":"Grumpig","species":"Grumpig","gender":"","shiny":false,"level":92,"moves":["trick","psyshock","earthpower","focusblast"],"ability":"Thick Fat","evs":{"hp":85,"atk":0,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":0,"def":31,"spa":31,"spd":31,"spe":31},"item":"Choice Scarf","teraType":"Psychic","role":"Bulky Attacker"},{"name":"Tyranitar","species":"Tyranitar","gender":"","shiny":false,"level":79,"moves":["knockoff","dragondance","icepunch","stoneedge"],"ability":"Sand Stream","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Leftovers","teraType":"Rock","role":"Bulky Setup"},{"name":"Ariados","species":"Ariados","gender":"","shiny":false,"level":95,"moves":["megahorn","poisonjab","suckerpunch","stickyweb"],"ability":"Insomnia","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Heavy-Duty Boots","teraType":"Ghost","role":"Fast Support"},{"name":"Torkoal","species":"Torkoal","gender":"","shiny":false,"level":88,"moves":["yawn","lavaplume","rapidspin","solarbeam"],"ability":"Drought","evs":{"hp":85,"atk":85,"def":85,"spa":85,"spd":85,"spe":85},"ivs":{"hp":31,"atk":31,"def":31,"spa":31,"spd":31,"spe":31},"item":"Heavy-Duty Boots","teraType":"Grass","role":"Bulky Support"}],"score":[6,5],"inputLog":[">start {\"formatid\":\"gen9randombattle\",\"seed\":[5964,29378,57492,52042]}",">player p1 {\"seed\":[62115,7440,25230,63727]}",">player p2 {\"seed\":[12734,7869,61112,36578]}",">p1 move knockoff",">p2 switch 4",">p1 switch 4",">p2 move dragondance",">p1 move hydropump",">p2 move knockoff",">p1 move earthquake",">p2 switch 2",">p1 switch 4",">p2 move cosmicpower",">p1 move knockoff",">p2 move cosmicpower terastallize",">p1 switch 2",">p2 move recover",">p1 move glare",">p2 move storedpower",">p1 move earthquake",">p2 move cosmicpower"]}
+''
+-----
