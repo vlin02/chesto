@@ -1,5 +1,4 @@
-import { Side } from "@pkmn/sim"
-import { FOE, SIDES } from "./battle.js"
+import { FOE, piped, SIDES, Side } from "./proto.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 

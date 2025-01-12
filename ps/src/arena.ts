@@ -1,10 +1,11 @@
 import cluster from "cluster"
 import { WebSocketServer } from "ws"
-import { Side, toID } from "@pkmn/sim"
+import { toID } from "@pkmn/sim"
 import { Battle } from "@pkmn/sim"
 import { Decision, make } from "./sim.js"
-import { Observer } from "./view.js"
+import { Observer } from "./__tmp/view.js"
 import { Log } from "./replay.js"
+import { Side } from "./proto.js"
 
 type Message = {
   side: Side

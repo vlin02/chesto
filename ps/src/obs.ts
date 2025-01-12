@@ -1,48 +1,18 @@
 import { Generations, TypeName } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
-import { BoostId, FOE, Side, SIDES, StatId } from "./battle.js"
-
-
-function parseTraits(s: string) {
-  const [species, lvl, gender] = s.split(", ") as [
-    string,
-    string | undefined,
-    "M" | "F" | undefined
-  ]
-  return { species, lvl: lvl ? Number(lvl.slice(1)) : 100, gender: gender ?? null }
-}
-
-function parseTags(strs: string[]) {
-  const tags: { [k: string]: string } = {}
-
-  for (const s of strs) {
-    const i = s.indexOf("]")
-    const name = s.slice(1, i)
-    const value = s.slice(i + 2)
-    tags[name] = value
-  }
-
-  return tags
-}
-
-function piped(s: string, i: number, n = 1) {
-  const args = []
-  for (let j = 0; j !== n; j++) {
-    let k = s.indexOf("|", i + 1)
-    if (k === -1) k = s.length
-    args.push(s.slice(i + 1, k))
-    i = k
-    if (i === s.length) break
-  }
-  return { args, i }
-}
-
-
-
-type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
-type WeatherId = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
+import {
+  BoostId,
+  parseTags,
+  parseTraits,
+  piped,
+  Side,
+  StatId,
+  StatusId,
+  WeatherId
+} from "./proto.js"
 
 const POVS = ["ally", "foe"] as const
+
 type AllyMember = {
   revealed: boolean
   lvl: number
@@ -92,7 +62,7 @@ type Active = {
   }
 }
 
-type DelayedAtk = {
+type DelayedAttack = {
   turn: number
   species: string
 }
@@ -115,8 +85,8 @@ type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTur
   "Fallen"?: {
     count: number
   }
-  "Future Sight"?: DelayedAtk
-  "Doom Desire"?: DelayedAtk
+  "Future Sight"?: DelayedAttack
+  "Doom Desire"?: DelayedAttack
 }
 
 type Ally = {
@@ -130,11 +100,11 @@ type Ally = {
 }
 
 type Foe = {
-  hazards: { [k: string]: number }
-  screens: { [k: string]: number }
   tera: {
     name: string
   } | null
+  hazards: { [k: string]: number }
+  screens: { [k: string]: number }
   active?: Active
   team: { [k: string]: FoeMember }
 }

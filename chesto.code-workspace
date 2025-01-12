@@ -1,12 +1,15 @@
 {
   "folders": [
     {
-      "path": "./ps"
+      "name": "ps",
+      "path": "ps"
     },
     {
-      "path": "./model"
+      "name": "model",
+      "path": "model"
     },
     {
+      "name": "chesto",
       "path": "."
     }
   ]
