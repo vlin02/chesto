@@ -28,7 +28,8 @@ export type TypeName =
   | "Stellar"
 
 export type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
-export type WeatherId = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
+export type WeatherName = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
+export type Gender = "M" | "F" | null
 
 export function piped(s: string, i: number, n = 1) {
   const args = []
@@ -43,12 +44,8 @@ export function piped(s: string, i: number, n = 1) {
 }
 
 export function parseTraits(s: string) {
-  const [species, lvl, gender] = s.split(", ") as [
-    string,
-    string | undefined,
-    "M" | "F" | undefined
-  ]
-  return { species, lvl: lvl ? Number(lvl.slice(1)) : 100, gender: gender ?? null }
+  const [forme, lvl, gender] = s.split(", ") as [string, string | undefined, Gender | undefined]
+  return { forme, lvl: lvl ? Number(lvl.slice(1)) : 100, gender: gender ?? null }
 }
 
 export function parseTags(strs: string[]) {
@@ -62,4 +59,31 @@ export function parseTags(strs: string[]) {
   }
 
   return tags
+}
+
+export function parseHp(s: string): [number, number] | null {
+  if (s.slice(-3) === "fnt") return null
+  const [a, b] = s.split(" ")[0].split("/")
+  return [Number(a), Number(b)]
+}
+
+export function parseEntity(s: string) {
+  let i = s.indexOf(": ")
+  let item = null
+  let ability = null
+  let move = null
+
+  switch (s.slice(0, i)) {
+    case "item":
+      item = s.slice(i + 2)
+      break
+    case "ability":
+      ability = s.slice(i + 2)
+      break
+    case "move":
+      move = s.slice(i + 2)
+      break
+  }
+
+  return { item, ability, move, stripped: ability || move || item || s }
 }
