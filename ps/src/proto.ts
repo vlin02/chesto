@@ -30,6 +30,7 @@ export type TypeName =
 
 export type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
 export type WeatherName = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
+
 export type Gender = "M" | "F" | null
 
 export function piped(s: string, i: number, n = 1) {
