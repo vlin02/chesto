@@ -378,21 +378,17 @@ export class Observer {
       }
       case "-heal": {
         p = piped(line, p.i, 2)
-        const { pov, name } = this.parseLabel(p.args[0])
+        const target = this.parseLabel(p.args[0])
         const hp = parseHp(p.args[1])
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
-        this[pov].team[name].hp = hp!
+        const memb = this.member(target)
+        memb.hp = hp!
 
-        if (from) {
-          let memb = this[pov].team[name]
-
-          const { item, ability } = parseEntity(from)
-          if (item) memb.item = item
-          if (ability) memb.ability = ability
-        }
+        const { ability } = parseEntity(from ?? "")
+        if (ability) memb.ability = ability
 
         break
       }
@@ -569,6 +565,8 @@ export class Observer {
 
         let { ability, item, move, stripped } = parseEntity(p.args[1])
 
+        if (stripped === "Orichalcum Pulse") ability = stripped
+
         if (item) {
           switch (item) {
             case "Leppa Berry": {
@@ -585,6 +583,12 @@ export class Observer {
               this.member(target).item = p.args[0]
               break
             }
+            case "Magma Storm":
+            case "Infestation":
+            case "Whirlpool": {
+              this.active(target).volatiles["Partially Trapped"] = { turn: 0 }
+              break
+            }
           }
         } else if (ability) {
           if (ability === "Battle Bond") {
@@ -592,13 +596,11 @@ export class Observer {
           }
 
           p = piped(line, p.i, -1)
-          const { of } = parseTags(p.args)
-
-          this.member(of ? this.parseLabel(of) : target).ability = ability
+          this.member(target).ability = ability
         } else {
           stripped = { trapped: "Trapped" }[stripped] ?? stripped
+
           switch (stripped) {
-            case "Orichalcum Pulse":
             case "Trapped":
               this[pov].active!.volatiles[stripped] = {}
               break
