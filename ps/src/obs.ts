@@ -98,18 +98,21 @@ type Tera = {
   type: TypeName
 }
 
+type Condition = {
+  turn?: number
+  layers?: number
+}
+
 type Ally = {
   tera: Tera | null
-  hazards: { [k: string]: number }
-  screens: { [k: string]: number }
+  conditions: { [k: string]: Condition }
   active?: Active
   team: { [k: string]: AllyMember }
 }
 
 type Foe = {
   tera: Tera | null
-  hazards: { [k: string]: number }
-  screens: { [k: string]: number }
+  conditions: { [k: string]: Condition }
   active?: Active
   team: { [k: string]: FoeMember }
 }
@@ -146,8 +149,8 @@ export class Observer {
 
   constructor(side: Side) {
     this.side = side
-    this.ally = { tera: null, team: {}, hazards: {}, screens: {} }
-    this.foe = { tera: null, team: {}, hazards: {}, screens: {} }
+    this.ally = { tera: null, team: {}, conditions: {} }
+    this.foe = { tera: null, team: {}, conditions: {} }
     this.weather = null
     this.fields = {}
     this.turn = 0
@@ -564,7 +567,7 @@ export class Observer {
         const target = this.parseLabel(p.args[0])
         const { pov } = target
 
-        const { ability, item, move, stripped } = parseEntity(p.args[1])
+        let { ability, item, move, stripped } = parseEntity(p.args[1])
 
         if (item) {
           switch (item) {
@@ -593,11 +596,20 @@ export class Observer {
 
           this.member(of ? this.parseLabel(of) : target).ability = ability
         } else {
-          if (stripped === "Orichalcum Pulse") {
-            this[pov].active!.volatiles["Orichalcum Pulse"] = {}
+          stripped = { trapped: "Trapped" }[stripped] ?? stripped
+          switch (stripped) {
+            case "Orichalcum Pulse":
+            case "Trapped":
+              this[pov].active!.volatiles[stripped] = {}
+              break
           }
         }
 
+        break
+      }
+      case "-swapsideconditions": {
+        const { ally, foe } = this
+        ;[ally.conditions, foe.conditions] = [foe.conditions, ally.conditions]
         break
       }
       case "-end": {
@@ -642,12 +654,12 @@ export class Observer {
         p = piped(line, p.i, 2)
         const { pov } = this.parseLabel(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
-        const { hazards, screens } = this[pov]
+        const { conditions } = this[pov]
 
         if (isHazard(name)) {
-          hazards[name] = (hazards[name] ?? 0) + 1
+          ;(conditions[name] ?? { layers: 0 }).layers!++
         } else {
-          screens[name] = 0
+          conditions[name] = { turn: 0 }
         }
 
         break
@@ -656,13 +668,9 @@ export class Observer {
         p = piped(line, p.i, 2)
         const { pov } = this.parseLabel(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
-        const { hazards, screens } = this[pov]
+        const { conditions } = this[pov]
 
-        if (isHazard(name)) {
-          delete hazards[name]
-        } else {
-          delete screens[name]
-        }
+        delete conditions[name]
 
         break
       }
@@ -685,19 +693,20 @@ export class Observer {
 
         for (const pov of POVS) {
           const side = this[pov]
-          const { screens } = side
-          const { volatiles, name: name } = this[pov].active!
+          const { conditions, team } = side
 
-          const { status } = side.team[name]
+          const { volatiles, name } = side.active!
+
+          const { status } = team[name]
           if (status?.id === "tox") status.turns!++
 
-          for (const k in volatiles) {
-            if (volatiles[k].turn !== undefined) volatiles[k].turn += 1
-            if (k in SINGLE_TURN) delete volatiles[k]
+          for (const name in volatiles) {
+            if (volatiles[name]?.turn !== undefined) volatiles[name].turn += 1
+            if (name in SINGLE_TURN) delete volatiles[name]
           }
 
-          for (const k in screens) {
-            screens[k] += 1
+          for (const name in conditions) {
+            if (conditions[name]?.turn !== undefined) conditions[name].turn += 1
           }
         }
 
