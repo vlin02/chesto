@@ -316,7 +316,13 @@ export class Observer {
         if (ability) this.member(this.parseLabel(of)).ability = ability
         break
       }
+      case "-fieldend": {
+        p = piped(line, p.i)
+        const { move: field } = parseEntity(p.args[0])
 
+        delete this.fields[field!]
+        break
+      }
       case "-curestatus": {
         p = piped(line, p.i, 2)
         const { pov, name } = this.parseLabel(p.args[0])
