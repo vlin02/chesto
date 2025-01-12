@@ -68,6 +68,9 @@ type DelayedAttack = {
 }
 
 type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean } } & {
+  "Type Change"?: {
+    type: TypeName
+  }
   "Disable"?: {
     turn: number
     move: string
@@ -422,10 +425,6 @@ export class Observer {
         const active = this[pov].active!
         const { volatiles } = active
 
-        if (name === "confusion") {
-          name = "Confusion"
-        }
-
         if (name.startsWith("quarkdrive")) {
           volatiles["Quark Drive"] = { stat: name.slice(-3) as StatId }
         } else if (name.startsWith("protosynthesis")) {
@@ -435,12 +434,23 @@ export class Observer {
             count: Number(name.slice(-1)[0])
           }
         } else {
+          name = { confusion: "Confusion", typechange: "Type Change" }[name] ?? name
+
           switch (name) {
+            case "Type Change": {
+              p = piped(line, p.i)
+              const [type] = p.args as [TypeName]
+
+              volatiles[name] = {
+                type
+              }
+              break
+            }
             case "Disable": {
-              p = piped(line, p.i, 2)
+              p = piped(line, p.i)
               const [move] = p.args
 
-              volatiles["Disable"] = {
+              volatiles[name] = {
                 move,
                 turn: 0
               }
