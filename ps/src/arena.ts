@@ -1,8 +1,8 @@
 import cluster from "cluster"
 import { WebSocketServer } from "ws"
-import { toID } from "@pkmn/sim"
+import { Side, toID } from "@pkmn/sim"
 import { Battle } from "@pkmn/sim"
-import { Decision, make, Side } from "./battle.js"
+import { Decision, make } from "./sim.js"
 import { Observer } from "./view.js"
 import { Log } from "./replay.js"
 

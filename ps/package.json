@@ -93,6 +93,8 @@
     "@pkmn/randoms-0.9.8": "npm:@pkmn/randoms@0.9.8",
     "@pkmn/randoms-0.9.9": "npm:@pkmn/randoms@0.9.9",
     "@pkmn/sim": "^0.9.26",
+    "@pkmn/sim-0.8.9": "npm:@pkmn/sim@0.8.9",
+    "@pkmn/sim-0.9.26": "npm:@pkmn/sim@0.9.26",
     "bson": "^6.10.1",
     "event-stream": "^4.0.1",
     "json-diff": "^1.0.6",

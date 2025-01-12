@@ -1,6 +1,5 @@
 import { Battle, Pokemon, TerrainName, WeatherName } from "@pkmn/client"
 import { BoostID, BoostsTable, Generation, HitEffect, Move, Stats, StatusName } from "@pkmn/data"
-import { Side, SIDES } from "./battle.js"
 import { View } from "./view.js"
 
 type Effect = {
