@@ -7,6 +7,7 @@ import {
   parseHp,
   parseTags,
   parseTraits,
+  parseTypes,
   piped,
   Side,
   StatId,
@@ -69,7 +70,7 @@ type DelayedAttack = {
 
 type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean } } & {
   "Type Change"?: {
-    type: TypeName
+    types: TypeName[]
   }
   "Disable"?: {
     turn: number
@@ -153,6 +154,10 @@ export class Observer {
     const side = s.slice(0, 2) as Side
     const name = s.slice(i + 2)
     return { pov: this.side === side ? "ally" : "foe", name } as const
+  }
+
+  member({ pov, name }: { pov: POV; name: string }) {
+    return this[pov].team[name]
   }
 
   read(line: string) {
@@ -439,10 +444,9 @@ export class Observer {
           switch (name) {
             case "Type Change": {
               p = piped(line, p.i)
-              const [type] = p.args as [TypeName]
 
               volatiles[name] = {
-                type
+                types: parseTypes(p.args[0])
               }
               break
             }
@@ -529,6 +533,30 @@ export class Observer {
         break
       }
       case "-activate": {
+        p = piped(line, p.i, 2)
+        const target = this.parseLabel(p.args[0])
+
+        const { ability, item } = parseEntity(p.args[1])
+
+        if (item) {
+          switch (item) {
+            case "Leppa Berry": {
+              p = piped(line, p.i, 1)
+              const [move] = p.args
+              this.member(target).moves[move].ppUsed = 0
+              break
+            }
+          }
+        } else {
+          p = piped(line, p.i, -1)
+          const { of } = parseTags(p.args)
+
+          const { pov, name } = of ? this.parseLabel(of) : target
+          const memb = this[pov].team[name]
+
+          if (ability) memb.ability = ability
+        }
+
         break
       }
       case "-end": {

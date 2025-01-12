@@ -109,3 +109,7 @@ export function parseEntity(s: string) {
 
   return { item, ability, move, stripped: ability || move || item || s }
 }
+
+export function parseTypes(s: string) {
+  return s.split("/") as TypeName[]
+}
