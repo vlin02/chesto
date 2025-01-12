@@ -25,6 +25,7 @@ export type TypeName =
   | "Dragon"
   | "Dark"
   | "Fairy"
+  | "???"
   | "Stellar"
 
 export type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
@@ -43,9 +44,30 @@ export function piped(s: string, i: number, n = 1) {
   return { args, i }
 }
 
+type Traits = {
+  forme: string
+  lvl: number
+  gender: Gender
+  tera: TypeName | null
+}
+
 export function parseTraits(s: string) {
-  const [forme, lvl, gender] = s.split(", ") as [string, string | undefined, Gender | undefined]
-  return { forme, lvl: lvl ? Number(lvl.slice(1)) : 100, gender: gender ?? null }
+  const parts = s.split(", ")
+  const traits: Traits = { forme: parts[0], lvl: 100, gender: null, tera: null }
+
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i]
+
+    if (part === "M" || part === "F") {
+      traits.gender = part
+    } else if (part[0] === "L") {
+      traits.lvl = Number(part.slice(1))
+    } else if (part.startsWith("tera:")) {
+      traits.tera = part.slice("tera:".length) as TypeName
+    }
+  }
+
+  return traits
 }
 
 export function parseTags(strs: string[]) {

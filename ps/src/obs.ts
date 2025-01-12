@@ -89,10 +89,13 @@ type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTur
   "Doom Desire"?: DelayedAttack
 }
 
+type Tera = {
+  name: string
+  type: TypeName
+}
+
 type Ally = {
-  tera: {
-    name: string
-  } | null
+  tera: Tera | null
   hazards: { [k: string]: number }
   screens: { [k: string]: number }
   active?: Active
@@ -100,9 +103,7 @@ type Ally = {
 }
 
 type Foe = {
-  tera: {
-    name: string
-  } | null
+  tera: Tera | null
   hazards: { [k: string]: number }
   screens: { [k: string]: number }
   active?: Active
@@ -144,10 +145,6 @@ export class Observer {
     this.turn = 0
   }
 
-  pov(side: Side) {
-    return side === this.side ? "ally" : "foe"
-  }
-
   parseLabel(s: string) {
     const i = s.indexOf(": ")
     const side = s.slice(0, 2) as Side
@@ -186,17 +183,7 @@ export class Observer {
 
           this.name = name
           const { ally } = this
-          for (const {
-            ident,
-            details,
-            condition,
-            active,
-            stats,
-            item,
-            moves,
-            ability,
-            teraType
-          } of team) {
+          for (const { ident, details, condition, stats, item, moves, ability, teraType } of team) {
             const { name } = this.parseLabel(ident)
             const { gender, lvl, forme: species } = parseTraits(details)
 
@@ -495,8 +482,40 @@ export class Observer {
 
         break
       }
-      case "-formechange":
+      case "-terastallize": {
+        p = piped(line, p.i, 2)
+        const { pov, name } = this.parseLabel(p.args[0])
+        const type = p.args[1] as TypeName
+
+        this[pov].tera = { name, type }
+        break
+      }
+      case "-formechange": {
+        p = piped(line, p.i, 2)
+        const { pov, name } = this.parseLabel(p.args[0])
+        const forme = p.args[1]
+
+        const memb = this[pov].team[name]
+        memb.forme = forme
+
+        p = piped(line, p.i, -1)
+        const { from } = parseTags(p.args)
+
+        if (from) {
+          const { ability } = parseEntity(from)
+          if (ability) memb.ability = ability
+        }
+
+        break
+      }
       case "detailschange": {
+        p = piped(line, p.i, 2)
+        const { pov, name } = this.parseLabel(p.args[0])
+        const { forme } = parseTraits(p.args[1])
+
+        const memb = this[pov].team[name]
+        memb.forme = forme
+
         break
       }
       case "-activate": {
