@@ -19,7 +19,8 @@ const POVS = ["ally", "foe"] as const
 
 type Status = {
   id: StatusId
-  turns: number
+  turns?: number
+  moves?: number
 }
 
 type MoveSet = {
@@ -293,7 +294,9 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { upkeep, from, of } = parseTags(p.args)
 
-        if (upkeep !== undefined) break
+        if (upkeep === "") {
+          this.weather!.turns++
+        }
 
         this.weather = { name, turns: 0 }
 
@@ -326,6 +329,27 @@ export class Observer {
         delete this.fields[field!]
         break
       }
+      case "-status": {
+        p = piped(line, p.i, 2)
+        const target = this.parseLabel(p.args[0])
+        const id = p.args[1] as StatusId
+
+        this.member(target).status = {
+          id,
+          turns: id === "tox" ? 0 : undefined,
+          moves: id === "slp" ? 0 : undefined
+        }
+
+        p = piped(line, p.i, -1)
+        const { from, of } = parseTags(p.args)
+
+        const source = of ? this.parseLabel(of) : target
+        const { ability, item } = parseEntity(from ?? "")
+        
+        if (item) this.member(source).item = item
+        if (ability) this.member(source).ability = ability
+        break
+      }
       case "-curestatus": {
         p = piped(line, p.i, 2)
         const { pov, name } = this.parseLabel(p.args[0])
@@ -335,6 +359,7 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
+
         const { ability } = parseEntity(from ?? "")
         if (ability) memb.ability = ability
 
@@ -355,7 +380,7 @@ export class Observer {
 
         for (const k in volatiles) if (k in SINGLE_MOVE) delete volatiles[k]
 
-        if (status?.id === "slp") status.turns++
+        if (status?.moves) status.moves++
 
         if (from) {
           const { ability } = parseEntity(from)
@@ -677,14 +702,10 @@ export class Observer {
         break
       }
       case "upkeep": {
-        const { fields, weather } = this
+        const { fields } = this
 
         for (const name in fields) {
           fields[name]++
-        }
-
-        if (weather) {
-          weather.turns += 1
         }
 
         break
@@ -700,20 +721,16 @@ export class Observer {
           const { volatiles, name } = side.active!
 
           const { status } = team[name]
-          if (status?.id === "tox") status.turns!++
+          if (status?.turns !== undefined) status.turns++
 
           for (const name in volatiles) {
-            if (volatiles[name]?.turn !== undefined) volatiles[name].turn += 1
+            if (volatiles[name]?.turn !== undefined) volatiles[name].turn++
             if (name in SINGLE_TURN) delete volatiles[name]
           }
 
           for (const name in conditions) {
-            if (conditions[name]?.turn !== undefined) conditions[name].turn += 1
+            if (conditions[name]?.turn !== undefined) conditions[name].turn++
           }
-        }
-
-        for (const field in this.fields) {
-          this.fields[field]++
         }
 
         return "turn"
