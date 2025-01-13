@@ -1,5 +1,4 @@
-import { Generations, TypeName } from "@pkmn/data"
-import { Dex } from "@pkmn/dex"
+import { Generation, TypeName } from "@pkmn/data"
 import {
   BoostId,
   Gender,
@@ -130,6 +129,7 @@ type Ally = {
   conditions: { [k: string]: Condition }
   active?: Active
   team: { [k: string]: AllyMember }
+  wish?: number
 }
 
 type Foe = {
@@ -137,14 +137,13 @@ type Foe = {
   conditions: { [k: string]: Condition }
   active?: Active
   team: { [k: string]: FoeMember }
+  wish?: number
 }
 
 const SINGLE_TURN = new Set(["outrage", "glaverush"])
 const SINGLE_MOVE = new Set(["roost", "protect"])
 
 const OPP = { ally: "foe", foe: "ally" } as const
-
-const gen = new Generations(Dex).get(9)
 
 type POV = "ally" | "foe"
 
@@ -177,13 +176,15 @@ export class Observer {
   ally: Ally
   foe: Foe
   name: string
+  gen: Generation
 
   turn: number
   fields: { [k: string]: number }
   weather: { name: WeatherName; turn: number } | null
   winner?: POV
 
-  constructor(side: Side) {
+  constructor(side: Side, gen: Generation) {
+    this.gen = gen
     this.side = side
     this.ally = { tera: null, team: {}, conditions: {} }
     this.foe = { tera: null, team: {}, conditions: {} }
@@ -257,7 +258,7 @@ export class Observer {
             ally.team[name] = {
               used: {},
               pov: "ally",
-              species,
+              species: this.gen.species.get(species)!.name,
               forme,
               gender,
               lvl,
@@ -460,6 +461,9 @@ export class Observer {
                   volatiles["Locked Move"] = { turn: 0, move: "Outrage" }
                 }
                 break
+              }
+              case "Wish": {
+                this[pov].wish = 0
               }
             }
           }
@@ -869,6 +873,11 @@ export class Observer {
 
           for (const name in conditions) {
             if (conditions[name]?.turn !== undefined) conditions[name].turn++
+          }
+
+          if (side.wish) {
+            if (side.wish === 0) side.wish++
+            delete side.wish
           }
         }
 
