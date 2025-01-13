@@ -115,7 +115,7 @@ type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTur
 }
 
 type Tera = {
-  name: string
+  species: string
   type: TypeName
 }
 
@@ -193,10 +193,6 @@ export class Observer {
     this.turn = 0
   }
 
-  activeV1({ pov }: { pov: POV }) {
-    return this[pov].active!
-  }
-
   active(pov: POV) {
     return this[pov].active!
   }
@@ -206,10 +202,6 @@ export class Observer {
     const side = s.slice(0, 2) as Side
     const name = s.slice(i + 2)
     return { pov: this.side === side ? "ally" : "foe", name } as const
-  }
-
-  memberV1({ pov, name }: { pov: POV; name: string }) {
-    return this[pov].team[name]
   }
 
   member(s: string) {
@@ -544,20 +536,21 @@ export class Observer {
       }
       case "-clearboost": {
         p = piped(line, p.i)
-        const target = this.parseLabel(p.args[0])
-        this.activeV1(target).boosts = {}
+        const { pov } = this.member(p.args[0])
+        this.active(pov).boosts = {}
         break
       }
       case "-clearallboost": {
         for (const pov of POVS) {
-          this.activeV1({ pov }).boosts = {}
+          this.active(pov).boosts = {}
         }
         break
       }
       case "-clearnegativeboost": {
         p = piped(line, p.i)
-        const target = this.parseLabel(p.args[0])
-        const { boosts } = this.activeV1(target)
+        const { pov } = this.member(p.args[0])
+        const { boosts } = this.active(pov)
+
         for (const k in boosts) {
           const id = k as BoostId
           boosts[id] = Math.max(0, boosts[id]!)
@@ -662,7 +655,6 @@ export class Observer {
             }
             case "Charge": {
               p = piped(line, p.i)
-
               volatiles[name] = {}
               break
             }
@@ -692,38 +684,33 @@ export class Observer {
       }
       case "-terastallize": {
         p = piped(line, p.i, 2)
-        const { pov, name } = this.parseLabel(p.args[0])
+        const { pov, species } = this.member(p.args[0])
         const type = p.args[1] as TypeName
 
-        this[pov].tera = { name, type }
+        this[pov].tera = { species, type }
         break
       }
       case "-formechange": {
         p = piped(line, p.i, 2)
-        const { pov, name } = this.parseLabel(p.args[0])
+        const dest = this.member(p.args[0])
         const forme = p.args[1]
 
-        const memb = this[pov].team[name]
-        memb.forme = forme
+        dest.forme = forme
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
+        const { ability } = parseEffect(from)
 
-        if (from) {
-          const { ability } = parseEffect(from)
-          if (ability) memb.ability = ability
-        }
+        if (ability) hasAbility(dest, ability)
 
         break
       }
       case "detailschange": {
         p = piped(line, p.i, 2)
-        const { pov, name } = this.parseLabel(p.args[0])
+        const dest = this.member(p.args[0])
         const { forme } = parseTraits(p.args[1])
 
-        const memb = this[pov].team[name]
-        memb.forme = forme
-
+        dest.forme = forme
         break
       }
       case "-activate": {
@@ -782,62 +769,57 @@ export class Observer {
       }
       case "-end": {
         p = piped(line, p.i, 2)
-        const { pov } = this.parseLabel(p.args[0])
+        const dest = this.member(p.args[0])
+        const { volatiles } = this.active(dest.pov)
+
         let { stripped: name } = parseEffect(p.args[1])
 
         if (name.startsWith("fallen")) {
           name = "Fallen"
         }
 
-        delete this[pov].active!.volatiles[name]
-        break
-      }
-      case "-status": {
-        p = piped(line, p.i, 2)
-        const { pov, name } = this.parseLabel(p.args[0])
-        this[pov].team[name].status = { id: p.args[1] as StatusId, turn: 0 }
+        delete volatiles[name]
         break
       }
       case "-singleturn": {
         p = piped(line, p.i, 2)
-        const { pov } = this.parseLabel(p.args[0])
+        const { pov } = this.member(p.args[0])
 
-        this[pov].active!.volatiles[p.args[1]] = {}
+        this.active(pov).volatiles[p.args[1]] = { singleTurn: true }
         break
       }
       case "-singlemove": {
-        p = piped(line, p.i)
-        const { pov } = this.parseLabel(p.args[0])
+        p = piped(line, p.i, 2)
+        const { pov } = this.member(p.args[0])
 
-        this[pov].active!.volatiles[p.args[1]] = {}
+        this.active(pov).volatiles[p.args[1]] = { singleMove: true }
         break
       }
       case "faint": {
         p = piped(line, p.i)
-        const { pov, name } = this.parseLabel(p.args[0])
-        this[pov].team[name].fnt = true
+        const dest = this.member(p.args[0])
+
+        dest.fnt = true
+
         break
       }
       case "-sidestart": {
         p = piped(line, p.i, 2)
-        const { pov } = this.parseLabel(p.args[0])
+        const { pov } = this.member(p.args[0])
         const { stripped: name } = parseEffect(p.args[1])
-        const { conditions } = this[pov]
 
-        if (isHazard(name)) {
-          ;(conditions[name] ?? { layers: 0 }).layers!++
-        } else {
-          conditions[name] = { turn: 0 }
-        }
+        const { conditions } = this[pov]
+        if (isHazard(name)) (conditions[name] ?? { layers: 0 }).layers!++
+        else conditions[name] = { turn: 0 }
 
         break
       }
       case "-sideend": {
         p = piped(line, p.i, 2)
-        const { pov } = this.parseLabel(p.args[0])
+        const { pov } = this.member(p.args[0])
         const { stripped: name } = parseEffect(p.args[1])
-        const { conditions } = this[pov]
 
+        const { conditions } = this[pov]
         delete conditions[name]
 
         break
