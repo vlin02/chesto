@@ -193,15 +193,12 @@ export class Observer {
     this.turn = 0
   }
 
-  active(pov: POV) {
-    return this[pov].active!
+  pov(side: Side): POV {
+    return this.side === side ? "ally" : "foe"
   }
 
-  parseLabel(s: string) {
-    const i = s.indexOf(": ")
-    const side = s.slice(0, 2) as Side
-    const name = s.slice(i + 2)
-    return { pov: this.side === side ? "ally" : "foe", name } as const
+  active(pov: POV) {
+    return this[pov].active!
   }
 
   member(s: string) {
@@ -241,7 +238,7 @@ export class Observer {
           this.name = name
           const { ally } = this
           for (const { ident, details, condition, stats, item, moves, ability, teraType } of team) {
-            const { name: species } = this.parseLabel(ident)
+            const { species } = parseLabel(ident)
             const { gender, lvl, forme } = parseTraits(details)
 
             const moveset: MoveSet = {}
@@ -298,7 +295,8 @@ export class Observer {
       case "switch":
       case "drag": {
         p = piped(line, p.i, 2)
-        const { pov, name: species } = this.parseLabel(p.args[0])
+        const { side, species } = parseLabel(p.args[0])
+        const pov = this.pov(side)
 
         const traits = parseTraits(p.args[1])
         p = piped(line, p.i, -1)
