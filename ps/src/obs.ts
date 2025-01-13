@@ -5,6 +5,7 @@ import {
   Gender,
   parseEffect,
   parseHp,
+  parseLabel,
   parseTags,
   parseTraits,
   parseTypes,
@@ -29,8 +30,14 @@ type MoveSet = {
   }
 }
 
+type Eaten = {
+  name: string
+  turns: number
+}
+
 type AllyMember = {
   pov: "ally"
+  species: string
   revealed: boolean
   lvl: number
   forme: string
@@ -48,14 +55,17 @@ type AllyMember = {
 type FoeMember = {
   pov: "foe"
   lvl: number
+  species: string
   forme: string
   gender: Gender
   fnt: boolean
   hp: [number, number]
   ability?: string | null
   item?: string | null
-  init: {
+  initial: {
+    forme: string
     ability?: string
+    item?: string
   }
   status: Status | null
   moves: MoveSet
@@ -64,6 +74,7 @@ type FoeMember = {
 type Active = {
   name: string
   volatiles: Volatiles
+  lastBerry?: Eaten
   boosts: {
     [k in BoostId]?: number
   }
@@ -137,6 +148,36 @@ function isHazard(name: string) {
   return name in HAZARDS
 }
 
+type Member = AllyMember | FoeMember
+
+function setInitial(memb: Member, { item, ability }: { item?: string; ability?: string }) {
+  if (memb.pov === "foe") {
+    const { initial } = memb
+    initial.item = initial.item ?? item
+    initial.ability = initial.item ?? ability
+  }
+}
+
+function hasItem(memb: Member, item: string) {
+  memb.item = item
+  setInitial(memb, { item })
+}
+
+function hasAbility(memb: Member, ability: string) {
+  memb.ability = ability
+  setInitial(memb, { ability })
+}
+
+function hadItem(memb: Member, item: string) {
+  memb.item = null
+  setInitial(memb, { item })
+}
+
+function hadAbility(memb: Member, ability: string) {
+  hasAbility(memb, ability)
+  setInitial(memb, { ability })
+}
+
 export class Observer {
   side: Side
 
@@ -163,6 +204,14 @@ export class Observer {
     this.history = { battleBond: false }
   }
 
+  activeV1({ pov }: { pov: POV }) {
+    return this[pov].active!
+  }
+
+  active(pov: POV) {
+    return this[pov].active!
+  }
+
   parseLabel(s: string) {
     const i = s.indexOf(": ")
     const side = s.slice(0, 2) as Side
@@ -170,12 +219,13 @@ export class Observer {
     return { pov: this.side === side ? "ally" : "foe", name } as const
   }
 
-  active({ pov }: { pov: POV }) {
-    return this[pov].active!
+  memberV1({ pov, name }: { pov: POV; name: string }) {
+    return this[pov].team[name]
   }
 
-  member({ pov, name }: { pov: POV; name: string }) {
-    return this[pov].team[name]
+  member(s: string) {
+    const { side, species } = parseLabel(s)
+    return this[side === this.side ? "ally" : "foe"].team[species]
   }
 
   read(line: string) {
@@ -210,12 +260,13 @@ export class Observer {
           this.name = name
           const { ally } = this
           for (const { ident, details, condition, stats, item, moves, ability, teraType } of team) {
-            const { name } = this.parseLabel(ident)
-            const { gender, lvl, forme: species } = parseTraits(details)
+            const { name: species } = this.parseLabel(ident)
+            const { gender, lvl, forme } = parseTraits(details)
 
             ally.team[name] = {
               pov: "ally",
-              forme: species,
+              species,
+              forme,
               gender,
               lvl,
               fnt: false,
@@ -239,25 +290,20 @@ export class Observer {
       }
       case "-ability": {
         p = piped(line, p.i, 2)
-        const target = this.parseLabel(p.args[0])
-        const memb = this.member(target)
-
-        this.member(target).ability = p.args[1]
+        const target = this.member(p.args[0])
+        target.ability = p.args[1]
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
+
         const { ability } = parseEffect(from)
 
-        if (memb.pov === "foe") {
-          const { init } = memb
-          init.ability = init.ability ?? ability
-        }
         break
       }
       case "switch":
       case "drag": {
         p = piped(line, p.i, 2)
-        const { pov, name } = this.parseLabel(p.args[0])
+        const { pov, name: species } = this.parseLabel(p.args[0])
 
         const traits = parseTraits(p.args[1])
         p = piped(line, p.i, -1)
@@ -265,32 +311,35 @@ export class Observer {
         const { from } = parseTags(p.args)
 
         if (pov === "ally") {
-          this[pov].team[name].revealed = true
+          this[pov].team[species].revealed = true
         }
 
         if (pov === "foe") {
           const { team } = this[pov]
           const { forme, lvl, gender } = traits
-          if (!(name in team)) {
-            team[name] = {
+          if (!(species in team)) {
+            team[species] = {
               pov: "foe",
+              species,
               forme,
               lvl,
               gender,
               hp: [100, 100],
               moves: {},
               status: null,
-              init: {},
+              initial: {
+                forme
+              },
               fnt: false
             }
           }
         }
 
-        const { status } = this[pov].team[name]
+        const { status } = this[pov].team[species]
         if (status?.id === "tox") status.turns! = 0
 
         const prev = this[pov].active!
-        const curr: Active = { name: name, volatiles: {}, boosts: {} }
+        const curr: Active = { name: species, volatiles: {}, boosts: {} }
 
         if (from === "Shed Tail") {
           curr.volatiles.substitute = prev.volatiles.substitute
@@ -337,7 +386,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { ability } = parseEffect(from ?? "")
-        if (ability) this.member(this.parseLabel(of)).ability = ability
+        if (ability) this.memberV1(this.parseLabel(of)).ability = ability
         break
       }
       case "-fieldend": {
@@ -352,7 +401,7 @@ export class Observer {
         const target = this.parseLabel(p.args[0])
         const id = p.args[1] as StatusId
 
-        this.member(target).status = {
+        this.memberV1(target).status = {
           id,
           turns: id === "tox" ? 0 : undefined,
           moves: id === "slp" ? 0 : undefined
@@ -364,8 +413,8 @@ export class Observer {
         const source = of ? this.parseLabel(of) : target
         const { ability, item } = parseEffect(from ?? "")
 
-        if (item) this.member(source).item = item
-        if (ability) this.member(source).ability = ability
+        if (item) this.memberV1(source).item = item
+        if (ability) this.memberV1(source).ability = ability
         break
       }
       case "-curestatus": {
@@ -423,7 +472,7 @@ export class Observer {
       case "-sethp": {
         p = piped(line, p.i, 2)
         const target = this.parseLabel(p.args[0])
-        const memb = this.member(target)
+        const memb = this.memberV1(target)
 
         const hp = parseHp(p.args[1])
         memb.hp = hp!
@@ -448,7 +497,7 @@ export class Observer {
 
         if (from) {
           const { ability, item } = parseEffect(from)
-          const memb = this.member(of ? this.parseLabel(of) : target)
+          const memb = this.memberV1(of ? this.parseLabel(of) : target)
 
           if (ability) memb.ability = ability
           if (item) memb.item = item
@@ -482,31 +531,71 @@ export class Observer {
       case "-clearboost": {
         p = piped(line, p.i)
         const target = this.parseLabel(p.args[0])
-        this.active(target).boosts = {}
+        this.activeV1(target).boosts = {}
         break
       }
       case "-clearallboost": {
         for (const pov of POVS) {
-          this.active({ pov }).boosts = {}
+          this.activeV1({ pov }).boosts = {}
         }
         break
       }
       case "-clearnegativeboost": {
         p = piped(line, p.i)
         const target = this.parseLabel(p.args[0])
-        const { boosts } = this.active(target)
+        const { boosts } = this.activeV1(target)
         for (const k in boosts) {
           const id = k as BoostId
           boosts[id] = Math.max(0, boosts[id]!)
         }
         break
       }
-      case "-enditem": {
+      case "-item": {
         p = piped(line, p.i, 2)
-        const target = this.parseLabel(p.args[0])
-        this.member(target).item = null
+        const dest = this.member(p.args[0])
+        const item = p.args[1]
+
+        hasItem(dest, item)
 
         p = piped(line, p.i, -1)
+        const { from, of, identify } = parseTags(p.args)
+        const { ability } = parseEffect(from)
+
+        const src = of ? this.member(of) : undefined
+
+        if (identify) {
+          hasAbility(src!, ability!)
+          break
+        }
+
+        // magician doesnt emit an -enditem msg so we have to do it here
+        if (ability === "Magician") {
+          hadItem(src!, item)
+        }
+
+        if (ability) {
+          hasAbility(dest, ability)
+        }
+
+        break
+      }
+      case "-enditem": {
+        p = piped(line, p.i, 2)
+        const target = this.member(p.args[0])
+        const { pov } = target
+        const item = p.args[1]
+
+        hadItem(target, item)
+
+        p = piped(line, p.i, -1)
+        const { eat } = parseTags(p.args)
+
+        if (eat != null) {
+          this.active(pov).lastBerry = {
+            name: item,
+            turns: 0
+          }
+        }
 
         break
       }
@@ -635,7 +724,7 @@ export class Observer {
             case "Leppa Berry": {
               p = piped(line, p.i, 1)
               const [move] = p.args
-              this.member(target).moves[move].ppUsed = 0
+              this.memberV1(target).moves[move].ppUsed = 0
               break
             }
           }
@@ -643,13 +732,13 @@ export class Observer {
           switch (move) {
             case "Poltergeist": {
               p = piped(line, p.i)
-              this.member(target).item = p.args[0]
+              this.memberV1(target).item = p.args[0]
               break
             }
             case "Magma Storm":
             case "Infestation":
             case "Whirlpool": {
-              this.active(target).volatiles["Partially Trapped"] = { turn: 0 }
+              this.activeV1(target).volatiles["Partially Trapped"] = { turn: 0 }
               break
             }
           }
@@ -659,7 +748,7 @@ export class Observer {
           }
 
           p = piped(line, p.i, -1)
-          this.member(target).ability = ability
+          this.memberV1(target).ability = ability
         } else {
           stripped = { trapped: "Trapped" }[stripped] ?? stripped
 
@@ -756,7 +845,9 @@ export class Observer {
           const side = this[pov]
           const { conditions, team } = side
 
-          const { volatiles, name } = side.active!
+          const { volatiles, name, lastBerry } = side.active!
+
+          if (lastBerry) lastBerry.turns++
 
           const { status } = team[name]
           if (status?.turns !== undefined) status.turns++

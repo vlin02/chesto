@@ -114,3 +114,10 @@ export function parseEffect(s: string) {
 export function parseTypes(s: string) {
   return s.split("/") as TypeName[]
 }
+
+export function parseLabel(s: string) {
+  const i = s.indexOf(": ")
+  const side = s.slice(0, 2) as Side
+  const species = s.slice(i + 2)
+  return { side, species } as const
+}
