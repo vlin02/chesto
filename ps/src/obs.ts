@@ -25,9 +25,7 @@ type Status = {
 }
 
 type MoveSet = {
-  [k: string]: {
-    ppUsed: number
-  }
+  [k: string]: number
 }
 
 type Eaten = {
@@ -48,7 +46,7 @@ type AllyMember = {
   item: string | null
   stats: { [k in StatId]: number }
   status: Status | null
-  moves: MoveSet
+  moveset: MoveSet
   teraType: TypeName
 }
 
@@ -68,7 +66,7 @@ type FoeMember = {
     item?: string
   }
   status: Status | null
-  moves: MoveSet
+  moveset: MoveSet
 }
 
 type Active = {
@@ -263,6 +261,9 @@ export class Observer {
             const { name: species } = this.parseLabel(ident)
             const { gender, lvl, forme } = parseTraits(details)
 
+            const moveset: MoveSet = {}
+            for (const move of moves) moveset[move] = 0
+
             ally.team[name] = {
               pov: "ally",
               species,
@@ -277,11 +278,7 @@ export class Observer {
               stats,
               hp: parseHp(condition)!,
               status: null,
-              moves: Object.fromEntries(
-                moves.map((id) => {
-                  return [gen.moves.get(id)!.name, { ppUsed: 0 }]
-                })
-              )
+              moveset
             }
           }
         }
@@ -325,7 +322,7 @@ export class Observer {
               lvl,
               gender,
               hp: [100, 100],
-              moves: {},
+              moveset: {},
               status: null,
               initial: {
                 forme
@@ -438,7 +435,7 @@ export class Observer {
         const side = this[label.pov]
         const { volatiles } = side.active!
         const memb = side.team[label.name]
-        const { moves, status } = memb
+        const { moveset, status } = memb
 
         const name = p.args[1]
 
@@ -465,52 +462,58 @@ export class Observer {
           }
         }
 
-        ;(moves[name] = moves[name] ?? { ppUsed: 0 }).ppUsed++
+        moveset[name] = (moveset[name] ?? 0) + 1
         break
       }
       case "-heal":
       case "-sethp": {
         p = piped(line, p.i, 2)
-        const target = this.parseLabel(p.args[0])
-        const memb = this.memberV1(target)
-
+        const target = this.member(p.args[0])
         const hp = parseHp(p.args[1])
-        memb.hp = hp!
+
+        target.hp = hp!
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
+        /*
+        [from] item: target's item
+        [from] ability: target's healing ability
+        [of]: drain source
+        */
         const { ability, item } = parseEffect(from ?? "")
-        if (ability) memb.ability = ability
-        if (item) memb.item = item
+        if (ability) hasAbility(target, ability)
+
+        // berries already include an -enditem
+        if (item === "Leftovers") hasItem(target, item)
 
         break
       }
       case "-damage": {
         p = piped(line, p.i, 2)
 
-        const target = this.parseLabel(p.args[0])
+        const target = this.member(p.args[0])
         const hp = parseHp(p.args[1])
+
+        if (hp) target.hp = hp
+        else {
+          target.hp[0] = 0
+          target.fnt = true
+        }
 
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)
 
-        if (from) {
-          const { ability, item } = parseEffect(from)
-          const memb = this.memberV1(of ? this.parseLabel(of) : target)
+        /*
+        [from] item: source of damage
+        [from] ability: source of damage
+        [of]: owner of effect, defaulting to target
+        */
+        const { item, ability } = parseEffect(from ?? "")
+        const owner = of ? this.member(of) : target
 
-          if (ability) memb.ability = ability
-          if (item) memb.item = item
-        }
-
-        const { pov, name } = target
-
-        const memb = this[pov].team[name]
-        if (hp) memb.hp = hp
-        else {
-          memb.hp[0] = 0
-          memb.fnt = true
-        }
+        if (ability) hasAbility(owner, ability)
+        if (item) hasAbility(owner, item)
 
         break
       }
@@ -712,7 +715,7 @@ export class Observer {
       }
       case "-activate": {
         p = piped(line, p.i, 2)
-        const target = this.parseLabel(p.args[0])
+        const target = this.member(p.args[0])
         const { pov } = target
 
         let { ability, item, move, stripped } = parseEffect(p.args[1])
@@ -724,7 +727,7 @@ export class Observer {
             case "Leppa Berry": {
               p = piped(line, p.i, 1)
               const [move] = p.args
-              this.memberV1(target).moves[move].ppUsed = 0
+              target.moveset[move] = 0
               break
             }
           }
@@ -732,13 +735,13 @@ export class Observer {
           switch (move) {
             case "Poltergeist": {
               p = piped(line, p.i)
-              this.memberV1(target).item = p.args[0]
+              target.item = p.args[0]
               break
             }
             case "Magma Storm":
             case "Infestation":
             case "Whirlpool": {
-              this.activeV1(target).volatiles["Partially Trapped"] = { turn: 0 }
+              this.active(pov).volatiles["Partially Trapped"] = { turn: 0 }
               break
             }
           }
@@ -748,7 +751,7 @@ export class Observer {
           }
 
           p = piped(line, p.i, -1)
-          this.memberV1(target).ability = ability
+          target.ability = ability
         } else {
           stripped = { trapped: "Trapped" }[stripped] ?? stripped
 

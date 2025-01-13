@@ -95,6 +95,7 @@ export function parseEffect(s: string) {
   let item = undefined
   let ability = undefined
   let move = undefined
+  let pokemon = undefined
 
   switch (s.slice(0, i)) {
     case "item":
@@ -105,6 +106,9 @@ export function parseEffect(s: string) {
       break
     case "move":
       move = s.slice(i + 2)
+      break
+    case "pokemon":
+      pokemon = s.slice(i + 2)
       break
   }
 
