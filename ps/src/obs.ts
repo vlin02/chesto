@@ -276,30 +276,27 @@ export class Observer {
 
         break
       }
-      /*
-      gen9randombattle-2003212319 |-ability|p2a: Zacian|Intrepid Sword|boost
-      gen9randombattle-2003212967 |-ability|p2a: Gardevoir|Water Absorb|[from] ability: Trace|[of] p1a: Volcanion
-      */
       case "-ability": {
         p = piped(line, p.i, 2)
-        const target = this.member(p.args[0])
+        const dest = this.member(p.args[0])
         const ability = p.args[1]
 
         {
           p = piped(line, p.i, -1)
           const { from, of } = parseTags(p.args)
-          const { ability: copyAbility } = parseEffect(from)
+          const { ability: prev } = parseEffect(from)
 
-          if (copyAbility) hasAbility(target, copyAbility)
-          if (of) hasAbility(this.member(of), ability)
+          if (prev === "Trace") {
+            hasAbility(dest, prev)
+            hasAbility(this.member(of), ability)
+          }
         }
 
         if (ability === "Intrepid Sword") {
-          target.used["Intrepid Sword"] = true
+          dest.used["Intrepid Sword"] = true
         }
 
-        hasAbility(target, ability)
-
+        hasAbility(dest, ability)
         break
       }
       /*
@@ -355,9 +352,6 @@ export class Observer {
 
         break
       }
-      /*
-      gen9randombattle-2015042421 |-weather|Sandstorm|[from] ability: Sand Stream|[of] p1a: Tyranitar
-      */
       case "-weather": {
         p = piped(line, p.i)
         const name = p.args[0] as WeatherName | "none"
@@ -381,9 +375,6 @@ export class Observer {
 
         break
       }
-      /*
-      gen9randombattle-2003211376 |-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p1a: Indeedee
-      */
       case "-fieldstart": {
         p = piped(line, p.i)
         const { move: name } = parseEffect(p.args[0])
@@ -397,8 +388,6 @@ export class Observer {
         if (ability) hasAbility(this.member(of), ability)
         break
       }
-      /*
-       */
       case "-fieldend": {
         p = piped(line, p.i)
         const { move: field } = parseEffect(p.args[0])
@@ -406,10 +395,6 @@ export class Observer {
         delete this.fields[field!]
         break
       }
-      /*
-      |-status|p2a: Pachirisu|tox|[from] ability: Toxic Chain|[of] p1a: Okidogi
-      |-status|p2a: Flareon|tox|[from] item: Toxic Orb
-      */
       case "-status": {
         p = piped(line, p.i, 2)
         const dest = this.member(p.args[0])
@@ -434,9 +419,6 @@ export class Observer {
         }
         break
       }
-      /*
-      gen9randombattle-2019244979 |-curestatus|p2a: Altaria|par|[from] ability: Natural Cure
-      */
       case "-curestatus": {
         p = piped(line, p.i, 2)
         const target = this.member(p.args[0])
@@ -451,10 +433,6 @@ export class Observer {
 
         break
       }
-      /*
-      gen9randombattle-2088477834 |move|p1a: Espeon|Will-O-Wisp|p2a: Misdreavus|[from]ability: Magic Bounce
-      gen9randombattle-2085825209 |move|p2a: Oricorio|Quiver Dance|p2a: Oricorio|[from]ability: Dancer
-      */
       case "move": {
         p = piped(line, p.i, 3)
         const src = this.member(p.args[0])
@@ -490,12 +468,6 @@ export class Observer {
         moveset[move] = (moveset[move] ?? 0) + (dest.ability === "Pressure" ? 2 : 1)
         break
       }
-      /*
-      |-heal|p2a: Sandy Shocks|22/267|[from] item: Leftovers
-      |-heal|p2a: Gothitelle|204/272|[from] item: Sitrus Berry
-      |-heal|p1a: Greedent|205/351|[from] ability: Cheek Pouch
-      |-heal|p2a: Pawmot|243/243|[from] ability: Volt Absorb|[of] p1a: Pikachu (of is the attacker of Volt Absorb)
-      */
       case "-heal":
       case "-sethp": {
         p = piped(line, p.i, 2)
@@ -515,12 +487,6 @@ export class Observer {
 
         break
       }
-      /*
-      |-damage|p2a: Ludicolo|188/290|[from] item: Life Orb
-      |-damage|p2a: Chesnaught|181/285|[from] item: Rocky Helmet|[of] p1a: Garchomp
-      |-damage|p1a: Toxicroak|42/280|[from] ability: Dry Skin|[of] p1a: Toxicroak
-      |-damage|p2a: Morpeko|198/243|[from] ability: Rough Skin|[of] p1a: Garchomp
-      */
       case "-damage": {
         p = piped(line, p.i, 2)
 
@@ -532,7 +498,7 @@ export class Observer {
           target.hp[0] = 0
           target.fnt = true
         }
-        
+
         {
           p = piped(line, p.i, -1)
 
@@ -550,8 +516,8 @@ export class Observer {
       case "-boost":
       case "-unboost": {
         p = piped(line, p.i, 3)
-        const { pov } = this.parseLabel(p.args[0])
-        const { boosts } = this[pov].active!
+        const dest = this.member(p.args[0])
+        const { boosts } = this.active(dest.pov)
 
         const id = p.args[1] as BoostId
         const n = Number(p.args[2])
@@ -559,6 +525,17 @@ export class Observer {
           Math.max(-6, (boosts[id] ?? 0) + (msgType === "-boost" ? n : -n)),
           6
         )
+
+        p = piped(line, p.i, -1)
+        const { from } = parseTags(p.args)
+        const { item } = parseEffect(from)
+
+        // boosts from item consume it
+        if (item) {
+          hasItem(dest, item)
+          hasItem(dest, null)
+        }
+
         break
       }
       case "-clearboost": {
@@ -601,20 +578,15 @@ export class Observer {
           break
         }
 
+        if (ability) hasAbility(dest, ability)
+
         // magician doesnt emit an -enditem
         if (ability === "Magician") {
           hasItem(src!, item)
           hasItem(src!, null)
         }
-
-        if (ability) {
-          hasAbility(dest, ability)
-        }
-
         break
       }
-      /*
-      */
       case "-enditem": {
         p = piped(line, p.i, 2)
         const target = this.member(p.args[0])
@@ -636,12 +608,6 @@ export class Observer {
 
         break
       }
-      /*
-      |-start|p2a: Meowscarada|typechange|Ice|[from] ability: Protean
-      |-start|p1a: Primarina|confusion|[from] ability: Poison Puppeteer|[of] p2a: Pecharunt
-      |-start|p2a: Bellibolt|Charge|Super Fang|[from] ability: Electromorphosis
-      |-start|p2a: Mightyena|Disable|Poison Fang|[from] ability: Cursed Body|[of] p1a: Froslass
-      */
       case "-start": {
         p = piped(line, p.i, 2)
         const dest = this.member(p.args[0])
@@ -758,8 +724,8 @@ export class Observer {
       }
       case "-activate": {
         p = piped(line, p.i, 2)
-        const target = this.member(p.args[0])
-        const { pov } = target
+        const dest = this.member(p.args[0])
+        const { pov } = dest
 
         let { ability, item, move, stripped } = parseEffect(p.args[1])
 
@@ -769,8 +735,7 @@ export class Observer {
           switch (item) {
             case "Leppa Berry": {
               p = piped(line, p.i, 1)
-              const [move] = p.args
-              target.moveset[move] = 0
+              dest.moveset[p.args[0]] = 0
               break
             }
           }
@@ -778,7 +743,7 @@ export class Observer {
           switch (move) {
             case "Poltergeist": {
               p = piped(line, p.i)
-              target.item = p.args[0]
+              hasItem(dest, p.args[0])
               break
             }
             case "Magma Storm":
@@ -790,10 +755,10 @@ export class Observer {
           }
         } else if (ability) {
           if (ability === "Battle Bond") {
+            dest.used["Battle Bond"] = true
           }
 
-          p = piped(line, p.i, -1)
-          target.ability = ability
+          hasAbility(dest, ability)
         } else {
           stripped = { trapped: "Trapped" }[stripped] ?? stripped
 
