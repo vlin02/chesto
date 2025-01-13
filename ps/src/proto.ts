@@ -90,11 +90,11 @@ export function parseHp(s: string): [number, number] | null {
   return [Number(a), Number(b)]
 }
 
-export function parseEntity(s: string) {
+export function parseEffect(s: string) {
   let i = s.indexOf(": ")
-  let item = null
-  let ability = null
-  let move = null
+  let item = undefined
+  let ability = undefined
+  let move = undefined
 
   switch (s.slice(0, i)) {
     case "item":
