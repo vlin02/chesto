@@ -73,18 +73,9 @@ export type FoeMember = {
   used: Used
 }
 
-type Active = {
-  name: string
-  volatiles: Volatiles
-  lastBerry?: Eaten
-  boosts: {
-    [k in BoostId]?: number
-  }
-}
-
 type DelayedAttack = {
   turn: number
-  name: string
+  member: Member
 }
 
 type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean } } & {
@@ -125,7 +116,14 @@ type Condition = {
 type Ally = {
   tera: Tera | null
   conditions: { [k: string]: Condition }
-  active?: Active
+  active?:  {
+    member: AllyMember
+    volatiles: Volatiles
+    lastBerry?: Eaten
+    boosts: {
+      [k in BoostId]?: number
+    }
+  }
   team: { [k: string]: AllyMember }
   wish?: number
 }
@@ -133,13 +131,17 @@ type Ally = {
 type Foe = {
   tera: Tera | null
   conditions: { [k: string]: Condition }
-  active?: Active
+  active?: {
+    member: FoeMember
+    volatiles: Volatiles
+    lastBerry?: Eaten
+    boosts: {
+      [k in BoostId]?: number
+    }
+  }
   team: { [k: string]: FoeMember }
   wish?: number
 }
-
-const SINGLE_TURN = new Set(["outrage", "glaverush"])
-const SINGLE_MOVE = new Set(["roost", "protect"])
 
 const OPP = { ally: "foe", foe: "ally" } as const
 
@@ -329,17 +331,18 @@ export class Observer {
           }
         }
 
-        const { status } = this[pov].team[species]
+        const member: any = this[pov].team[species]
+        const { status } = member
         if (status?.id === "tox") status.turn! = 0
 
         const prev = this[pov].active!
-        const curr: Active = { name: species, volatiles: {}, boosts: {} }
+        const volatiles: Volatiles = {}
 
         if (from === "Shed Tail") {
-          curr.volatiles.substitute = prev.volatiles.substitute
+          volatiles["Substitute"] = prev.volatiles["Substitute"]
         }
 
-        this[pov].active = curr
+        this[pov].active = {member, volatiles, boosts: {}}
 
         break
       }
@@ -441,7 +444,7 @@ export class Observer {
           for (const name in volatiles) {
             if (volatiles[name].singleMove) delete volatiles[name]
           }
-          
+
           if (status?.moves) status.moves++
 
           const { ability } = parseEffect(from)
@@ -465,7 +468,7 @@ export class Observer {
         }
 
         moveset[move] =
-          (moveset[move] ?? 0) + (opp.team[opp.active!.name].ability === "Pressure" ? 2 : 1)
+          (moveset[move] ?? 0) + (opp.active!.member.ability === "Pressure" ? 2 : 1)
         break
       }
       case "-heal":
@@ -494,9 +497,7 @@ export class Observer {
         const hp = parseHp(p.args[1])
 
         if (hp) target.hp = hp
-        else {
-          target.hp[0] = 0
-        }
+        else target.hp[0] = 0
 
         {
           p = piped(line, p.i, -1)
@@ -649,10 +650,11 @@ export class Observer {
             }
             case "Future Sight":
             case "Doom Desire": {
-              const { name: species } = active
-              this[OPP[pov]].active!.volatiles[name] = {
+              const {member, volatiles} = this[OPP[pov]].active!
+
+              volatiles[name] = {
                 turn: 0,
-                name: species
+                member
               }
               break
             }
@@ -770,12 +772,30 @@ export class Observer {
         ;[ally.conditions, foe.conditions] = [foe.conditions, ally.conditions]
         break
       }
+      case "replace": {
+        p = piped(line, p.i, 2)
+        const { side, species } = parseLabel(p.args[0])
+        const { forme, lvl, gender } = parseTraits(p.args[1])
+
+        const {active, team} = this[this.pov(side)]
+        const {member} = active!
+
+        member.species = species
+        member.forme = forme
+        member.lvl = lvl
+        member.gender = gender
+        
+        team[species] = member
+        
+        delete team[]
+
+        break
+      }
       case "-end": {
         p = piped(line, p.i, 2)
         const dest = this.member(p.args[0])
-        const { volatiles } = this.active(dest.pov)
-
         let { stripped: name } = parseEffect(p.args[1])
+        const { volatiles } = this.active(dest.pov)
 
         if (name.startsWith("fallen")) {
           name = "Fallen"
@@ -843,13 +863,13 @@ export class Observer {
 
         for (const pov of POVS) {
           const side = this[pov]
-          const { conditions, team } = side
+          const { conditions } = side
 
-          const { volatiles, name, lastBerry } = side.active!
+          const { volatiles, member, lastBerry } = side.active!
 
           if (lastBerry) lastBerry.turn++
 
-          const { status } = team[name]
+          const { status } = member
           if (status?.turn !== undefined) status.turn++
 
           for (const name in volatiles) {
