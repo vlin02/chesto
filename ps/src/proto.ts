@@ -90,29 +90,31 @@ export function parseHp(s: string): [number, number] | null {
   return [Number(a), Number(b)]
 }
 
-export function parseEffect(s: string) {
-  let i = s.indexOf(": ")
+export function parseEffect(s: string | undefined) {
   let item = undefined
   let ability = undefined
   let move = undefined
   let pokemon = undefined
 
-  switch (s.slice(0, i)) {
-    case "item":
-      item = s.slice(i + 2)
-      break
-    case "ability":
-      ability = s.slice(i + 2)
-      break
-    case "move":
-      move = s.slice(i + 2)
-      break
-    case "pokemon":
-      pokemon = s.slice(i + 2)
-      break
+  if (s) {
+    let i = s.indexOf(": ")
+    switch (s.slice(0, i)) {
+      case "item":
+        item = s.slice(i + 2)
+        break
+      case "ability":
+        ability = s.slice(i + 2)
+        break
+      case "move":
+        move = s.slice(i + 2)
+        break
+      case "pokemon":
+        pokemon = s.slice(i + 2)
+        break
+    }
   }
 
-  return { item, ability, move, stripped: ability || move || item || s }
+  return { item, ability, move, stripped: ability || move || item || s || "" }
 }
 
 export function parseTypes(s: string) {

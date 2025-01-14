@@ -101,7 +101,7 @@ const T_RELEASES = RELEASES.map((release) => {
   return [new Date(timestamp).getTime() / 1000, release] as const
 })
 
-export function getNearest(t: number) {
+export function findNearestRelease(t: number) {
   const nbrs: Release[] = []
 
   for (let i = 0; i < T_RELEASES.length; i++) {

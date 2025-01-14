@@ -286,6 +286,9 @@ importers:
       '@pkmn/sim':
         specifier: ^0.9.26
         version: 0.9.26
+      '@pkmn/sim-0.7.59':
+        specifier: npm:@pkmn/sim@0.7.59
+        version: '@pkmn/sim@0.7.59'
       '@pkmn/sim-0.8.9':
         specifier: npm:@pkmn/sim@0.8.9
         version: '@pkmn/sim@0.8.9'
