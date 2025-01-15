@@ -110,37 +110,37 @@ type Condition = {
 
 type Ally = {
   tera: {
-    member: AllyMember
+    member: Member
     type: TypeName
   } | null
   conditions: { [k: string]: Condition }
   active?: {
-    member: AllyMember
+    member: Member
     volatiles: Volatiles
     lastBerry?: Eaten
     boosts: {
       [k in BoostId]?: number
     }
   }
-  team: { [k: string]: AllyMember }
+  team: { [k: string]: Member }
   wish?: number
 }
 
 type Foe = {
   tera: {
-    member: FoeMember
+    member: Member
     type: TypeName
   } | null
   conditions: { [k: string]: Condition }
   active?: {
-    member: FoeMember
+    member: Member
     volatiles: Volatiles
     lastBerry?: Eaten
     boosts: {
       [k in BoostId]?: number
     }
   }
-  team: { [k: string]: FoeMember }
+  team: { [k: string]: Member }
   wish?: number
 }
 
@@ -178,23 +178,19 @@ type LabelV1 = {
   species: string
 }
 
-class Label {
+class Label<T extends POV> {
   private obs: Observer
-  side: Side
   species: string
+  pov: T
 
-  constructor(obs: Observer, side: Side, species: string) {
-    this.side = side
+  constructor(obs: Observer, pov: T, species: string) {
+    this.pov = pov
     this.obs = obs
     this.species = species
   }
 
-  get pov() {
-    return this.obs.side === this.side ? "ally" : "foe"
-  }
-
   get member() {
-    return this.obs[this.pov].team[this.species]
+    return this.obs[this.pov].team[this.species] as { ally: AllyMember; foe: FoeMember }[T]
   }
 }
 
@@ -231,7 +227,7 @@ export class Observer {
 
   label(s: string) {
     const { side, species } = parseLabel(s)
-    return new Label(this, side, species)
+    return new Label(this, side === this.side ? "ally" : "foe", species)
   }
 
   read(line: string) {
@@ -322,7 +318,8 @@ export class Observer {
       case "switch":
       case "drag": {
         p = piped(line, p.i, 3)
-        const { pov, species } = this.label(p.args[0])
+        const destLabel = this.label(p.args[0])
+        const { pov, species } = destLabel
 
         const traits = parseTraits(p.args[1])
         const hp = parseHp(p.args[2])!
@@ -332,7 +329,7 @@ export class Observer {
         const { from } = parseTags(p.args)
 
         if (pov === "ally") {
-          this[pov].team[species].revealed = true
+          ;(destLabel.member as AllyMember).revealed = true
         }
 
         if (pov === "foe") {
@@ -355,7 +352,7 @@ export class Observer {
           }
         }
 
-        const member: any = this[pov].team[species]
+        const member = this[pov].team[species]
 
         member.hp = hp
 
@@ -720,7 +717,7 @@ export class Observer {
         const { member, pov } = this.label(p.args[0])
         const type = p.args[1] as TypeName
 
-        this[pov].tera = { member: member as any, type }
+        this[pov].tera = { member, type }
         break
       }
       case "-formechange": {
