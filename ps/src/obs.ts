@@ -32,7 +32,7 @@ type Eaten = {
   turn: number
 }
 
-type Used = {
+type OneTime = {
   "Battle Bond"?: boolean
   "Intrepid Sword"?: boolean
 }
@@ -51,7 +51,7 @@ type AllyMember = {
   status?: Status
   moveset: MoveSet
   teraType: TypeName
-  used: Used
+  used: OneTime
 }
 
 export type FoeMember = {
@@ -70,7 +70,7 @@ export type FoeMember = {
   }
   status?: Status
   moveset: MoveSet
-  used: Used
+  used: OneTime
 }
 
 type DelayedAttack = {
