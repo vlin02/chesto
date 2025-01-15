@@ -173,10 +173,6 @@ function hasAbility(memb: Member, ability: string | null) {
     initial.ability = initial.ability ?? ability
   }
 }
-type LabelV1 = {
-  pov: POV
-  species: string
-}
 
 class Label<T extends POV> {
   private obs: Observer
@@ -219,10 +215,6 @@ export class Observer {
 
   active(pov: POV) {
     return this[pov].active!
-  }
-
-  member({ pov, species }: LabelV1) {
-    return this[pov].team[species]
   }
 
   label(s: string) {
@@ -819,9 +811,20 @@ export class Observer {
       }
       case "-end": {
         p = piped(line, p.i, 2)
-        const dest = this.label(p.args[0]).member
+        const { pov, species } = this.label(p.args[0])
+
         let { stripped: name } = parseEffect(p.args[1])
-        const { volatiles } = this.active(dest.pov)
+
+        const { volatiles, member } = this.active(pov)
+
+        if (name === "Illusion") {
+          member.forme = 
+          const { team } = this[pov]
+          team[]
+
+          break
+        }
+
 
         if (name.startsWith("fallen")) {
           name = "Fallen"
