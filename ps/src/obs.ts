@@ -206,7 +206,7 @@ export class Observer {
 
   ally: Ally
   foe: Foe
-  name: string
+  name?: string
   gen: Generation
 
   turn: number
@@ -253,7 +253,7 @@ export class Observer {
       case "request": {
         const { Transform: transform } = this.ally.active?.volatiles ?? {}
 
-        if (!(this.name || transform?.complete === false)) break
+        if (this.name && transform?.complete !== false) break
 
         const {
           side: { pokemon, name }
@@ -664,6 +664,17 @@ export class Observer {
             name: item,
             turn: 0
           }
+        }
+
+        break
+      }
+      case "-transform": {
+        p = piped(line, p.i, 2)
+        const { pov } = this.label(p.args[0])
+        
+        this.active(pov).volatiles["Transform"] = {
+          into: this.member(this.label(p.args[1])),
+          complete: false
         }
 
         break
