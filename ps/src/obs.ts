@@ -108,6 +108,8 @@ type Condition = {
   layers?: number
 }
 
+type Member = AllyMember | FoeMember
+
 type Ally = {
   tera: {
     member: Member
@@ -153,11 +155,6 @@ function isHazard(name: string) {
   return name in HAZARDS
 }
 
-type Member<T extends POV = POV> = {
-  ally: AllyMember
-  foe: FoeMember
-}[T]
-
 function hasItem(memb: Member, item: string | null) {
   memb.item = item
   if (memb.pov === "foe" && item) {
@@ -174,7 +171,7 @@ function hasAbility(memb: Member, ability: string | null) {
   }
 }
 
-class Label<T extends POV> {
+class Label<T extends POV = POV> {
   private obs: Observer
   species: string
   pov: T
@@ -187,6 +184,10 @@ class Label<T extends POV> {
 
   get member() {
     return this.obs[this.pov].team[this.species] as { ally: AllyMember; foe: FoeMember }[T]
+  }
+
+  static is<T extends POV>(label: Label, pov: T): label is Label<T> {
+    return label.pov === pov
   }
 }
 
@@ -310,8 +311,8 @@ export class Observer {
       case "switch":
       case "drag": {
         p = piped(line, p.i, 3)
-        const destLabel = this.label(p.args[0])
-        const { pov, species } = destLabel
+        const dest = this.label(p.args[0])
+        const { pov, species } = dest
 
         const traits = parseTraits(p.args[1])
         const hp = parseHp(p.args[2])!
@@ -320,13 +321,14 @@ export class Observer {
 
         const { from } = parseTags(p.args)
 
-        if (pov === "ally") {
-          ;(destLabel.member as AllyMember).revealed = true
+        if (Label.is(dest, "ally")) {
+          dest.member.revealed = true
         }
 
-        if (pov === "foe") {
+        if (Label.is(dest, "foe")) {
           const { team } = this[pov]
           const { forme, lvl, gender } = traits
+
           if (!(species in team)) {
             team[species] = {
               used: {},
@@ -793,7 +795,6 @@ export class Observer {
         p = piped(line, p.i, 3)
         const { pov, species } = this.label(p.args[0])
         const { forme, lvl, gender } = parseTraits(p.args[1])
-        const hp = parseHp(p.args[2])!
 
         const { active, team } = this[pov]
         const { member } = active!
@@ -804,7 +805,6 @@ export class Observer {
         member.forme = forme
         member.lvl = lvl
         member.gender = gender
-        member.hp = hp
 
         team[member.species] = member
         break
@@ -814,7 +814,7 @@ export class Observer {
         const { pov } = this.label(p.args[0])
 
         let { stripped: name } = parseEffect(p.args[1])
-        
+
         const { volatiles } = this.active(pov)
 
         if (name.startsWith("fallen")) {
