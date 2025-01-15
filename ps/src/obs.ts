@@ -806,25 +806,16 @@ export class Observer {
         member.gender = gender
         member.hp = hp
 
-        team[species] = member
+        team[member.species] = member
         break
       }
       case "-end": {
         p = piped(line, p.i, 2)
-        const { pov, species } = this.label(p.args[0])
+        const { pov } = this.label(p.args[0])
 
         let { stripped: name } = parseEffect(p.args[1])
-
-        const { volatiles, member } = this.active(pov)
-
-        if (name === "Illusion") {
-          member.forme = 
-          const { team } = this[pov]
-          team[]
-
-          break
-        }
-
+        
+        const { volatiles } = this.active(pov)
 
         if (name.startsWith("fallen")) {
           name = "Fallen"
