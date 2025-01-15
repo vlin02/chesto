@@ -336,7 +336,7 @@ export class Observer {
       }
       case "-ability": {
         p = piped(line, p.i, 2)
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         const ability = p.args[1]
 
         {
@@ -346,7 +346,7 @@ export class Observer {
 
           if (prev === "Trace") {
             hasAbility(dest, prev)
-            hasAbility(this.labelv1(of).member, ability)
+            hasAbility(this.member(this.label(of)), ability)
           }
         }
 
@@ -439,7 +439,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { ability } = parseEffect(from)
-        if (ability) hasAbility(this.labelv1(of).member, ability)
+        if (ability) hasAbility(this.member(this.label(of)), ability)
         break
       }
       case "-fieldend": {
@@ -465,7 +465,7 @@ export class Observer {
 
           const { from, of } = parseTags(p.args)
 
-          const src = of ? this.labelv1(of).member : dest
+          const src = of ? this.member(this.label(of)) : dest
           const { ability, item } = parseEffect(from)
 
           if (item) hasItem(src, item)
@@ -475,7 +475,7 @@ export class Observer {
       }
       case "-curestatus": {
         p = piped(line, p.i, 2)
-        const target = this.labelv1(p.args[0]).member
+        const target = this.member(this.label(p.args[0]))
 
         delete target.status
 
@@ -533,7 +533,7 @@ export class Observer {
       case "-heal":
       case "-sethp": {
         p = piped(line, p.i, 2)
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         const hp = parseHp(p.args[1])
 
         dest.hp = hp!
@@ -552,7 +552,7 @@ export class Observer {
       case "-damage": {
         p = piped(line, p.i, 2)
 
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         const hp = parseHp(p.args[1])
 
         if (hp) dest.hp = hp
@@ -564,7 +564,7 @@ export class Observer {
           const { from, of } = parseTags(p.args)
 
           const { item, ability } = parseEffect(from)
-          const src = of ? this.labelv1(of).member : dest
+          const src = of ? this.member(this.label(of)) : dest
 
           if (ability) hasAbility(src, ability)
           if (item) hasItem(src, item)
@@ -623,7 +623,7 @@ export class Observer {
       }
       case "-item": {
         p = piped(line, p.i, 2)
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         const item = p.args[1]
 
         hasItem(dest, item)
@@ -632,7 +632,7 @@ export class Observer {
         const { from, of, identify } = parseTags(p.args)
         const { ability } = parseEffect(from)
 
-        const src = of ? this.labelv1(of).member : undefined
+        const src = of ? this.member(this.label(of)) : undefined
 
         if (identify) {
           hasAbility(src!, ability!)
@@ -671,7 +671,7 @@ export class Observer {
       case "-transform": {
         p = piped(line, p.i, 2)
         const { pov } = this.label(p.args[0])
-        
+
         this.active(pov).volatiles["Transform"] = {
           into: this.member(this.label(p.args[1])),
           complete: false
@@ -751,7 +751,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { ability, item } = parseEffect(from)
-        const src = of ? this.labelv1(of).member : dest
+        const src = of ? this.member(this.label(of)) : dest
 
         if (ability) hasAbility(src, ability)
         if (item) hasItem(src, item)
@@ -768,7 +768,7 @@ export class Observer {
       }
       case "-formechange": {
         p = piped(line, p.i, 2)
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         const forme = p.args[1]
 
         dest.forme = forme
@@ -783,7 +783,7 @@ export class Observer {
       }
       case "detailschange": {
         p = piped(line, p.i, 2)
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         const { forme } = parseTraits(p.args[1])
 
         dest.forme = forme
@@ -911,7 +911,7 @@ export class Observer {
       }
       case "faint": {
         p = piped(line, p.i)
-        const dest = this.labelv1(p.args[0]).member
+        const dest = this.member(this.label(p.args[0]))
         dest.hp[0] = 0
 
         break
