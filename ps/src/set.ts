@@ -36,7 +36,7 @@ export function filterSets(sets: Set[], obs: Observer, species: string) {
 
   for (const set of sets) {
     const { moves, teraTypes, abilities, items } = set
-    if (tera?.species === species && !teraTypes.includes(tera.type)) continue
+    if (tera?.member === species && !teraTypes.includes(tera.type)) continue
     if (ability && !abilities.includes(ability)) continue
     if (item && !items.includes(item)) continue
 

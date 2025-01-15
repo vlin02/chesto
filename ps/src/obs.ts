@@ -103,18 +103,16 @@ type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTur
   "Doom Desire"?: DelayedAttack
 }
 
-type Tera = {
-  species: string
-  type: TypeName
-}
-
 type Condition = {
   turn?: number
   layers?: number
 }
 
 type Ally = {
-  tera: Tera | null
+  tera: {
+    member: AllyMember
+    type: TypeName
+  } | null
   conditions: { [k: string]: Condition }
   active?: {
     member: AllyMember
@@ -129,7 +127,10 @@ type Ally = {
 }
 
 type Foe = {
-  tera: Tera | null
+  tera: {
+    member: FoeMember
+    type: TypeName
+  } | null
   conditions: { [k: string]: Condition }
   active?: {
     member: FoeMember
@@ -172,20 +173,24 @@ function hasAbility(memb: Member, ability: string | null) {
     initial.ability = initial.ability ?? ability
   }
 }
-type Label = {
+type LabelV1 = {
   pov: POV
   species: string
 }
 
-class LabelV2 {
+class Label {
   private obs: Observer
-  pov: POV
+  side: Side
   species: string
 
-  constructor(obs: Observer, pov: POV, species: string) {
+  constructor(obs: Observer, side: Side, species: string) {
+    this.side = side
     this.obs = obs
-    this.pov = pov
     this.species = species
+  }
+
+  get pov() {
+    return this.obs.side === this.side ? "ally" : "foe"
   }
 
   get member() {
@@ -216,23 +221,17 @@ export class Observer {
     this.turn = 0
   }
 
-  private pov(side: Side): POV {
-    return this.side === side ? "ally" : "foe"
-  }
-
   active(pov: POV) {
     return this[pov].active!
   }
 
-  label(s: string) {
-    const { side, species } = parseLabel(s)
-    const pov = this.pov(side)
-
-    return { pov, species }
+  member({ pov, species }: LabelV1) {
+    return this[pov].team[species]
   }
 
-  member({ pov, species }: Label) {
-    return this[pov].team[species]
+  label(s: string) {
+    const { side, species } = parseLabel(s)
+    return new Label(this, side, species)
   }
 
   read(line: string) {
@@ -296,7 +295,7 @@ export class Observer {
       }
       case "-ability": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const ability = p.args[1]
 
         {
@@ -306,7 +305,7 @@ export class Observer {
 
           if (prev === "Trace") {
             hasAbility(dest, prev)
-            hasAbility(this.member(this.label(of)), ability)
+            hasAbility(this.label(of).member, ability)
           }
         }
 
@@ -393,7 +392,7 @@ export class Observer {
         }
 
         this.weather = { name, turn: 0 }
-        if (ability) hasAbility(this.member(this.label(of)), ability)
+        if (ability) hasAbility(this.label(of).member, ability)
 
         break
       }
@@ -407,7 +406,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { ability } = parseEffect(from)
-        if (ability) hasAbility(this.member(this.label(of)), ability)
+        if (ability) hasAbility(this.label(of).member, ability)
         break
       }
       case "-fieldend": {
@@ -419,7 +418,7 @@ export class Observer {
       }
       case "-status": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const id = p.args[1] as StatusId
 
         dest.status = {
@@ -433,17 +432,17 @@ export class Observer {
 
           const { from, of } = parseTags(p.args)
 
-          const source = of ? this.member(this.label(of)) : dest
+          const src = of ? this.label(of).member : dest
           const { ability, item } = parseEffect(from)
 
-          if (item) hasItem(source, item)
-          if (ability) hasAbility(source, ability)
+          if (item) hasItem(src, item)
+          if (ability) hasAbility(src, ability)
         }
         break
       }
       case "-curestatus": {
         p = piped(line, p.i, 2)
-        const target = this.member(this.label(p.args[0]))
+        const target = this.label(p.args[0]).member
 
         delete target.status
 
@@ -457,7 +456,7 @@ export class Observer {
       }
       case "move": {
         p = piped(line, p.i, 3)
-        const { member: src } = this.member(this.label(p.args[0]))
+        const { member: src } = this.label(p.args[0])
 
         const { pov } = src
         const move = p.args[1]
@@ -502,30 +501,30 @@ export class Observer {
       case "-heal":
       case "-sethp": {
         p = piped(line, p.i, 2)
-        const target = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const hp = parseHp(p.args[1])
 
-        target.hp = hp!
+        dest.hp = hp!
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
         const { ability, item } = parseEffect(from)
-        if (ability) hasAbility(target, ability)
+        if (ability) hasAbility(dest, ability)
 
         // berries already include an -enditem
-        if (item === "Leftovers") hasItem(target, item)
+        if (item === "Leftovers") hasItem(dest, item)
 
         break
       }
       case "-damage": {
         p = piped(line, p.i, 2)
 
-        const target = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const hp = parseHp(p.args[1])
 
-        if (hp) target.hp = hp
-        else target.hp[0] = 0
+        if (hp) dest.hp = hp
+        else dest.hp[0] = 0
 
         {
           p = piped(line, p.i, -1)
@@ -533,7 +532,7 @@ export class Observer {
           const { from, of } = parseTags(p.args)
 
           const { item, ability } = parseEffect(from)
-          const src = of ? this.member(this.label(of)) : target
+          const src = of ? this.label(of).member : dest
 
           if (ability) hasAbility(src, ability)
           if (item) hasItem(src, item)
@@ -544,7 +543,7 @@ export class Observer {
       case "-boost":
       case "-unboost": {
         p = piped(line, p.i, 3)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const { boosts } = this.active(dest.pov)
 
         const id = p.args[1] as BoostId
@@ -568,7 +567,8 @@ export class Observer {
       }
       case "-clearboost": {
         p = piped(line, p.i)
-        const { pov } = this.member(this.label(p.args[0]))
+        const { pov } = this.label(p.args[0])
+
         this.active(pov).boosts = {}
         break
       }
@@ -580,7 +580,7 @@ export class Observer {
       }
       case "-clearnegativeboost": {
         p = piped(line, p.i)
-        const { pov } = this.member(this.label(p.args[0]))
+        const { pov } = this.label(p.args[0]).member
         const { boosts } = this.active(pov)
 
         for (const k in boosts) {
@@ -591,7 +591,7 @@ export class Observer {
       }
       case "-item": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const item = p.args[1]
 
         hasItem(dest, item)
@@ -600,7 +600,7 @@ export class Observer {
         const { from, of, identify } = parseTags(p.args)
         const { ability } = parseEffect(from)
 
-        const src = of ? this.member(this.label(of)) : undefined
+        const src = of ? this.label(of).member : undefined
 
         if (identify) {
           hasAbility(src!, ability!)
@@ -618,7 +618,7 @@ export class Observer {
       }
       case "-enditem": {
         p = piped(line, p.i, 2)
-        const target = this.member(this.label(p.args[0]))
+        const target = this.label(p.args[0]).member
         const { pov } = target
         const item = p.args[1]
 
@@ -639,7 +639,7 @@ export class Observer {
       }
       case "-start": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         let { pov } = dest
         let { stripped: name } = parseEffect(p.args[1])
 
@@ -708,7 +708,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { ability, item } = parseEffect(from)
-        const src = of ? this.member(this.label(of)) : dest
+        const src = of ? this.label(of).member : dest
 
         if (ability) hasAbility(src, ability)
         if (item) hasItem(src, item)
@@ -717,15 +717,15 @@ export class Observer {
       }
       case "-terastallize": {
         p = piped(line, p.i, 2)
-        const { pov, species } = this.member(this.label(p.args[0]))
+        const { member, pov } = this.label(p.args[0])
         const type = p.args[1] as TypeName
 
-        this[pov].tera = { species, type }
+        this[pov].tera = { member: member as any, type }
         break
       }
       case "-formechange": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const forme = p.args[1]
 
         dest.forme = forme
@@ -740,7 +740,7 @@ export class Observer {
       }
       case "detailschange": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const { forme } = parseTraits(p.args[1])
 
         dest.forme = forme
@@ -748,7 +748,7 @@ export class Observer {
       }
       case "-activate": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         const { pov } = dest
 
         let { ability, item, move, stripped } = parseEffect(p.args[1])
@@ -822,7 +822,7 @@ export class Observer {
       }
       case "-end": {
         p = piped(line, p.i, 2)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         let { stripped: name } = parseEffect(p.args[1])
         const { volatiles } = this.active(dest.pov)
 
@@ -835,7 +835,7 @@ export class Observer {
       }
       case "-singleturn": {
         p = piped(line, p.i, 2)
-        const { pov } = this.member(this.label(p.args[0]))
+        const { pov } = this.label(p.args[0]).member
         const { stripped: name } = parseEffect(p.args[1])
 
         this.active(pov).volatiles[name] = { singleTurn: true }
@@ -843,7 +843,7 @@ export class Observer {
       }
       case "-singlemove": {
         p = piped(line, p.i, 2)
-        const { pov } = this.member(this.label(p.args[0]))
+        const { pov } = this.label(p.args[0]).member
         const { stripped: name } = parseEffect(p.args[1])
 
         this.active(pov).volatiles[name] = { singleMove: true }
@@ -851,7 +851,7 @@ export class Observer {
       }
       case "faint": {
         p = piped(line, p.i)
-        const dest = this.member(this.label(p.args[0]))
+        const dest = this.label(p.args[0]).member
         dest.hp[0] = 0
 
         break
