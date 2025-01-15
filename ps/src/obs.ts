@@ -395,7 +395,7 @@ export class Observer {
         }
 
         this.weather = { name, turn: 0 }
-        if (ability) hasAbility(this.labelv1(of).member, ability)
+        if (ability) hasAbility(this.member(this.label(of)), ability)
 
         break
       }
@@ -640,7 +640,9 @@ export class Observer {
       }
       case "-start": {
         p = piped(line, p.i, 2)
-        const { pov, member: dest } = this.labelv1(p.args[0])
+        const dest = this.member(this.label(p.args[0]))
+        const { pov } = dest
+
         let { stripped: name } = parseEffect(p.args[1])
 
         const active = this.active(pov)
