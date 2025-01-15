@@ -86,6 +86,10 @@ type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTur
     turn: number
     move: string
   }
+  "Transform"?: {
+    into: Member
+    complete: boolean
+  }
   "Locked Move"?: {
     turn: number
     move: string
@@ -204,7 +208,6 @@ export class Observer {
   foe: Foe
   name: string
   gen: Generation
-  switch: AllyMember
 
   turn: number
   fields: { [k: string]: number }
@@ -248,37 +251,70 @@ export class Observer {
 
     switch (msgType) {
       case "request": {
-        if (!this.name) {
-          const {
-            side: { pokemon: team, name }
-          }: {
-            side: {
-              name: string
-              pokemon: {
-                ident: string
-                details: string
-                condition: string
-                active: boolean
-                stats: { [k in StatId]: number }
-                item: string
-                ability: string
-                moves: string[]
-                teraType: TypeName
-              }[]
-            }
-          } = JSON.parse(line.slice(p.i + 1))
+        const { Transform: transform } = this.ally.active?.volatiles ?? {}
 
+        if (!(this.name || transform?.complete === false)) break
+
+        const {
+          side: { pokemon, name }
+        }: {
+          side: {
+            name: string
+            pokemon: {
+              ident: string
+              details: string
+              condition: string
+              active: boolean
+              stats: { [k in StatId]: number }
+              item: string
+              ability: string
+              moves: string[]
+              teraType: TypeName
+            }[]
+          }
+        } = JSON.parse(line.slice(p.i + 1))
+
+        if (transform?.complete === false) {
+          transform.complete = true
+          const { into } = transform
+          const { member: from } = this.ally.active!
+
+          const { moves, ability } = pokemon.find(
+            ({ ident }) => parseLabel(ident).species === from.species
+          )!
+
+          into.ability = ability
+          const { moveset } = into
+          for (const move of moves) {
+            const { name } = this.gen.moves.get(move)!
+            moveset[name] = moveset[name] ?? 0
+          }
+        }
+
+        if (!this.name) {
           this.name = name
 
-          const { ally } = this
-          for (const { ident, details, condition, stats, item, moves, ability, teraType } of team) {
+          const {
+            ally: { team }
+          } = this
+
+          for (const {
+            ident,
+            details,
+            condition,
+            stats,
+            item,
+            moves,
+            ability,
+            teraType
+          } of pokemon) {
             const { species } = parseLabel(ident)
             const { gender, lvl, forme } = parseTraits(details)
 
             const moveset: MoveSet = {}
             for (const move of moves) moveset[this.gen.moves.get(move)!.name] = 0
 
-            const memb: AllyMember = {
+            team[species] = {
               pov: "ally",
               species,
               used: {},
@@ -288,14 +324,11 @@ export class Observer {
               revealed: false,
               teraType,
               ability: this.gen.abilities.get(ability)!.name,
-              item: this.gen.items.get(item)!.name,
+              item: item ? this.gen.items.get(item)!.name : "Leftovers",
               stats,
               hp: parseHp(condition)!,
               moveset
             }
-
-            ally.team[species] = memb
-            ally.slots.push(memb)
           }
         }
 
@@ -324,21 +357,18 @@ export class Observer {
         hasAbility(dest, ability)
         break
       }
-      /*
-      [from] Shed Tail: transfers substitute
-      */
       case "switch":
       case "drag": {
         p = piped(line, p.i, 3)
-        let { pov, species } = this.labelv1(p.args[0])
+        let label = this.label(p.args[0])
+        const { pov, species } = label
         const traits = parseTraits(p.args[1])
         const hp = parseHp(p.args[2])!
 
         let dest: Member
 
         if (pov === "ally") {
-          this.switch.revealed = true
-          dest = this.switch
+          dest = this.member(label)
         } else {
           const { team } = this[pov]
           const { forme, lvl, gender } = traits
