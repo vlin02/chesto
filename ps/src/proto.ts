@@ -3,7 +3,6 @@ export const SIDES = ["p1", "p2"] as const
 
 export const FOE = { p1: "p2", p2: "p1" } as const
 
-export type StatId = "atk" | "def" | "spa" | "spd" | "spe"
 export type BoostId = "atk" | "def" | "spa" | "spd" | "spe" | "evasion" | "accuracy"
 
 export type TypeName =
@@ -28,8 +27,19 @@ export type TypeName =
   | "???"
   | "Stellar"
 
+export const STAT_IDS = ["slp", "psn", "brn", "frz", "par", "tox"]
+export type StatId = (typeof STAT_IDS)[number]
+
 export type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
 export type WeatherName = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
+
+export const TERRAIN_NAMES = [
+  "Electric Terrain",
+  "Psychic Terrain",
+  "Grassy Terrain",
+  "Misty Terrain"
+]
+export type TerrainName = (typeof TERRAIN_NAMES)[number]
 
 export type Gender = "M" | "F" | null
 

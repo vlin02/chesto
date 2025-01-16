@@ -20,7 +20,7 @@ export const POVS = ["ally", "foe"] as const
 type Status = {
   id: StatusId
   turn?: number
-  moves?: number
+  move?: number
 }
 
 type MoveSet = {
@@ -37,7 +37,7 @@ type OneTime = {
   "Intrepid Sword"?: boolean
 }
 
-type AllyMember = {
+export type AllyMember = {
   pov: "ally"
   species: string
   revealed: boolean
@@ -51,7 +51,7 @@ type AllyMember = {
   status?: Status
   moveset: MoveSet
   teraType: TypeName
-  used: OneTime
+  oneTime: OneTime
 }
 
 export type FoeMember = {
@@ -70,15 +70,17 @@ export type FoeMember = {
   }
   status?: Status
   moveset: MoveSet
-  used: OneTime
+  oneTime: OneTime
 }
 
-type DelayedAttack = {
+export type DelayedAttack = {
   turn: number
   member: Member
 }
 
-type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean } } & {
+export type Volatiles = {
+  [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean }
+} & {
   "Type Change"?: {
     types: TypeName[]
   }
@@ -95,13 +97,17 @@ type Volatiles = { [k: string]: { turn?: number; singleMove?: boolean; singleTur
     move: string
   }
   "Protosynthesis"?: {
-    stat: StatId
+    statId: StatId
   }
   "Quark Drive"?: {
-    stat: StatId
+    statId: StatId
   }
   "Fallen"?: {
     count: number
+  }
+  "Encore"?: {
+    turn: number
+    move: string
   }
   "Future Sight"?: DelayedAttack
   "Doom Desire"?: DelayedAttack
@@ -114,21 +120,23 @@ type Condition = {
 
 type Member = AllyMember | FoeMember
 
+type Active = {
+  lastMove?: string
+  member: Member
+  volatiles: Volatiles
+  lastBerry?: Eaten
+  boosts: {
+    [k in BoostId]?: number
+  }
+}
+
 type Ally = {
   tera: {
     member: Member
     type: TypeName
   } | null
   conditions: { [k: string]: Condition }
-  active?: {
-    member: Member
-    volatiles: Volatiles
-    lastBerry?: Eaten
-    boosts: {
-      [k in BoostId]?: number
-    }
-  }
-  slots: AllyMember[]
+  active?: Active
   team: { [k: string]: Member }
   wish?: number
 }
@@ -139,14 +147,7 @@ type Foe = {
     type: TypeName
   } | null
   conditions: { [k: string]: Condition }
-  active?: {
-    member: Member
-    volatiles: Volatiles
-    lastBerry?: Eaten
-    boosts: {
-      [k in BoostId]?: number
-    }
-  }
+  active?: Active
   team: { [k: string]: Member }
   wish?: number
 }
@@ -187,19 +188,19 @@ export class Observer {
   ally: Ally
   foe: Foe
   name?: string
-  gen: Generation
+  private gen: Generation
 
   turn: number
   fields: { [k: string]: number }
-  weather: { name: WeatherName; turn: number } | null
+  weather?: { name: WeatherName; turn: number }
   winner?: POV
 
   constructor(side: Side, gen: Generation) {
     this.gen = gen
     this.side = side
-    this.ally = { tera: null, team: {}, slots: [], conditions: {} }
+    this.ally = { tera: null, team: {}, conditions: {} }
     this.foe = { tera: null, team: {}, conditions: {} }
-    this.weather = null
+    this.weather = undefined
     this.fields = {}
     this.turn = 0
   }
@@ -292,7 +293,7 @@ export class Observer {
             team[species] = {
               pov: "ally",
               species,
-              used: {},
+              oneTime: {},
               forme,
               gender,
               lvl,
@@ -326,7 +327,7 @@ export class Observer {
         }
 
         if (ability === "Intrepid Sword") {
-          dest.used["Intrepid Sword"] = true
+          dest.oneTime[ability] = true
         }
 
         hasAbility(dest, ability)
@@ -350,7 +351,7 @@ export class Observer {
 
           dest = team[species] = team[species] ?? {
             pov: "foe",
-            used: {},
+            oneTime: {},
             species,
             forme,
             lvl,
@@ -386,7 +387,7 @@ export class Observer {
         const name = p.args[0] as WeatherName | "none"
 
         if (name === "none") {
-          this.weather = null
+          this.weather = undefined
           break
         }
 
@@ -432,7 +433,7 @@ export class Observer {
         dest.status = {
           id,
           turn: id === "tox" ? 0 : undefined,
-          moves: id === "slp" ? 0 : undefined
+          move: id === "slp" ? 0 : undefined
         }
 
         {
@@ -477,11 +478,13 @@ export class Observer {
           p = piped(line, p.i, -1)
           const { from, notarget, miss } = parseTags(p.args)
 
+          this.active(pov).lastMove = move
+
           for (const name in volatiles) {
             if (volatiles[name].singleMove) delete volatiles[name]
           }
 
-          if (status?.moves) status.moves++
+          if (status?.move) status.move++
 
           const { ability } = parseEffect(from)
           if (ability) hasAbility(dest, ability)
@@ -667,9 +670,9 @@ export class Observer {
         const { volatiles } = active
 
         if (name.startsWith("quarkdrive")) {
-          volatiles["Quark Drive"] = { stat: name.slice(-3) as StatId }
+          volatiles["Quark Drive"] = { statId: name.slice(-3) as StatId }
         } else if (name.startsWith("protosynthesis")) {
-          volatiles["Protosynthesis"] = { stat: name.slice(-3) as StatId }
+          volatiles["Protosynthesis"] = { statId: name.slice(-3) as StatId }
         } else if (name.startsWith("fallen")) {
           volatiles["Fallen"] = {
             count: Number(name.slice(-1)[0])
@@ -709,6 +712,13 @@ export class Observer {
             case "Charge": {
               p = piped(line, p.i)
               volatiles[name] = {}
+              break
+            }
+            case "Encore": {
+              volatiles[name] = {
+                turn: 0,
+                move: active.lastMove!
+              }
               break
             }
             case "Salt Cure":
@@ -800,7 +810,7 @@ export class Observer {
           }
         } else if (ability) {
           if (ability === "Battle Bond") {
-            dest.used["Battle Bond"] = true
+            dest.oneTime[ability] = true
           }
 
           hasAbility(dest, ability)
@@ -833,7 +843,7 @@ export class Observer {
         if (member.pov === "foe") {
           team[member.species] = {
             pov: "foe",
-            used: {},
+            oneTime: {},
             species: member.species,
             forme: member.forme,
             lvl: member.lvl,
