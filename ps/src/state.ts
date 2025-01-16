@@ -1,4 +1,4 @@
-import { Generation, Generations, Stats } from "@pkmn/data"
+import { Generation, Generations, Specie, Stats } from "@pkmn/data"
 import { AllyMember, Observer } from "./obs.js"
 import { StatId, StatusId, TERRAIN_NAMES } from "./proto.js"
 import { Dex } from "@pkmn/dex"
@@ -28,6 +28,34 @@ export function extract(obs: Observer) {
     else fields[name] = turnsLeft
   }
 
+  function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
+    switch (baseSpecies) {
+      case "Minior": {
+        return forme === "Meteor" ? name : baseSpecies
+      }
+      case "Terapagos":
+        return forme === "Stellar" ? null : name
+      case "Shaymin":
+        return forme === "Sky" ? null : name
+      case "Ogerpon":
+        return ["Cornerstone-Tera", "Wellspring-Tera", "Hearthflame-Tera", "Teal-Tera"].includes(
+          forme
+        )
+          ? null
+          : name
+      case "Eiscue":
+      case "Cramorant":
+      case "Mimikyu":
+      case "Palafin":
+      case "Meloetta":
+      case "Morpeko": {
+        return name
+      }
+      default:
+        return null
+    }
+  }
+
   const { ally } = obs
 
   {
@@ -43,7 +71,7 @@ export function extract(obs: Observer) {
         lvl,
         forme: formeName,
         gender,
-        hp: [hpLeft, hpTot],
+        hp,
         ability,
         item,
         stats: _stats,
@@ -75,7 +103,7 @@ export function extract(obs: Observer) {
       const moveset = []
       for (const name in _moveset) {
         moveset.push({
-          id: gen.moves.get(name)!.id,
+          name,
           ppUsed: _moveset[name]
         })
       }
@@ -90,34 +118,26 @@ export function extract(obs: Observer) {
       const stats: { [k in StatId]: number } = {}
       for (const id in _stats) stats[id] = scale(_stats[id], 0, 200)
 
+      const transitionaryForme = toTransitionaryForme(forme)
+
       const member = {
         revealed,
-        lvl: scale(lvl, 64, 100),
-        formeId: forme.id,
-        speciesId: species.id,
+        lvl,
         gender,
-        hp: [hpLeft / hpTot, scale(hpTot, 200, 400)],
-        ability: ability ? gen.abilities.get(ability)!.id : null,
-        item: item ? gen.abilities.get(item)!.id : null,
+        hp,
+        ability,
+        item,
         stats,
         status,
         teraType,
         oneTime: {
           battleBond,
           intrepidSword
-        }
+        },
+        transitionaryForme
       }
 
       team.push(member)
-    }
-    // const { tera, conditions, active, team, wish } = ally
-    // const { member, volatiles, lastBerry, boosts } = active!
-
-    const v = {
-      oneTime: {
-        battleBond,
-        intrepidSword
-      }
     }
   }
 

@@ -78,6 +78,10 @@ export type DelayedAttack = {
   member: Member
 }
 
+type Boosts = {
+  [k in BoostId]?: number
+}
+
 export type Volatiles = {
   [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean }
 } & {
@@ -90,8 +94,19 @@ export type Volatiles = {
   }
   "Transform"?: {
     into: Member
-    complete: boolean
-  }
+  } & (
+    | {
+        complete: false
+      }
+    | {
+        complete: true
+        ability: string
+        moveset: MoveSet
+        boosts: Boosts
+        gender: Gender
+        species: string
+      }
+  )
   "Locked Move"?: {
     turn: number
     move: string
@@ -125,9 +140,7 @@ type Active = {
   member: Member
   volatiles: Volatiles
   lastBerry?: Eaten
-  boosts: {
-    [k in BoostId]?: number
-  }
+  boosts: Boosts
 }
 
 type Ally = {
@@ -251,7 +264,6 @@ export class Observer {
         } = JSON.parse(line.slice(p.i + 1))
 
         if (transform?.complete === false) {
-          transform.complete = true
           const { into } = transform
           const { member: from } = this.ally.active!
 
@@ -259,11 +271,24 @@ export class Observer {
             ({ ident }) => parseLabel(ident).species === from.species
           )!
 
+          const moveset: MoveSet = {}
+
           into.ability = ability
-          const { moveset } = into
           for (const move of moves) {
             const { name } = this.gen.moves.get(move)!
-            moveset[name] = moveset[name] ?? 0
+            into.moveset[name] = into.moveset[name] ?? 0
+            moveset[name] = 0
+          }
+
+          const { gender, species } = into
+          this.ally.active!.volatiles["Transform"] = {
+            complete: true,
+            into,
+            species,
+            moveset,
+            ability,
+            boosts: { ...this.foe.active!.boosts },
+            gender
           }
         }
 

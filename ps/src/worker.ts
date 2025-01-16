@@ -1,6 +1,5 @@
 import { parentPort } from "worker_threads"
 import { Worker } from "worker_threads"
-import { resolve } from "path"
 
 export function plog(...x: any[]) {
   parentPort!.postMessage(["log", ...x])
