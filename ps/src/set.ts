@@ -1,9 +1,8 @@
 import { TypeName } from "@pkmn/data"
-import { Observer } from "./obs.js"
 import { join } from "path"
 import { readFileSync } from "fs"
 
-type Set = {
+export type Set = {
   role: string
   hp: [number, number][]
   atk: number
@@ -14,43 +13,14 @@ type Set = {
   teraTypes: TypeName[]
 }
 
-type SpeciesSet = {
-  level: number
-  sets: Set[]
-}
-
-type DexSet = {
-  [k: string]: SpeciesSet
-}
-
-export function filterSets(sets: Set[], obs: Observer, species: string) {
-  const {
-    foe: { tera, team }
-  } = obs
-  const filtered: Set[] = []
-
-  const {
-    initial: { ability, item },
-    moveset
-  } = team[species]
-
-  for (const set of sets) {
-    const { moves, teraTypes, abilities, items } = set
-    if (tera?.member === species && !teraTypes.includes(tera.type)) continue
-    if (ability && !abilities.includes(ability)) continue
-    if (item && !items.includes(item)) continue
-
-    let hasMoves = true
-    for (const move in moveset) hasMoves &&= moves.includes(move)
-    if (!hasMoves) continue
-
-    filtered.push(set)
+export type Patch = {
+  [k: string]: {
+    level: number
+    sets: Set[]
   }
-
-  return filtered
 }
 
-const PATCHES = [
+const RELEASES = [
   { timestamp: 1715302353, hash: "64c595197014a5c73c7750f7a5da765daca4e830" },
   { timestamp: 1717083165, hash: "9f7f79d79b60902aabd3405dbe177101bcd28323" },
   { timestamp: 1717259560, hash: "e055d629b33bfc4f1e7e5c79f3aeb47f18ada00f" },
@@ -79,17 +49,17 @@ const PATCHES = [
 ]
 
 export function nearestSetHash(time: number) {
-  for (let i = 1; i < PATCHES.length - 1; i++) {
-    const { timestamp } = PATCHES[i]
-    if (time < timestamp) return PATCHES[i - 1].hash
+  for (let i = 1; i < RELEASES.length - 1; i++) {
+    const { timestamp } = RELEASES[i]
+    if (time < timestamp) return RELEASES[i - 1].hash
   }
 
-  return PATCHES[PATCHES.length - 1].hash
+  return RELEASES[RELEASES.length - 1].hash
 }
 
-export class SetManager {
+export class PatchManager {
   dir: string
-  setByHash: Map<string, DexSet>
+  setByHash: Map<string, Patch>
   constructor(dir: string) {
     this.dir = dir
     this.setByHash = new Map()
@@ -99,7 +69,7 @@ export class SetManager {
     if (!this.setByHash.has(hash)) {
       this.setByHash.set(
         hash,
-        JSON.parse(readFileSync(join(this.dir, `${hash}.json`), "utf-8")) as DexSet
+        JSON.parse(readFileSync(join(this.dir, `${hash}.json`), "utf-8")) as Patch
       )
     }
     return this.setByHash.get(hash)!
