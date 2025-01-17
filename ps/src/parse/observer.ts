@@ -214,8 +214,6 @@ export class Observer {
         let label = this.label(p.args[0])
 
         const { pov, species } = label
-        const party = this[pov]
-        const { active, team } = party
 
         const traits = parseTraits(p.args[1])
         const hp = parseHp(p.args[2])!
@@ -226,6 +224,8 @@ export class Observer {
           user = this.member(label)
         } else {
           const { forme, lvl, gender } = traits
+
+          const team = this.foe?.team ?? {}
 
           user = team[species] = team[species] ?? {
             pov: "foe",
@@ -240,7 +240,11 @@ export class Observer {
               formeId: this.gen.species.get(forme)!.id
             }
           }
+
+          if (!this.foe) this.foe = { fields: {}, team, active: user }
         }
+
+        const { active } = this[pov]
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
@@ -253,7 +257,7 @@ export class Observer {
           user.volatiles["Substitute"] = active.volatiles["Substitute"]
         }
 
-        party.active = user
+        this[pov].active = user
         break
       }
       case "-mustrecharge": {
