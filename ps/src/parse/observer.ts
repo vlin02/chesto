@@ -353,8 +353,7 @@ export class Observer {
         const move = p.args[1]
 
         const { pov } = user
-        const src = this[pov]
-        const opp = this[OPP[pov]]
+        const opp = OPP[pov]
 
         const { volatiles, moveset, status } = user
 
@@ -389,7 +388,7 @@ export class Observer {
                 break
               }
               case "Wish": {
-                src.wish = 0
+                this[pov].wish = 0
               }
             }
           } else {
@@ -398,7 +397,7 @@ export class Observer {
         }
 
         if (deductPP)
-          moveset[move] = (moveset[move] ?? 0) + (opp.active.ability === "Pressure" ? 2 : 1)
+          moveset[move] = (moveset[move] ?? 0) + (this[opp].active.ability === "Pressure" ? 2 : 1)
 
         break
       }
@@ -555,8 +554,8 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         let { stripped: name } = parseEffect(p.args[1])
 
-        const { volatiles } = user
-        const opp = this[OPP[user.pov]]
+        const { pov, volatiles } = user
+        const opp = OPP[pov]
 
         if (name.startsWith("quarkdrive")) {
           volatiles["Quark Drive"] = { statId: name.slice(-3) as StatId }
@@ -590,7 +589,7 @@ export class Observer {
             }
             case "Future Sight":
             case "Doom Desire": {
-              opp.active.volatiles[name] = {
+              this[opp].active.volatiles[name] = {
                 turn: 0,
                 user
               }
