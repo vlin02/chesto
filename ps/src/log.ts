@@ -1,4 +1,4 @@
-import { FOE, piped, SIDES, Side } from "./proto.js"
+import { FOE, piped, SIDES, Side } from "./parse/protocol.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 

@@ -1,70 +1,31 @@
-export type Side = "p1" | "p2"
-export const SIDES = ["p1", "p2"] as const
+import { TypeName } from "@pkmn/data"
+import { Gender, StatId } from "./dex.js"
 
+export type Side = "p1" | "p2"
+
+export const SIDES = ["p1", "p2"] as const
 export const FOE = { p1: "p2", p2: "p1" } as const
 
-export type BoostId = "atk" | "def" | "spa" | "spd" | "spe" | "evasion" | "accuracy"
-
-export type TypeName =
-  | "Normal"
-  | "Fighting"
-  | "Flying"
-  | "Poison"
-  | "Ground"
-  | "Rock"
-  | "Bug"
-  | "Ghost"
-  | "Steel"
-  | "Fire"
-  | "Water"
-  | "Grass"
-  | "Electric"
-  | "Psychic"
-  | "Ice"
-  | "Dragon"
-  | "Dark"
-  | "Fairy"
-  | "???"
-  | "Stellar"
-
-export const STAT_IDS = ["slp", "psn", "brn", "frz", "par", "tox"]
-export type StatId = (typeof STAT_IDS)[number]
-
-export type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
-export type WeatherName = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
-
-export const TERRAIN_NAMES = [
-  "Electric Terrain",
-  "Psychic Terrain",
-  "Grassy Terrain",
-  "Misty Terrain"
-]
-export type TerrainName = (typeof TERRAIN_NAMES)[number]
-
-type RequestSide = {
-  name: string
-  pokemon: {
-    ident: string
-    details: string
-    condition: string
-    active: boolean
-    stats: { [k in StatId]: number }
-    item: string
-    ability: string
-    moves: string[]
-    teraType: TypeName
-  }[]
-}
-
-export const CHOICE_ITEMS = ["Choice Band", "Choice Specs", "Choice Scarf"]
-
-export type BattleRequest = { side: RequestSide } & {
+export type ChoiceRequest = {
+  side: {
+    name: string
+    pokemon: {
+      ident: string
+      details: string
+      condition: string
+      active: boolean
+      stats: { [k in StatId]: number }
+      item: string
+      ability: string
+      moves: string[]
+      teraType: TypeName
+    }[]
+  }
+} & {
   active?: [{ moves: [{ move: string; disabled: boolean }] }]
   forceswitch?: boolean[]
   wait?: true
 }
-
-export type Gender = "M" | "F" | null
 
 export function piped(s: string, i: number, n = 1) {
   const args = []
@@ -78,7 +39,7 @@ export function piped(s: string, i: number, n = 1) {
   return { args, i }
 }
 
-type Traits = {
+export type Traits = {
   forme: string
   lvl: number
   gender: Gender

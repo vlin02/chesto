@@ -1,6 +1,6 @@
 import { Generation, Generations, Specie, Stats } from "@pkmn/data"
-import { AllyMember, Observer } from "./obs.js"
-import { StatId, StatusId, TERRAIN_NAMES } from "./proto.js"
+import { AllyMember, Observer } from "./parse/observer.js"
+import { StatId, StatusId, TERRAIN_NAMES } from "./parse/protocol.js"
 import { Dex } from "@pkmn/dex"
 
 function scale(n: number, lo: number, hi: number) {

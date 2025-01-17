@@ -1,6 +1,6 @@
 import { Generation, Specie } from "@pkmn/data"
-import { Observer } from "./obs.js"
-import { CHOICE_ITEMS } from "./proto.js"
+import { Observer } from "./parse/observer.js"
+import { CHOICE_ITEMS } from "./parse/protocol.js"
 
 export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
   switch (baseSpecies) {

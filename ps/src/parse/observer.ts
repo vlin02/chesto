@@ -1,9 +1,6 @@
 import { Generation, TypeName } from "@pkmn/data"
 import {
-  BattleRequest,
-  BoostId,
-  CHOICE_ITEMS as CHOICE_ITEMS,
-  Gender,
+  ChoiceRequest,
   parseEffect,
   parseHp,
   parseLabel,
@@ -12,10 +9,9 @@ import {
   parseTypes,
   piped,
   Side,
-  StatId,
-  StatusId,
-  WeatherName
-} from "./proto.js"
+} from "./protocol.js"
+import { WeatherName } from "@pkmn/client"
+import { StatusId, Gender, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
 
 export const POVS = ["ally", "foe"] as const
 
@@ -177,10 +173,6 @@ const OPP = { ally: "foe", foe: "ally" } as const
 
 type POV = "ally" | "foe"
 
-const HAZARDS = new Set(["Sticky Web", "Toxic Spikes", "Stealth Rock", "Spikes"])
-function isHazard(name: string) {
-  return name in HAZARDS
-}
 
 function setItem(memb: Member, item: string | null) {
   memb.item = item
@@ -243,7 +235,9 @@ export class Observer {
     const { pov } = memb
     const { active } = this[pov]
 
-    if (active!.member === memb && ) 
+    if (active!.member === memb) {
+      active?.volatiles
+    }
 
     memb.item = item
     if (memb.pov === "foe" && item) {
@@ -264,7 +258,7 @@ export class Observer {
         const { active } = this.ally
 
         const toReq = () => {
-          return JSON.parse(line.slice(p.i + 1)) as BattleRequest
+          return JSON.parse(line.slice(p.i + 1)) as ChoiceRequest
         }
 
         if (active?.volatiles.Transform?.complete === false) {
@@ -556,6 +550,7 @@ export class Observer {
 
         if (reducePP)
           moveset[move] = (moveset[move] ?? 0) + (opp.active!.member.ability === "Pressure" ? 2 : 1)
+
         break
       }
       case "-heal":
@@ -629,12 +624,12 @@ export class Observer {
         p = piped(line, p.i)
         const { pov } = this.label(p.args[0])
 
-        this.active(pov).boosts = {}
+        this[pov].active!.boosts = {}
         break
       }
       case "-clearallboost": {
         for (const pov of POVS) {
-          this.active(pov).boosts = {}
+          this[pov].active!.boosts = {}
         }
         break
       }
@@ -961,7 +956,7 @@ export class Observer {
         const { stripped: name } = parseEffect(p.args[1])
 
         const { conditions } = this[pov]
-        if (isHazard(name)) (conditions[name] ?? { layers: 0 }).layers!++
+        if (HAZARDS.includes(name)) (conditions[name] ?? { layers: 0 }).layers!++
         else conditions[name] = { turn: 0 }
 
         break

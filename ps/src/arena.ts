@@ -5,7 +5,7 @@ import { Battle } from "@pkmn/sim"
 import { Decision, make } from "./sim.js"
 import { Observer } from "./__tmp/view.js"
 import { Log } from "./replay.js"
-import { Side } from "./proto.js"
+import { Side } from "./parse/protocol.js"
 
 type Message = {
   side: Side
