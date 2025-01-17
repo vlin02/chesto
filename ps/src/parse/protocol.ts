@@ -72,7 +72,7 @@ export function parseTags(strs: string[]) {
   for (const s of strs) {
     const i = s.indexOf("]")
     const name = s.slice(1, i)
-    const value = s.slice(i + 2)
+    const value = s.slice(i + 1).trim()
     tags[name] = value
   }
 

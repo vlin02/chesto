@@ -59,6 +59,8 @@ export class Observer {
   }
 
   setAbility(user: User, ability: string) {
+    if (user.ability === ability) return
+
     user.ability = ability
     if (user.pov === "foe" && ability) {
       const { initial } = user
@@ -67,6 +69,8 @@ export class Observer {
   }
 
   setItem(user: User, item: string | null) {
+    if (user.item === item) return
+
     const { volatiles } = user
     if (volatiles["Choice Locked"]) delete volatiles["Choice Locked"]
 
@@ -160,12 +164,14 @@ export class Observer {
           } = user
 
           if (ability === "Illusion" && !revealed) {
-            const to = this.member(
-              this.label(
-                [...pokemons].reverse().find((x) => parseHp(x.condition) !== null && x !== active)!
-                  .ident
-              )
-            ) as AllyUser
+            const to =
+              this.ally.team[
+                this.label(
+                  [...pokemons].reverse().find((x) => parseHp(x.condition) !== null && !x.active)!
+                    .ident
+                ).species
+              ]
+
             this.illusion = { from: user, to }
           } else {
             delete this.illusion
@@ -339,9 +345,9 @@ export class Observer {
         p = piped(line, p.i, 3)
         const user = this.member(this.label(p.args[0]))
         const move = p.args[1]
+        const target = p.args[2] ? this.member(this.label(p.args[2])) : null
 
         const { pov } = user
-        const opp = OPP[pov]
 
         const { volatiles, moveset, status } = user
 
@@ -364,7 +370,11 @@ export class Observer {
           if (status?.move) status.move++
 
           const { ability } = parseEffect(from)
-          if (ability) this.setAbility(user, ability)
+          if (ability) {
+            this.setAbility(user, ability)
+
+            if (ability === "Magic Bounce") deductPP = false
+          }
 
           if (miss === undefined) {
             switch (move) {
@@ -385,7 +395,7 @@ export class Observer {
         }
 
         if (deductPP)
-          moveset[move] = (moveset[move] ?? 0) + (this[opp].active.ability === "Pressure" ? 2 : 1)
+          moveset[move] = (moveset[move] ?? 0) + (target?.ability === "Pressure" ? 2 : 1)
 
         break
       }
@@ -540,8 +550,8 @@ export class Observer {
           } = this.request
 
           const pkmn = pokemon.find((x) => this.label(x.ident).species === user.species)!
-          ability = pkmn.ability
-          moves = pkmn.moves
+          ability = this.gen.abilities.get(pkmn.ability)!.name
+          moves = pkmn.moves.map((x) => this.gen.moves.get(x)!.name)
 
           {
             const { moveset } = into
