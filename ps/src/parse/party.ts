@@ -16,9 +16,18 @@ export type MoveSet = {
   [k: string]: number
 }
 
+export type Boosts = {
+  [k in BoostId]?: number
+}
+
 export type OneTime = {
   "Battle Bond"?: boolean
   "Intrepid Sword"?: boolean
+}
+
+export type DelayedAttack = {
+  turn: number
+  user: User
 }
 
 export type Volatiles = {
@@ -126,15 +135,6 @@ export type FoeUser = {
 }
 
 export type User = AllyUser | FoeUser
-
-export type DelayedAttack = {
-  turn: number
-  user: User
-}
-
-export type Boosts = {
-  [k in BoostId]?: number
-}
 
 export type Fields = {
   [k: string]: {
