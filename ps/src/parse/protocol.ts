@@ -8,6 +8,7 @@ export const FOE = { p1: "p2", p2: "p1" } as const
 
 export type ChoiceRequest = {
   side: {
+    id: Side
     name: string
     pokemon: {
       ident: string

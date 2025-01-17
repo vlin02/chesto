@@ -50,7 +50,7 @@ export function extract(obs: Observer) {
         status: _status,
         moveset: _moveset,
         teraType,
-        oneTime: { "Battle Bond": battleBond, "Intrepid Sword": intrepidSword }
+        once: { "Battle Bond": battleBond, "Intrepid Sword": intrepidSword }
       } = _member
 
       const status: {
