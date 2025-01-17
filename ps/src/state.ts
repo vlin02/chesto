@@ -28,34 +28,6 @@ export function extract(obs: Observer) {
     else fields[name] = turnsLeft
   }
 
-  function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
-    switch (baseSpecies) {
-      case "Minior": {
-        return forme === "Meteor" ? name : baseSpecies
-      }
-      case "Terapagos":
-        return forme === "Stellar" ? null : name
-      case "Shaymin":
-        return forme === "Sky" ? null : name
-      case "Ogerpon":
-        return ["Cornerstone-Tera", "Wellspring-Tera", "Hearthflame-Tera", "Teal-Tera"].includes(
-          forme
-        )
-          ? null
-          : name
-      case "Eiscue":
-      case "Cramorant":
-      case "Mimikyu":
-      case "Palafin":
-      case "Meloetta":
-      case "Morpeko": {
-        return name
-      }
-      default:
-        return null
-    }
-  }
-
   const { ally } = obs
 
   {

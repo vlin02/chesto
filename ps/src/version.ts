@@ -133,7 +133,7 @@ export class VersionManager {
     }
     const { TeamGenerators } = this.randoms.get(ver)
 
-    ver = { "7": "0.7.59", "8": "0.8.9", "9": "0.9.26" }[minor]!
+    ver = { "7": "0.7.59", "8": "0.8.7", "9": "0.9.26" }[minor]!
 
     if (!this.sim.has(ver)) {
       this.sim.set(ver, await import(`@pkmn/sim-${ver}`))

@@ -11,9 +11,17 @@ export type Replay = {
   rating: number
   private: number
   password: string | null
-  outputs: Log[][] | null
   inputs: string[]
-}
+} & (
+  | {
+      status: "error"
+      outputs: null
+    }
+  | {
+      status: "partial" | "turns-unaligned" | "complete"
+      outputs: Log[][]
+    }
+)
 
 export async function createReplays(db: Db, name: string) {
   await db.createCollection(name, {

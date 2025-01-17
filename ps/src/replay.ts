@@ -17,7 +17,7 @@ type Header = {
 export function seekToStart(lines: string[], i: number) {
   let mark = { start: false, p1: false, p2: false }
   let header: any = { seed: {} }
-
+  
   for (; i < lines.length; i++) {
     const line = lines[i]
     let j = line.indexOf(" ")

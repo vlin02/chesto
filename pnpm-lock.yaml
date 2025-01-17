@@ -289,6 +289,9 @@ importers:
       '@pkmn/sim-0.7.59':
         specifier: npm:@pkmn/sim@0.7.59
         version: '@pkmn/sim@0.7.59'
+      '@pkmn/sim-0.8.7':
+        specifier: npm:@pkmn/sim@0.8.7
+        version: '@pkmn/sim@0.8.7'
       '@pkmn/sim-0.8.9':
         specifier: npm:@pkmn/sim@0.8.9
         version: '@pkmn/sim@0.8.9'
@@ -979,6 +982,9 @@ packages:
 
   '@pkmn/sim@0.7.59':
     resolution: {integrity: sha512-x+q1VaCHxrQ7Wt5WNCElIbiGYfIgUXukVNr2i7M+cWqWegC8xJ8DiHEOk0VnKI1YjesWPb78u+Q29cVDZbI/ag==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.7.59.tgz}
+
+  '@pkmn/sim@0.8.7':
+    resolution: {integrity: sha512-iGnw17CrMCZfwL/M7qw++bCgdooraK0w99zjYfSwWWGEB5cmXKiDl6fpvnx6zT4Zfj2BCFj0oe2xnRN4nj/qAQ==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.7.tgz}
 
   '@pkmn/sim@0.8.9':
     resolution: {integrity: sha512-+Y90pw/o0kE2vDl/hHzOKxoi6MUCWAKhagD+OPtR7FdC4E2OSl0Vaod8D6wBLRkjW+U11JURFoNVwTTOX6lnSA==, tarball: https://registry.npmjs.org/@pkmn/sim/-/sim-0.8.9.tgz}
@@ -2879,6 +2885,11 @@ snapshots:
       '@pkmn/types': 4.0.0
 
   '@pkmn/sim@0.7.59':
+    dependencies:
+      '@pkmn/sets': 5.1.2
+      '@pkmn/streams': 1.1.0
+
+  '@pkmn/sim@0.8.7':
     dependencies:
       '@pkmn/sets': 5.1.2
       '@pkmn/streams': 1.1.0

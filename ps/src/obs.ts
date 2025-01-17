@@ -1,5 +1,6 @@
 import { Generation, TypeName } from "@pkmn/data"
 import {
+  BattleRequest,
   BoostId,
   Gender,
   parseEffect,
@@ -85,6 +86,9 @@ type Boosts = {
 export type Volatiles = {
   [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean }
 } & {
+  "Recharge"?: { turn: number }
+  "Yawn"?: {}
+  "Taunt"?: {}
   "Type Change"?: {
     types: TypeName[]
   }
@@ -234,40 +238,25 @@ export class Observer {
   read(line: string) {
     if (line[0] !== "|") return
 
-    let p
+    let p: { args: string[]; i: number }
     p = piped(line, 0)
     const msgType = p.args[0]
 
     switch (msgType) {
       case "request": {
-        const { Transform: transform } = this.ally.active?.volatiles ?? {}
+        const { active } = this.ally
 
-        if (this.name && transform?.complete !== false) break
+        const toReq = () => {
+          return JSON.parse(line.slice(p.i + 1)) as BattleRequest
+        }
 
-        const {
-          side: { pokemon, name }
-        }: {
-          side: {
-            name: string
-            pokemon: {
-              ident: string
-              details: string
-              condition: string
-              active: boolean
-              stats: { [k in StatId]: number }
-              item: string
-              ability: string
-              moves: string[]
-              teraType: TypeName
-            }[]
-          }
-        } = JSON.parse(line.slice(p.i + 1))
+        if (active?.volatiles.Transform?.complete === false) {
+          const req = toReq()
+          if (!req.active) break
+          const { member: from, volatiles } = active!
+          const { into } = volatiles["Transform"]!
 
-        if (transform?.complete === false) {
-          const { into } = transform
-          const { member: from } = this.ally.active!
-
-          const { moves, ability } = pokemon.find(
+          const { moves, ability } = req.side.pokemon.find(
             ({ ident }) => parseLabel(ident).species === from.species
           )!
 
@@ -281,7 +270,8 @@ export class Observer {
           }
 
           const { gender, species } = into
-          this.ally.active!.volatiles["Transform"] = {
+
+          active.volatiles["Transform"] = {
             complete: true,
             into,
             species,
@@ -290,9 +280,10 @@ export class Observer {
             boosts: { ...this.foe.active!.boosts },
             gender
           }
-        }
-
-        if (!this.name) {
+        } else if (!this.name) {
+          const {
+            side: { name, pokemon }
+          } = toReq()
           this.name = name
 
           const {
@@ -307,6 +298,7 @@ export class Observer {
             item,
             moves,
             ability,
+            active,
             teraType
           } of pokemon) {
             const { species } = parseLabel(ident)
@@ -315,7 +307,7 @@ export class Observer {
             const moveset: MoveSet = {}
             for (const move of moves) moveset[this.gen.moves.get(move)!.name] = 0
 
-            team[species] = {
+            const member: AllyMember = (team[species] = {
               pov: "ally",
               species,
               oneTime: {},
@@ -329,6 +321,10 @@ export class Observer {
               stats,
               hp: parseHp(condition)!,
               moveset
+            })
+
+            if (active) {
+              this.ally.active = { member, boosts: {}, volatiles: {} }
             }
           }
         }
@@ -405,6 +401,12 @@ export class Observer {
         }
 
         this[pov].active = { member: dest, volatiles, boosts: {} }
+        break
+      }
+      case "-mustrecharge": {
+        p = piped(line, p.i)
+        const { pov } = this.member(this.label(p.args[0]))
+        this.active(pov).volatiles["Recharge"] = { turn: 0 }
         break
       }
       case "-weather": {
@@ -760,13 +762,14 @@ export class Observer {
         }
 
         p = piped(line, p.i, -1)
-        const { from, of } = parseTags(p.args)
+        const { from, of, fatigue } = parseTags(p.args)
 
         const { ability, item } = parseEffect(from)
         const src = of ? this.member(this.label(of)) : dest
 
         if (ability) hasAbility(src, ability)
         if (item) hasItem(src, item)
+        if (fatigue !== undefined) delete volatiles["Locked Move"]
 
         break
       }
@@ -974,6 +977,8 @@ export class Observer {
 
           const { status } = member
           if (status?.turn !== undefined) status.turn++
+
+          if (volatiles["Recharge"]?.turn === 1) delete volatiles["Recharge"]
 
           for (const name in volatiles) {
             if (volatiles[name]?.turn !== undefined) volatiles[name].turn++

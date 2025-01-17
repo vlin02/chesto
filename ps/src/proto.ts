@@ -41,6 +41,27 @@ export const TERRAIN_NAMES = [
 ]
 export type TerrainName = (typeof TERRAIN_NAMES)[number]
 
+type RequestSide = {
+  name: string
+  pokemon: {
+    ident: string
+    details: string
+    condition: string
+    active: boolean
+    stats: { [k in StatId]: number }
+    item: string
+    ability: string
+    moves: string[]
+    teraType: TypeName
+  }[]
+}
+
+export type BattleRequest = { side: RequestSide } & {
+  active?: [{ moves: [{ move: string; disabled: boolean }] }]
+  forceswitch?: boolean[]
+  wait?: true
+}
+
 export type Gender = "M" | "F" | null
 
 export function piped(s: string, i: number, n = 1) {
