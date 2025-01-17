@@ -35,7 +35,7 @@ export type Volatiles = {
     move: string
   }
   "Transform"?: {
-    into: Member
+    into: User
   } & (
     | {
         copied: false
@@ -125,11 +125,11 @@ export type FoeUser = {
   tera: boolean
 }
 
-export type Member = AllyUser | FoeUser
+export type User = AllyUser | FoeUser
 
 export type DelayedAttack = {
   turn: number
-  user: Member
+  user: User
 }
 
 export type Boosts = {

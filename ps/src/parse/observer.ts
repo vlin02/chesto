@@ -12,31 +12,31 @@ import {
 } from "./protocol.js"
 import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
-import { POV, Ally, Foe, MoveSet, AllyUser, OPP, POVS, Member, FoeUser } from "./pov.js"
+import { POV, Ally, Foe, MoveSet, AllyUser, OPP, POVS, User, FoeUser } from "./pov.js"
 
-function clear(member: Member) {
-  member.volatiles = {}
-  member.boosts = {}
-  delete member.lastBerry
-  delete member.lastMove
+function clear(user: User) {
+  user.volatiles = {}
+  user.boosts = {}
+  delete user.lastBerry
+  delete user.lastMove
 }
 
-function setItem(memb: Member, item: string | null) {
-  memb.item = item
+function setItem(user: User, item: string | null) {
+  user.item = item
 
-  const { volatiles, pov } = memb
+  const { volatiles, pov } = user
   if (volatiles["Choice Locked"]) delete volatiles["Choice Locked"]
 
   if (pov === "foe" && item) {
-    const { initial } = memb
+    const { initial } = user
     initial.item = initial.item ?? item
   }
 }
 
-function setAbility(memb: Member, ability: string | null) {
-  memb.ability = ability
-  if (memb.pov === "foe" && ability) {
-    const { initial } = memb
+function setAbility(user: User, ability: string | null) {
+  user.ability = ability
+  if (user.pov === "foe" && ability) {
+    const { initial } = user
     initial.ability = initial.ability ?? ability
   }
 }
@@ -75,7 +75,7 @@ export class Observer {
     return this[pov].team[species]
   }
 
-  setItem(memb: Member, item: string | null) {
+  setItem(memb: User, item: string | null) {
     if (memb.volatiles["Choice Locked"]) {
       delete memb.volatiles["Choice Locked"]
     }
@@ -220,7 +220,7 @@ export class Observer {
         const traits = parseTraits(p.args[1])
         const hp = parseHp(p.args[2])!
 
-        let user: Member
+        let user: User
 
         if (pov === "ally") {
           user = this.member(label)
