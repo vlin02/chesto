@@ -30,6 +30,8 @@ export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
 }
 
 export function availableMoves(gen: Generation, obs: Observer): string[] {
+  const { active } = obs.ally
+
   let {
     volatiles: {
       "Transform": transform,
@@ -42,12 +44,13 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
       "Recharge": recharge,
       "Choice Locked": choiceLocked
     },
-    moveset,
     item,
     lastMove
-  } = obs.ally.active
+  } = active
 
-  if (transform) moveset = transform.moveset
+  const transformed = !!transform
+  const moveset = obs.moveset(active)
+
   if (recharge) return ["Recharge"]
 
   const available = []
@@ -59,7 +62,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
       flags: { heal, sound }
     } = gen.moves.get(name)!
 
-    if (moveset[name] >= Math.floor((noPPBoosts ? 1 : 1.6) * pp)) {
+    if (moveset[name] >= (transformed ? 5 : Math.floor((noPPBoosts ? 1 : 1.6) * pp))) {
       // console.log("pp")
       continue
     }

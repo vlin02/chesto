@@ -45,6 +45,11 @@ export class Observer {
     this.turn = 0
   }
 
+  moveset(user: User) {
+    const transform = user.volatiles["Transform"]
+    return transform ? transform.moveset : user.moveset
+  }
+
   label(s: string): Label {
     const { side, species } = parseLabel(s)
     return { pov: side === this.side ? "ally" : "foe", species }
@@ -345,7 +350,8 @@ export class Observer {
 
         const { pov } = user
 
-        const { volatiles, moveset, status } = user
+        const { volatiles, status } = user
+        const moveset = this.moveset(user)
 
         if (user.item && CHOICE_ITEMS.includes(user.item)) {
           volatiles["Choice Locked"] = { move }
