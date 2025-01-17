@@ -76,6 +76,12 @@ export type Volatiles = {
   "Doom Desire"?: DelayedAttack
 }
 
+type LastMove = {
+  name: string
+  missed?: boolean
+  failed?: boolean
+}
+
 export type AllyUser = {
   pov: "ally"
   species: string
@@ -91,7 +97,7 @@ export type AllyUser = {
   moveset: MoveSet
   teraType: TypeName
   flags: Flags
-  lastMove?: string
+  lastMove?: LastMove
   lastBerry?: {
     name: string
     turn: number
@@ -118,7 +124,7 @@ export type FoeUser = {
   status?: Status
   moveset: MoveSet
   flags: Flags
-  lastMove?: string
+  lastMove?: LastMove
   lastBerry?: {
     name: string
     turn: number

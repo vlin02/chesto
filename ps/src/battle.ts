@@ -55,9 +55,11 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
     const {
       pp,
       category,
+      noPPBoosts,
       flags: { heal, sound }
     } = gen.moves.get(name)!
-    if (moveset[name] >= Math.floor(pp * 1.6)) {
+
+    if (moveset[name] >= Math.floor((noPPBoosts ? 1 : 1.6) * pp)) {
       // console.log("pp")
       continue
     }
@@ -65,9 +67,11 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
     switch (name) {
       case "Stuff Cheeks": {
         if (!item?.endsWith("Berry")) continue
+        break
       }
-      case "Gigaton Hammer": {
-        if (lastMove === name) continue
+      case "Gigaton Hammer":
+      case "Blood Moon": {
+        if (lastMove?.name === name) continue
       }
     }
 

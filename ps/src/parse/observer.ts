@@ -69,10 +69,8 @@ export class Observer {
   }
 
   setItem(user: User, item: string | null) {
-    if (user.item === item) return
-
     const { volatiles } = user
-    if (volatiles["Choice Locked"]) delete volatiles["Choice Locked"]
+    if (item === null) delete volatiles["Choice Locked"]
 
     user.item = item
     if (user.pov === "foe" && item) {
@@ -164,15 +162,13 @@ export class Observer {
           } = user
 
           if (ability === "Illusion" && !revealed) {
-            const to =
-              this.ally.team[
-                this.label(
-                  [...pokemons].reverse().find((x) => parseHp(x.condition) !== null && !x.active)!
-                    .ident
-                ).species
-              ]
-
-            this.illusion = { from: user, to }
+            const target = [...pokemons]
+              .reverse()
+              .find((x) => parseHp(x.condition) !== null && !x.active)
+            if (target) {
+              const to = this.ally.team[this.label(target.ident).species]
+              this.illusion = { from: user, to }
+            }
           } else {
             delete this.illusion
           }
@@ -361,7 +357,7 @@ export class Observer {
           p = piped(line, p.i, -1)
           const { from, notarget, miss } = parseTags(p.args)
 
-          user.lastMove = move
+          user.lastMove = { name: move }
 
           for (const name in volatiles) {
             if (volatiles[name].singleMove) delete volatiles[name]
@@ -378,9 +374,10 @@ export class Observer {
 
           if (miss === undefined) {
             switch (move) {
+              case "Petal Dance":
               case "Outrage": {
                 if (from !== "lockedmove" && notarget === undefined) {
-                  volatiles["Locked Move"] = { turn: 0, move: "Outrage" }
+                  volatiles["Locked Move"] = { turn: 0, move }
                 }
                 if (from === "lockedmove") deductPP = false
                 break
@@ -390,6 +387,7 @@ export class Observer {
               }
             }
           } else {
+            user.lastMove.missed = true
             if (volatiles["Locked Move"]) delete volatiles["Locked Move"]
           }
         }
@@ -397,6 +395,12 @@ export class Observer {
         if (deductPP)
           moveset[move] = (moveset[move] ?? 0) + (target?.ability === "Pressure" ? 2 : 1)
 
+        break
+      }
+      case "cant": {
+        p = piped(line, p.i, 2)
+        const { lastMove } = this.member(this.label(p.args[0]))
+        if (lastMove) lastMove.failed = true
         break
       }
       case "-heal":
@@ -492,15 +496,17 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const item = p.args[1]
 
-        this.setItem(user, item)
-
         p = piped(line, p.i, -1)
         const { from, of, identify } = parseTags(p.args)
         const { ability } = parseEffect(from)
 
+        // treat as replacing existing item, important for choice items
+        if (identify === undefined) this.setItem(user, null)
+        this.setItem(user, item)
+
         const src = of ? this.member(this.label(of)) : undefined
 
-        if (identify) {
+        if (identify !== undefined) {
           this.setAbility(src!, ability!)
           break
         }
@@ -640,7 +646,7 @@ export class Observer {
             case "Encore": {
               volatiles[name] = {
                 turn: 0,
-                move: user.lastMove!
+                move: user.lastMove!.name
               }
               break
             }
@@ -702,6 +708,7 @@ export class Observer {
         p = piped(line, p.i, 2)
         const user = this.member(this.label(p.args[0]))
         const { pov } = user
+        const opp = OPP[pov]
 
         let { ability, item, move, stripped } = parseEffect(p.args[1])
 
@@ -726,6 +733,10 @@ export class Observer {
             case "Infestation":
             case "Whirlpool": {
               user.volatiles["Partially Trapped"] = { turn: 0 }
+              break
+            }
+            case "Protect": {
+              this[opp].active.lastMove!.failed = true
               break
             }
           }
@@ -876,7 +887,7 @@ export class Observer {
           const { fields: conditions } = side
 
           const {
-            active: { lastBerry, volatiles, status }
+            active: { lastBerry, lastMove, volatiles, status }
           } = side
 
           if (lastBerry) lastBerry.turn++
@@ -888,6 +899,8 @@ export class Observer {
           for (const name in volatiles) {
             if (volatiles[name]?.turn !== undefined) volatiles[name].turn++
             if (volatiles[name].singleTurn) delete volatiles[name]
+
+            if (name === "Locked Move" && lastMove?.failed) delete volatiles[name]
           }
 
           for (const name in conditions) {
