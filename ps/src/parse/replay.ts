@@ -1,6 +1,6 @@
 import { ID, PRNGSeed, toID } from "@pkmn/sim"
-import { AnyBattle } from "./version.js"
-import { Side } from "./parse/protocol.js"
+import { AnyBattle } from "../version.js"
+import { FOE, piped, Side, SIDES } from "./protocol.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 
@@ -17,7 +17,7 @@ type Header = {
 export function seekToStart(lines: string[], i: number) {
   let mark = { start: false, p1: false, p2: false }
   let header: any = { seed: {} }
-  
+
   for (; i < lines.length; i++) {
     const line = lines[i]
     let j = line.indexOf(" ")
@@ -61,7 +61,7 @@ export function apply(battle: AnyBattle, input: string) {
       battle.choose(type, input.slice(j + 1))
       break
     case "forcelose":
-      const side = input.slice(j + 1) as Side
+      const side = FOE[input.slice(j + 1) as Side]
       battle.win(side)
       break
     case "forcetie":
@@ -72,4 +72,55 @@ export function apply(battle: AnyBattle, input: string) {
     default:
       throw Error(type)
   }
+}
+
+export function split(log: Log) {
+  let p
+
+  const chs: { p1: string[]; p2: string[] } = { p1: [], p2: [] }
+
+  const [type] = log
+
+  switch (type) {
+    case "update": {
+      const [, lines] = log
+
+      let i = 0
+      while (i < lines.length) {
+        const line = lines[i]
+
+        p = piped(line, 0)
+
+        if (p.args[0] === "split") {
+          p = piped(line, p.i)
+          const side = p.args[0] as Side
+
+          chs[side].push(lines[i + 1])
+          chs[FOE[side]].push(lines[i + 2])
+
+          i += 3
+        } else {
+          for (const side of SIDES) chs[side].push(line)
+          i += 1
+        }
+      }
+      break
+    }
+    case "sideupdate": {
+      const [, line] = log
+      const side = line.slice(0, 2) as Side
+      const msg = line.slice(3)
+
+      chs[side].push(msg)
+      break
+    }
+    case "end": {
+      const [, line] = log
+      const msg = `|end|${line}`
+      for (const side of SIDES) chs[side].push(msg)
+      break
+    }
+  }
+
+  return chs
 }

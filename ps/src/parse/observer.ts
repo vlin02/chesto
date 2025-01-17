@@ -53,7 +53,7 @@ export class Observer {
   member({ pov, species }: Label) {
     const { illusion } = this
     const user = this[pov].team[species]
-    
+
     if (illusion?.to === user) return illusion.from
     return user
   }
@@ -526,10 +526,10 @@ export class Observer {
       }
       case "-transform": {
         p = piped(line, p.i, 2)
-        const from = this.member(this.label(p.args[0]))
+        const user = this.member(this.label(p.args[0]))
         const into = this.member(this.label(p.args[1]))
 
-        const { pov, species, volatiles } = from
+        const { pov, volatiles } = user
 
         let ability
         let moves
@@ -539,15 +539,23 @@ export class Observer {
             side: { pokemon }
           } = this.request
 
-          const pkmn = pokemon.find((x) => this.label(x.ident).species === species)!
+          const pkmn = pokemon.find((x) => this.label(x.ident).species === user.species)!
           ability = pkmn.ability
           moves = pkmn.moves
+
+          {
+            const { moveset } = into
+
+            into.ability = ability
+            for (const move of moves) moveset[move] = moveset[move] ?? 0
+          }
         } else {
-          ability = (into as AllyUser).ability
-          moves = Object.keys((into as AllyUser).moveset)
+          const user = into as AllyUser
+          ability = user.ability
+          moves = Object.keys(user.moveset)
         }
 
-        const { gender, boosts } = into
+        const { species, gender, boosts } = into
 
         volatiles["Transform"] = {
           into,
@@ -556,6 +564,13 @@ export class Observer {
           moveset: Object.fromEntries(moves.map((x) => [x, 0])),
           ability,
           boosts: { ...boosts }
+        }
+
+        {
+          p = piped(line, p.i, -1)
+          const { from } = parseTags(p.args)
+          const { ability } = parseEffect(from)
+          if (ability) this.setAbility(user, ability)
         }
 
         break
