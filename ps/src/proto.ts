@@ -56,6 +56,8 @@ type RequestSide = {
   }[]
 }
 
+export const CHOICE_ITEMS = ["Choice Band", "Choice Specs", "Choice Scarf"]
+
 export type BattleRequest = { side: RequestSide } & {
   active?: [{ moves: [{ move: string; disabled: boolean }] }]
   forceswitch?: boolean[]

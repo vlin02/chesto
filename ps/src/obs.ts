@@ -2,6 +2,7 @@ import { Generation, TypeName } from "@pkmn/data"
 import {
   BattleRequest,
   BoostId,
+  CHOICE_ITEMS as CHOICE_ITEMS,
   Gender,
   parseEffect,
   parseHp,
@@ -111,9 +112,12 @@ export type Volatiles = {
         species: string
       }
   )
-  "Locked Move"?: {
-    turn: number
+  "Choice Locked"?: {
     move: string
+  }
+  "Locked Move"?: {
+    move: string
+    turn: number
   }
   "Protosynthesis"?: {
     statId: StatId
@@ -178,7 +182,7 @@ function isHazard(name: string) {
   return name in HAZARDS
 }
 
-function hasItem(memb: Member, item: string | null) {
+function setItem(memb: Member, item: string | null) {
   memb.item = item
   if (memb.pov === "foe" && item) {
     const { initial } = memb
@@ -186,7 +190,7 @@ function hasItem(memb: Member, item: string | null) {
   }
 }
 
-function hasAbility(memb: Member, ability: string | null) {
+function setAbility(memb: Member, ability: string | null) {
   memb.ability = ability
   if (memb.pov === "foe" && ability) {
     const { initial } = memb
@@ -233,6 +237,19 @@ export class Observer {
 
   member({ pov, species }: Label) {
     return this[pov].team[species]
+  }
+
+  updateItem(memb: Member, item: string | null) {
+    const { pov } = memb
+    const { active } = this[pov]
+
+    if (active!.member === memb && ) 
+
+    memb.item = item
+    if (memb.pov === "foe" && item) {
+      const { initial } = memb
+      initial.item = initial.item ?? item
+    }
   }
 
   read(line: string) {
@@ -342,8 +359,8 @@ export class Observer {
           const { ability: prev } = parseEffect(from)
 
           if (prev === "Trace") {
-            hasAbility(dest, prev)
-            hasAbility(this.member(this.label(of)), ability)
+            setAbility(dest, prev)
+            setAbility(this.member(this.label(of)), ability)
           }
         }
 
@@ -351,7 +368,7 @@ export class Observer {
           dest.oneTime[ability] = true
         }
 
-        hasAbility(dest, ability)
+        setAbility(dest, ability)
         break
       }
       case "switch":
@@ -428,7 +445,7 @@ export class Observer {
         }
 
         this.weather = { name, turn: 0 }
-        if (ability) hasAbility(this.member(this.label(of)), ability)
+        if (ability) setAbility(this.member(this.label(of)), ability)
 
         break
       }
@@ -442,7 +459,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { ability } = parseEffect(from)
-        if (ability) hasAbility(this.member(this.label(of)), ability)
+        if (ability) setAbility(this.member(this.label(of)), ability)
         break
       }
       case "-fieldend": {
@@ -471,8 +488,8 @@ export class Observer {
           const src = of ? this.member(this.label(of)) : dest
           const { ability, item } = parseEffect(from)
 
-          if (item) hasItem(src, item)
-          if (ability) hasAbility(src, ability)
+          if (item) setItem(src, item)
+          if (ability) setAbility(src, ability)
         }
         break
       }
@@ -486,14 +503,14 @@ export class Observer {
         const { from } = parseTags(p.args)
 
         const { ability } = parseEffect(from)
-        if (ability) hasAbility(target, ability)
+        if (ability) setAbility(target, ability)
 
         break
       }
       case "move": {
         p = piped(line, p.i, 3)
         const dest = this.member(this.label(p.args[0]))
-        const { pov } = dest
+        const { pov, item } = dest
 
         const move = p.args[1]
         const opp = this[OPP[pov]]
@@ -501,6 +518,9 @@ export class Observer {
         const { volatiles } = this.active(pov)
         const { moveset, status } = dest
 
+        if (item && CHOICE_ITEMS.includes(item)) volatiles["Choice Locked"] = { move }
+
+        let reducePP = true
         {
           p = piped(line, p.i, -1)
           const { from, notarget, miss } = parseTags(p.args)
@@ -514,7 +534,7 @@ export class Observer {
           if (status?.move) status.move++
 
           const { ability } = parseEffect(from)
-          if (ability) hasAbility(dest, ability)
+          if (ability) setAbility(dest, ability)
 
           if (miss === undefined) {
             switch (move) {
@@ -522,6 +542,7 @@ export class Observer {
                 if (from !== "lockedmove" && notarget === undefined) {
                   volatiles["Locked Move"] = { turn: 0, move: "Outrage" }
                 }
+                if (from === "lockedmove") reducePP = false
                 break
               }
               case "Wish": {
@@ -533,7 +554,8 @@ export class Observer {
           }
         }
 
-        moveset[move] = (moveset[move] ?? 0) + (opp.active!.member.ability === "Pressure" ? 2 : 1)
+        if (reducePP)
+          moveset[move] = (moveset[move] ?? 0) + (opp.active!.member.ability === "Pressure" ? 2 : 1)
         break
       }
       case "-heal":
@@ -548,10 +570,10 @@ export class Observer {
         const { from } = parseTags(p.args)
 
         const { ability, item } = parseEffect(from)
-        if (ability) hasAbility(dest, ability)
+        if (ability) setAbility(dest, ability)
 
         // berries already include an -enditem
-        if (item === "Leftovers") hasItem(dest, item)
+        if (item === "Leftovers") setItem(dest, item)
 
         break
       }
@@ -572,8 +594,8 @@ export class Observer {
           const { item, ability } = parseEffect(from)
           const src = of ? this.member(this.label(of)) : dest
 
-          if (ability) hasAbility(src, ability)
-          if (item) hasItem(src, item)
+          if (ability) setAbility(src, ability)
+          if (item) setItem(src, item)
         }
 
         break
@@ -597,8 +619,8 @@ export class Observer {
 
         // boosts from item consume it
         if (item) {
-          hasItem(dest, item)
-          hasItem(dest, null)
+          setItem(dest, item)
+          setItem(dest, null)
         }
 
         break
@@ -632,7 +654,7 @@ export class Observer {
         const dest = this.member(this.label(p.args[0]))
         const item = p.args[1]
 
-        hasItem(dest, item)
+        setItem(dest, item)
 
         p = piped(line, p.i, -1)
         const { from, of, identify } = parseTags(p.args)
@@ -641,16 +663,16 @@ export class Observer {
         const src = of ? this.member(this.label(of)) : undefined
 
         if (identify) {
-          hasAbility(src!, ability!)
+          setAbility(src!, ability!)
           break
         }
 
-        if (ability) hasAbility(dest, ability)
+        if (ability) setAbility(dest, ability)
 
         // magician doesnt emit an -enditem
         if (ability === "Magician") {
-          hasItem(src!, item)
-          hasItem(src!, null)
+          setItem(src!, item)
+          setItem(src!, null)
         }
         break
       }
@@ -660,8 +682,8 @@ export class Observer {
         const { pov } = dest
         const item = p.args[1]
 
-        hasItem(dest, item)
-        hasItem(dest, null)
+        setItem(dest, item)
+        setItem(dest, null)
 
         p = piped(line, p.i, -1)
         const { eat } = parseTags(p.args)
@@ -767,8 +789,8 @@ export class Observer {
         const { ability, item } = parseEffect(from)
         const src = of ? this.member(this.label(of)) : dest
 
-        if (ability) hasAbility(src, ability)
-        if (item) hasItem(src, item)
+        if (ability) setAbility(src, ability)
+        if (item) setItem(src, item)
         if (fatigue !== undefined) delete volatiles["Locked Move"]
 
         break
@@ -793,7 +815,7 @@ export class Observer {
         const { from } = parseTags(p.args)
         const { ability } = parseEffect(from)
 
-        if (ability) hasAbility(dest, ability)
+        if (ability) setAbility(dest, ability)
 
         break
       }
@@ -826,7 +848,7 @@ export class Observer {
           switch (move) {
             case "Poltergeist": {
               p = piped(line, p.i)
-              hasItem(dest, p.args[0])
+              setItem(dest, p.args[0])
               break
             }
             case "Magma Storm":
@@ -841,7 +863,7 @@ export class Observer {
             dest.oneTime[ability] = true
           }
 
-          hasAbility(dest, ability)
+          setAbility(dest, ability)
         } else {
           stripped = { trapped: "Trapped" }[stripped] ?? stripped
 
