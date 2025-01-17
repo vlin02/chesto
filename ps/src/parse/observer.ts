@@ -21,18 +21,6 @@ function clear(user: User) {
   delete user.lastMove
 }
 
-function setItem(user: User, item: string | null) {
-  user.item = item
-
-  const { volatiles, pov } = user
-  if (volatiles["Choice Locked"]) delete volatiles["Choice Locked"]
-
-  if (pov === "foe" && item) {
-    const { initial } = user
-    initial.item = initial.item ?? item
-  }
-}
-
 function setAbility(user: User, ability: string | null) {
   user.ability = ability
   if (user.pov === "foe" && ability) {
@@ -328,7 +316,7 @@ export class Observer {
           const src = of ? this.member(this.label(of)) : user
           const { ability, item } = parseEffect(from)
 
-          if (item) setItem(src, item)
+          if (item) this.setItem(src, item)
           if (ability) setAbility(src, ability)
         }
         break
@@ -415,7 +403,7 @@ export class Observer {
         if (ability) setAbility(user, ability)
 
         // berries already include an -enditem
-        if (item === "Leftovers") setItem(user, item)
+        if (item === "Leftovers") this.setItem(user, item)
 
         break
       }
@@ -437,7 +425,7 @@ export class Observer {
           const target = of ? this.member(this.label(of)) : user
 
           if (ability) setAbility(target, ability)
-          if (item) setItem(target, item)
+          if (item) this.setItem(target, item)
         }
 
         break
@@ -460,8 +448,8 @@ export class Observer {
 
         // boosts from item consume it
         if (item) {
-          setItem(user, item)
-          setItem(user, null)
+          this.setItem(user, item)
+          this.setItem(user, null)
         }
 
         break
@@ -494,7 +482,7 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const item = p.args[1]
 
-        setItem(user, item)
+        this.setItem(user, item)
 
         p = piped(line, p.i, -1)
         const { from, of, identify } = parseTags(p.args)
@@ -511,8 +499,8 @@ export class Observer {
 
         // magician doesnt emit an -enditem
         if (ability === "Magician") {
-          setItem(src!, item)
-          setItem(src!, null)
+          this.setItem(src!, item)
+          this.setItem(src!, null)
         }
         break
       }
@@ -521,8 +509,8 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const item = p.args[1]
 
-        setItem(user, item)
-        setItem(user, null)
+        this.setItem(user, item)
+        this.setItem(user, null)
 
         p = piped(line, p.i, -1)
         const { eat } = parseTags(p.args)
@@ -627,7 +615,7 @@ export class Observer {
         const src = of ? this.member(this.label(of)) : user
 
         if (ability) setAbility(src, ability)
-        if (item) setItem(src, item)
+        if (item) this.setItem(src, item)
         if (fatigue !== undefined) delete volatiles["Locked Move"]
 
         break
@@ -682,7 +670,7 @@ export class Observer {
           switch (move) {
             case "Poltergeist": {
               p = piped(line, p.i)
-              setItem(user, p.args[0])
+              this.setItem(user, p.args[0])
               break
             }
             case "Magma Storm":
@@ -857,7 +845,7 @@ export class Observer {
 
           if (side.wish) {
             if (side.wish === 0) side.wish++
-            delete side.wish
+            else delete side.wish
           }
         }
 
