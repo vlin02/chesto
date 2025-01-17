@@ -31,6 +31,12 @@ export class Observer {
   name!: string
   ally!: Ally
   foe!: Foe
+  request!: ChoiceRequest
+
+  illusionAlias?: {
+    from: string
+    to: string
+  }
 
   ready: boolean
   private gen: Generation
@@ -52,10 +58,13 @@ export class Observer {
   }
 
   member({ pov, species }: Label) {
+    if (pov === "ally" && species === this.illusionAlias?.from)
+      return this[pov].team[this.illusionAlias.to]
+
     return this[pov].team[species]
   }
 
-  setAbility(user: User, ability: string | null) {
+  setAbility(user: User, ability: string) {
     user.ability = ability
     if (user.pov === "foe" && ability) {
       const { initial } = user
@@ -84,11 +93,11 @@ export class Observer {
 
     switch (msgType) {
       case "request": {
-        const request = JSON.parse(line.slice(p.i + 1)) as ChoiceRequest
+        this.request = JSON.parse(line.slice(p.i + 1))
 
         const {
           side: { id, name, pokemon: pokemons }
-        } = request
+        } = this.request
 
         if (!this.ready) {
           this.side = id
@@ -137,38 +146,6 @@ export class Observer {
           }
 
           this.ally = { team, fields: {}, active: active! }
-        }
-
-        const { active } = this.ally
-        const { volatiles } = active
-
-        if (volatiles["Transform"]?.copied === false) {
-          const { into } = volatiles["Transform"]
-
-          const { moves, ability } = pokemons.find(
-            ({ ident }) => parseLabel(ident).species === active.species
-          )!
-
-          this.setAbility(into, ability)
-
-          const moveset: MoveSet = {}
-          for (const move of moves) {
-            const { name } = this.gen.moves.get(move)!
-            into.moveset[name] = into.moveset[name] ?? 0
-            moveset[name] = 0
-          }
-
-          const { gender, species } = into
-
-          volatiles["Transform"] = {
-            copied: true,
-            into,
-            species,
-            gender,
-            moveset,
-            ability,
-            boosts: { ...this.foe.active!.boosts }
-          }
         }
 
         break
@@ -529,9 +506,33 @@ export class Observer {
         const from = this.member(this.label(p.args[0]))
         const into = this.member(this.label(p.args[1]))
 
-        from.volatiles["Transform"] = {
+        const { pov, species, volatiles } = from
+
+        let ability
+        let moves
+
+        if (pov === "ally") {
+          const {
+            side: { pokemon }
+          } = this.request
+
+          const pkmn = pokemon.find((x) => this.label(x.ident).species === species)!
+          ability = pkmn.ability
+          moves = pkmn.moves
+        } else {
+          ability = (into as AllyUser).ability
+          moves = Object.keys((into as AllyUser).moveset)
+        }
+
+        const { gender, boosts } = into
+
+        volatiles["Transform"] = {
           into,
-          copied: false
+          species,
+          gender,
+          moveset: Object.fromEntries(moves.map((x) => [x, 0])),
+          ability,
+          boosts: { ...boosts }
         }
 
         break

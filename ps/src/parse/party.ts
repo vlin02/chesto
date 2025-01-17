@@ -45,19 +45,12 @@ export type Volatiles = {
   }
   "Transform"?: {
     into: User
-  } & (
-    | {
-        copied: false
-      }
-    | {
-        copied: true
-        ability: string
-        moveset: MoveSet
-        boosts: Boosts
-        gender: Gender
-        species: string
-      }
-  )
+    ability: string | null
+    moveset: MoveSet
+    boosts: Boosts
+    gender: Gender
+    species: string
+  }
   "Choice Locked"?: {
     move: string
   }
@@ -90,7 +83,7 @@ export type AllyUser = {
   forme: string
   gender: Gender
   hp: [number, number]
-  ability: string | null
+  ability: string
   item: string | null
   stats: { [k in StatId]: number }
   status?: Status
@@ -114,7 +107,7 @@ export type FoeUser = {
   forme: string
   gender: Gender
   hp: [number, number]
-  ability?: string | null
+  ability?: string
   item?: string | null
   initial: {
     formeId: string
