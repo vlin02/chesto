@@ -100,5 +100,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
     available.push(name)
   }
 
+  if (!available.length) return ['Struggle']
+
   return available
 }
