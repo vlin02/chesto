@@ -14,13 +14,6 @@ import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
 import { POV, MoveSet, AllyUser, OPP, POVS, User, FoeUser, Ally, Foe } from "./party.js"
 
-function onActive(user: User) {
-  user.volatiles = {}
-  user.boosts = {}
-  delete user.lastBerry
-  delete user.lastMove
-}
-
 type Label = {
   species: string
   pov: POV
@@ -33,9 +26,9 @@ export class Observer {
   foe!: Foe
   request!: ChoiceRequest
 
-  illusionAlias?: {
-    from: string
-    to: string
+  illusion?: {
+    from: AllyUser
+    to: AllyUser
   }
 
   ready: boolean
@@ -58,10 +51,11 @@ export class Observer {
   }
 
   member({ pov, species }: Label) {
-    if (pov === "ally" && species === this.illusionAlias?.from)
-      return this[pov].team[this.illusionAlias.to]
+    const { illusion } = this
+    const user = this[pov].team[species]
 
-    return this[pov].team[species]
+    if (illusion?.to === user) return illusion.from
+    return user
   }
 
   setAbility(user: User, ability: string) {
@@ -72,16 +66,22 @@ export class Observer {
     }
   }
 
-  setItem(memb: User, item: string | null) {
-    if (memb.volatiles["Choice Locked"]) {
-      delete memb.volatiles["Choice Locked"]
-    }
+  setItem(user: User, item: string | null) {
+    const { volatiles } = user
+    if (volatiles["Choice Locked"]) delete volatiles["Choice Locked"]
 
-    memb.item = item
-    if (memb.pov === "foe" && item) {
-      const { initial } = memb
+    user.item = item
+    if (user.pov === "foe" && item) {
+      const { initial } = user
       initial.item = initial.item ?? item
     }
+  }
+
+  clear(user: User) {
+    user.volatiles = {}
+    user.boosts = {}
+    delete user.lastBerry
+    delete user.lastMove
   }
 
   read(line: string) {
@@ -126,7 +126,7 @@ export class Observer {
             const member = (team[species] = {
               pov: "ally",
               species,
-              once: {},
+              flags: {},
               forme,
               gender,
               lvl,
@@ -146,6 +146,30 @@ export class Observer {
           }
 
           this.ally = { team, fields: {}, active: active! }
+          this.ready = true
+        }
+
+        const active = pokemons.find((x) => x.active)!
+
+        {
+          const { species } = this.label(active.ident)
+          const user = this.ally.team[species]
+          const {
+            ability,
+            flags: { "Illusion revealed": revealed }
+          } = user
+
+          if (ability === "Illusion" && !revealed) {
+            const to = this.member(
+              this.label(
+                [...pokemons].reverse().find((x) => parseHp(x.condition) !== null && x !== active)!
+                  .ident
+              )
+            ) as AllyUser
+            this.illusion = { from: user, to }
+          } else {
+            delete this.illusion
+          }
         }
 
         break
@@ -167,7 +191,7 @@ export class Observer {
         }
 
         if (ability === "Intrepid Sword") {
-          user.once[ability] = true
+          user.flags[ability] = true
         }
 
         this.setAbility(user, ability)
@@ -177,7 +201,6 @@ export class Observer {
       case "drag": {
         p = piped(line, p.i, 3)
         let label = this.label(p.args[0])
-
         const { pov, species } = label
 
         const traits = parseTraits(p.args[1])
@@ -194,7 +217,7 @@ export class Observer {
 
           user = team[species] = team[species] ?? {
             pov: "foe",
-            once: {},
+            flags: {},
             species,
             forme,
             lvl,
@@ -214,7 +237,7 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
-        onActive(user)
+        this.clear(user)
         const { status } = user
         if (status?.id === "tox") status.turn! = 0
 
@@ -683,7 +706,7 @@ export class Observer {
           }
         } else if (ability) {
           if (ability === "Battle Bond") {
-            user.once[ability] = true
+            user.flags[ability] = true
           }
 
           this.setAbility(user, ability)
@@ -710,9 +733,11 @@ export class Observer {
         const { forme, lvl, gender } = parseTraits(p.args[1])
 
         const src = this[pov]
-        const { team, active } = src
+        const { team } = src
 
         if (pov === "foe") {
+          const active = src.active as FoeUser
+
           {
             const {
               species,
@@ -720,11 +745,11 @@ export class Observer {
               lvl,
               gender,
               initial: { formeId }
-            } = active as FoeUser
+            } = active
 
             team[species] = {
               pov: "foe",
-              once: {},
+              flags: {},
               species,
               forme,
               lvl,
@@ -744,7 +769,9 @@ export class Observer {
           active.forme = forme
           active.lvl = lvl
           active.gender = gender
-          ;(active as FoeUser).initial.formeId = this.gen.species.get(forme)!.id
+          active.initial.formeId = this.gen.species.get(forme)!.id
+        } else {
+          delete this.illusion
         }
 
         break

@@ -20,9 +20,10 @@ export type Boosts = {
   [k in BoostId]?: number
 }
 
-export type OneTime = {
+export type Flags = {
   "Battle Bond"?: boolean
   "Intrepid Sword"?: boolean
+  "Illusion revealed"?: boolean
 }
 
 export type DelayedAttack = {
@@ -89,7 +90,7 @@ export type AllyUser = {
   status?: Status
   moveset: MoveSet
   teraType: TypeName
-  once: OneTime
+  flags: Flags
   lastMove?: string
   lastBerry?: {
     name: string
@@ -116,7 +117,7 @@ export type FoeUser = {
   }
   status?: Status
   moveset: MoveSet
-  once: OneTime
+  flags: Flags
   lastMove?: string
   lastBerry?: {
     name: string
