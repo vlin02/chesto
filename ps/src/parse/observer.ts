@@ -53,7 +53,7 @@ export class Observer {
   member({ pov, species }: Label) {
     const { illusion } = this
     const user = this[pov].team[species]
-
+    
     if (illusion?.to === user) return illusion.from
     return user
   }
@@ -770,6 +770,7 @@ export class Observer {
           active.lvl = lvl
           active.gender = gender
           active.initial.formeId = this.gen.species.get(forme)!.id
+          team[species] = active
         } else {
           delete this.illusion
         }
@@ -814,7 +815,7 @@ export class Observer {
 
         break
       }
-      case "-siuserart": {
+      case "-sidestart": {
         p = piped(line, p.i, 2)
         const { pov } = this.label(p.args[0])
         const { stripped: name } = parseEffect(p.args[1])
@@ -837,10 +838,7 @@ export class Observer {
       }
       case "upkeep": {
         const { fields } = this
-
-        for (const name in fields) {
-          fields[name]++
-        }
+        for (const name in fields) fields[name]++
 
         break
       }
