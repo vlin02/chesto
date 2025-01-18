@@ -78,6 +78,7 @@ export type Volatiles = {
 
 type LastMove = {
   name: string
+  tookDamage?: boolean
   missed?: boolean
   failed?: boolean
 }

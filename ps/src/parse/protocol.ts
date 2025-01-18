@@ -23,7 +23,7 @@ export type ChoiceRequest = {
     }[]
   }
 } & {
-  active?: [{ moves: [{ move: string; disabled: boolean }] }]
+  active?: [{ moves: [{ move: string; disabled: boolean }], trapped?: boolean }]
   forceswitch?: boolean[]
   wait?: true
 }

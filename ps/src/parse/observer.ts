@@ -1,4 +1,4 @@
-import { Generation } from "@pkmn/data"
+import { Generation, Move } from "@pkmn/data"
 import {
   ChoiceRequest,
   parseEffect,
@@ -17,6 +17,21 @@ import { POV, MoveSet, AllyUser, OPP, POVS, User, FoeUser, Ally, Foe } from "./p
 type Label = {
   species: string
   pov: POV
+}
+
+function isPressureMove({ target, flags: { mustpressure } }: Move) {
+  return (
+    [
+      "adjacentFoe",
+      "all",
+      "allAdjacent",
+      "allAdjacentFoes",
+      "any",
+      "normal",
+      "randomNormal",
+      "scripted"
+    ].includes(target) || mustpressure
+  )
 }
 
 export class Observer {
@@ -103,6 +118,7 @@ export class Observer {
         this.request = JSON.parse(line.slice(p.i + 1))
 
         const {
+          active,
           side: { id, name, pokemon: pokemons }
         } = this.request
 
@@ -113,7 +129,7 @@ export class Observer {
           const team: { [k: string]: AllyUser } = {}
           let active: AllyUser
 
-          for (const {
+          for (let {
             ident,
             details,
             condition,
@@ -126,6 +142,11 @@ export class Observer {
           } of pokemons) {
             const { species } = parseLabel(ident)
             const { gender, lvl, forme } = parseTraits(details)
+
+            if (species === "Ditto") {
+              moves = ["Transform"]
+              ability = "Imposter"
+            }
 
             const moveset: MoveSet = {}
             for (const move of moves) moveset[this.gen.moves.get(move)!.name] = 0
@@ -156,29 +177,18 @@ export class Observer {
           this.ready = true
         }
 
-        const active = pokemons.find((x) => x.active)!
-
         {
-          const { species } = this.label(active.ident)
-          const user = this.ally.team[species]
-          const {
-            ability,
-            flags: { "Illusion revealed": revealed }
-          } = user
-
-          if (ability === "Illusion" && !revealed) {
-            const target = [...pokemons]
-              .reverse()
-              .find((x) => parseHp(x.condition) !== null && !x.active)
-            if (target) {
-              const to = this.ally.team[this.label(target.ident).species]
-              this.illusion = { from: user, to }
-            }
-          } else {
-            delete this.illusion
+          if (
+            active &&
+            this.ally.active.volatiles["Locked Move"] &&
+            !(
+              active[0].moves.length === 1 &&
+              active[0].moves[0].move === this.ally.active.volatiles["Locked Move"].move
+            )
+          ) {
+            delete this.ally.active.volatiles["Locked Move"]
           }
         }
-
         break
       }
       case "-ability": {
@@ -206,6 +216,28 @@ export class Observer {
       }
       case "switch":
       case "drag": {
+        {
+          const active = this.request.side.pokemon.find((x) => x.active)!
+          const { species } = this.label(active.ident)
+          const user = this.ally.team[species]
+          const {
+            ability,
+            flags: { "Illusion revealed": revealed }
+          } = user
+
+          if (ability === "Illusion" && !revealed) {
+            const target = [...this.request.side.pokemon]
+              .reverse()
+              .find((x) => parseHp(x.condition) !== null && !x.active)
+            if (target) {
+              const to = this.ally.team[this.label(target.ident).species]
+              this.illusion = { from: user, to }
+            }
+          } else {
+            delete this.illusion
+          }
+        }
+
         p = piped(line, p.i, 3)
         let label = this.label(p.args[0])
         const { pov, species } = label
@@ -346,16 +378,12 @@ export class Observer {
         p = piped(line, p.i, 3)
         const user = this.member(this.label(p.args[0]))
         const move = p.args[1]
-        const target = p.args[2] ? this.member(this.label(p.args[2])) : null
+        const target = this.foe.active
 
         const { pov } = user
 
         const { volatiles, status } = user
         const moveset = this.moveset(user)
-
-        if (user.item && CHOICE_ITEMS.includes(user.item)) {
-          volatiles["Choice Locked"] = { move }
-        }
 
         let deductPP = true
 
@@ -371,11 +399,15 @@ export class Observer {
 
           if (status?.move) status.move++
 
-          const { ability } = parseEffect(from)
-          if (ability) {
-            this.setAbility(user, ability)
+          const effect = parseEffect(from)
 
-            if (ability === "Magic Bounce") deductPP = false
+          if (effect.move) {
+            deductPP = false
+          }
+
+          if (effect.ability) {
+            this.setAbility(user, effect.ability)
+            deductPP = false
           }
 
           if (miss === undefined) {
@@ -398,8 +430,13 @@ export class Observer {
           }
         }
 
+        if (!volatiles["Choice Locked"] && user.item && CHOICE_ITEMS.includes(user.item)) {
+          volatiles["Choice Locked"] = { move }
+        }
         if (deductPP)
-          moveset[move] = (moveset[move] ?? 0) + (target?.ability === "Pressure" ? 2 : 1)
+          moveset[move] =
+            (moveset[move] ?? 0) +
+            (target?.ability === "Pressure" && isPressureMove(this.gen.moves.get(move)!) ? 2 : 1)
 
         break
       }
@@ -425,6 +462,14 @@ export class Observer {
         // berries already include an -enditem
         if (item === "Leftovers") this.setItem(user, item)
 
+        break
+      }
+      case "-immune": {
+        p = piped(line, p.i)
+        const { pov } = this.member(this.label(p.args[0]))
+        const { active } = this[OPP[pov]]
+
+        if (active.lastMove) active.lastMove.failed = true
         break
       }
       case "-damage": {
@@ -555,7 +600,6 @@ export class Observer {
 
         let ability
         let moves
-
         if (pov === "ally") {
           const {
             side: { pokemon }

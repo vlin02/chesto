@@ -54,64 +54,63 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
   if (recharge) return ["Recharge"]
 
   const available = []
-  for (const name in moveset) {
-    const {
-      pp,
-      category,
-      noPPBoosts,
-      flags: { heal, sound }
-    } = gen.moves.get(name)!
 
-    if (moveset[name] >= (transformed ? 5 : Math.floor((noPPBoosts ? 1 : 1.6) * pp))) {
-      // console.log("pp")
-      continue
-    }
-
-    switch (name) {
-      case "Stuff Cheeks": {
-        if (!item?.endsWith("Berry")) continue
-        break
+  if (lockedMove) {
+    available.push(lockedMove.move)
+  } else {
+    for (const name in moveset) {
+      const {
+        pp,
+        category,
+        noPPBoosts,
+        flags: { heal, sound }
+      } = gen.moves.get(name)!
+      if (moveset[name] >= (transformed ? 5 : Math.floor((noPPBoosts ? 1 : 1.6) * pp))) {
+        continue
       }
-      case "Gigaton Hammer":
-      case "Blood Moon": {
-        if (lastMove?.name === name) continue
+
+      switch (name) {
+        case "Stuff Cheeks": {
+          if (!item?.endsWith("Berry")) continue
+          break
+        }
+        case "Gigaton Hammer":
+        case "Blood Moon": {
+          if (lastMove?.name === name) continue
+        }
       }
-    }
 
-    if (disable?.move === name) {
-      // console.log("=== name")
-      continue
-    }
-    if (choiceLocked && name !== choiceLocked.move) {
-      // console.log("choice")
-      continue
-    }
-    if (lockedMove && name !== lockedMove.move) {
-      // console.log(".move")
-      continue
-    }
-    if (encore && name !== encore.move) {
-      // console.log(".move")
-      continue
-    }
-    if (taunt && category === "Status") {
-      // console.log("Status")
-      continue
-    }
-    if (healBlock && heal) {
-      // console.log("&& heal")
-      continue
-    }
-    if (throatChop && sound) {
-      // console.log("&& sound")
-      continue
-    }
-    if (item === "Assault Vest" && category === "Status") {
-      // console.log("=== 0")
-      continue
-    }
+      if (disable?.move === name) {
+        // console.log("=== name")
+        continue
+      }
+      if (choiceLocked && name !== choiceLocked.move) {
+        // console.log("choice")
+        continue
+      }
+      if (encore && name !== encore.move) {
+        // console.log(".move")
+        continue
+      }
+      if (taunt && category === "Status") {
+        // console.log("Status")
+        continue
+      }
+      if (healBlock && heal) {
+        // console.log("&& heal")
+        continue
+      }
+      if (throatChop && sound) {
+        // console.log("&& sound")
+        continue
+      }
+      if (item === "Assault Vest" && category === "Status") {
+        // console.log("=== 0")
+        continue
+      }
 
-    available.push(name)
+      available.push(name)
+    }
   }
 
   if (!available.length) return ["Struggle"]
