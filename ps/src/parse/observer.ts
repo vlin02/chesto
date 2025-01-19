@@ -71,7 +71,7 @@ export class Observer {
         this.request = JSON.parse(line.slice(p.i + 1))
 
         const {
-          active,
+          active: choice,
           side: { id, name, pokemon: members }
         } = this.request
 
@@ -90,15 +90,14 @@ export class Observer {
           }
         }
 
-        if (
-          active &&
-          this.ally.active.volatiles["Locked Move"] &&
-          !(
-            active[0].moves.length === 1 &&
-            active[0].moves[0].move === this.ally.active.volatiles["Locked Move"].name
-          )
-        ) {
-          delete this.ally.active.volatiles["Locked Move"]
+        const {
+          active: { volatiles }
+        } = this.ally
+
+        if (choice && volatiles["Locked Move"]) {
+          const [{ moves }] = choice
+          const { name } = volatiles["Locked Move"]
+          if (!moves.every((x) => x.disabled || x.move === name)) delete volatiles["Locked Move"]
         }
 
         break
@@ -302,14 +301,13 @@ export class Observer {
         if (status?.attempt) status.attempt++
 
         if (effect.move) deductPP = false
-
         if (effect.ability) {
           user.setAbility(effect.ability)
           deductPP = false
         }
 
         if (isLocked(move)) {
-          if (from === "lockedmove") {
+          if (from === "lockedmove" && volatiles["Locked Move"]) {
             const n = volatiles["Locked Move"]!.attempt++
             if (n === 2) delete volatiles["Locked Move"]
           } else {
@@ -461,11 +459,11 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const item = p.args[1]
 
-        user.setItem(item)
-        user.setItem(null)
-
         p = piped(line, p.i, -1)
         const { eat } = parseTags(p.args)
+
+        user.setItem(item)
+        user.setItem(null)
 
         if (eat != null) {
           user.lastBerry = {
@@ -482,6 +480,9 @@ export class Observer {
         const into = this.member(this.label(p.args[1]))
 
         const { pov, volatiles } = user
+
+        p = piped(line, p.i, -1)
+        const { from } = parseTags(p.args)
 
         let ability
         let moveNames: string[] = []
@@ -530,8 +531,6 @@ export class Observer {
         }
 
         {
-          p = piped(line, p.i, -1)
-          const { from } = parseTags(p.args)
           const { ability } = parseEffect(from)
           if (ability) user.setAbility(ability)
         }
