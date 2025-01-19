@@ -16,6 +16,17 @@ export type Status = {
   move?: number
 }
 
+function clear(user: User) {
+  user.volatiles = {}
+  user.boosts = {}
+  delete user.lastBerry
+  delete user.lastMove
+}
+
+function activeMoveSet(user: User) {
+  return user.volatiles["Transform"]?.moveSet ?? user.moveSet
+}
+
 export class AllyUser {
   pov: "ally"
   species: string
@@ -77,6 +88,14 @@ export class AllyUser {
     this.tera = false
   }
 
+  clear() {
+    clear(this)
+  }
+
+  activeMoveSet() {
+    activeMoveSet(this)
+  }
+
   setAbility(v: string) {
     this.ability = v
   }
@@ -134,6 +153,14 @@ export class FoeUser {
     this.boosts = {}
     this.tera = false
     this.flags = {}
+  }
+
+  clear() {
+    clear(this)
+  }
+
+  activeMoveSet() {
+    activeMoveSet(this)
   }
 
   setAbility(v: string) {

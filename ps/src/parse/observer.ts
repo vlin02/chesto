@@ -74,38 +74,6 @@ export class Observer {
     return user
   }
 
-  moveSet(user: User) {
-    return user.volatiles["Transform"]?.moveSet ?? user.moveSet
-  }
-
-  setAbility(user: User, ability: string) {
-    if (user.ability === ability) return
-
-    user.ability = ability
-    if (user.pov === "foe" && ability) {
-      const { initial } = user
-      initial.ability = initial.ability ?? ability
-    }
-  }
-
-  setItem(user: User, item: string | null) {
-    const { volatiles } = user
-    if (item === null) delete volatiles["Choice Locked"]
-
-    user.item = item
-    if (user.pov === "foe" && item) {
-      const { initial } = user
-      initial.item = initial.item ?? item
-    }
-  }
-
-  clear(user: User) {
-    user.volatiles = {}
-    user.boosts = {}
-    delete user.lastBerry
-    delete user.lastMove
-  }
-
   read(line: string) {
     if (line[0] !== "|") return
 
