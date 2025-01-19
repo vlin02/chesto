@@ -4,7 +4,7 @@ import { toID } from "@pkmn/sim"
 import { Battle } from "@pkmn/sim"
 import { Decision, make } from "./sim.js"
 import { Observer } from "./__tmp/view.js"
-import { Log } from "./parse/replay.js"
+import { Log } from "./replay.js"
 import { Side } from "./parse/protocol.js"
 
 type Message = {

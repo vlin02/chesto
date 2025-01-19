@@ -1,5 +1,5 @@
 import { Db, ObjectId } from "mongodb"
-import { Log } from "./parse/replay.js"
+import { Log } from "./replay.js"
 
 export const DB_URL = "mongodb://localhost:27017"
 

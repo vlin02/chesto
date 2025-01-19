@@ -1,4 +1,4 @@
-import { Generation } from "@pkmn/data"
+import { Generation, Move } from "@pkmn/data"
 import {
   ChoiceRequest,
   parseEffect,
@@ -11,11 +11,15 @@ import {
   Side
 } from "./protocol.js"
 import { WeatherName } from "@pkmn/client"
-import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
+import { StatusId, StatId, BoostId, CHOICE_ITEMS } from "./species.js"
 import { Ally, Foe, OPP, POV, POVS } from "./party.js"
-import { AllyUser, FoeUser, User } from "./user.js"
-import { getMaxPP, MoveSet } from "./move.js"
+import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
 import { isPressureMove } from "../battle.js"
+import { HAZARDS } from "./battle.js"
+
+export function getMaxPP({ noPPBoosts, pp }: Move) {
+  return noPPBoosts ? pp : Math.floor(pp * 1.6)
+}
 
 type Label = {
   species: string
@@ -159,7 +163,6 @@ export class Observer {
         const { pov, species } = label
 
         const traits = parseTraits(p.args[1])
-        const hp = parseHp(p.args[2])!
 
         let user: User
 
@@ -318,9 +321,13 @@ export class Observer {
               case "Petal Dance":
               case "Outrage": {
                 if (from !== "lockedmove" && notarget === undefined) {
-                  volatiles["Locked Move"] = { turn: 0, name }
+                  volatiles["Locked Move"] = { attempt: 0, name }
                 }
-                if (from === "lockedmove") deductPP = false
+
+                if (from === "lockedmove") {
+                  volatiles["Locked Move"]
+                  deductPP = false
+                }
                 break
               }
               case "Wish": {
@@ -816,12 +823,12 @@ export class Observer {
 
           if (status?.turn !== undefined) status.turn++
 
-          if (volatiles["Recharge"]?.turn === 1) delete volatiles["Recharge"]
-
           for (const name in volatiles) {
             if (volatiles[name].turn !== undefined) volatiles[name].turn++
             if (volatiles[name].singleTurn) delete volatiles[name]
           }
+
+          if (volatiles["Recharge"]?.turn === 2) delete volatiles["Recharge"]
 
           for (const name in conditions) {
             if (conditions[name].turn !== undefined) conditions[name].turn++

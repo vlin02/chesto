@@ -1,6 +1,6 @@
 import { ID, PRNGSeed, toID } from "@pkmn/sim"
-import { AnyBattle } from "../version.js"
-import { FOE, piped, Side, SIDES } from "./protocol.js"
+import { AnyBattle } from "./version.js"
+import { FOE, piped, Side, SIDES } from "./parse/protocol.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 

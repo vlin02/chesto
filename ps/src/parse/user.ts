@@ -1,8 +1,68 @@
 import { Generation, TypeName } from "@pkmn/data"
-import { StatusId, Gender, StatId } from "./dex.js"
-import { getMaxPP, MoveSet } from "./move.js"
-import { Boosts, Volatiles } from "./volatile.js"
+import { StatusId, Gender, BoostId, StatId } from "./species.js"
 import { Member, parseHp, parseLabel, parseTraits, Traits } from "./protocol.js"
+import { getMaxPP } from "./observer.js"
+
+export type Boosts = {
+  [k in BoostId]?: number
+}
+
+export type MoveSlot = {
+  used: number
+  max: number
+}
+
+export type MoveSet = { [k: string]: MoveSlot }
+
+export type DelayedAttack = {
+  turn: number
+  user: User
+}
+
+export type Volatiles = {
+  [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean }
+} & {
+  "Recharge"?: { turn: number }
+  "Yawn"?: {}
+  "Taunt"?: {}
+  "Type Change"?: {
+    types: TypeName[]
+  }
+  "Disable"?: {
+    turn: number
+    move: string
+  }
+  "Transform"?: {
+    into: User
+    ability: string | null
+    moveSet: MoveSet
+    boosts: Boosts
+    gender: Gender
+    species: string
+  }
+  "Choice Locked"?: {
+    name: string
+  }
+  "Locked Move"?: {
+    name: string
+    attempt: number
+  }
+  "Protosynthesis"?: {
+    statId: StatId
+  }
+  "Quark Drive"?: {
+    statId: StatId
+  }
+  "Fallen"?: {
+    count: number
+  }
+  "Encore"?: {
+    turn: number
+    move: string
+  }
+  "Future Sight"?: DelayedAttack
+  "Doom Desire"?: DelayedAttack
+}
 
 export type Flags = {
   "Battle Bond"?: boolean
@@ -14,17 +74,6 @@ export type Status = {
   id: StatusId
   turn?: number
   move?: number
-}
-
-function clear(user: User) {
-  user.volatiles = {}
-  user.boosts = {}
-  delete user.lastBerry
-  delete user.lastMove
-}
-
-function getEffectiveMoveSet(user: User) {
-  return user.volatiles["Transform"]?.moveSet ?? user.baseMoveSet
 }
 
 export class AllyUser {
@@ -176,6 +225,17 @@ export class FoeUser {
     this.item = v
     initial.item = initial.item ?? v ?? undefined
   }
+}
+
+function clear(user: User) {
+  user.volatiles = {}
+  user.boosts = {}
+  delete user.lastBerry
+  delete user.lastMove
+}
+
+function getEffectiveMoveSet(user: User) {
+  return user.volatiles["Transform"]?.moveSet ?? user.baseMoveSet
 }
 
 export type User = AllyUser | FoeUser
