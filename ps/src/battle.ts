@@ -1,5 +1,20 @@
-import { Generation, Specie } from "@pkmn/data"
+import { Generation, Move, Specie } from "@pkmn/data"
 import { Observer } from "./parse/observer.js"
+
+export function isPressureMove({ target, flags: { mustpressure } }: Move) {
+  return (
+    [
+      "adjacentFoe",
+      "all",
+      "allAdjacent",
+      "allAdjacentFoes",
+      "any",
+      "normal",
+      "randomNormal",
+      "scripted"
+    ].includes(target) || mustpressure
+  )
+}
 
 export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
   switch (baseSpecies) {

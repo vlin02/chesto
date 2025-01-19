@@ -1,4 +1,4 @@
-import { Generation, Move } from "@pkmn/data"
+import { Generation } from "@pkmn/data"
 import {
   ChoiceRequest,
   parseEffect,
@@ -15,25 +15,11 @@ import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
 import { Ally, Foe, OPP, POV, POVS } from "./party.js"
 import { AllyUser, User } from "./user.js"
 import { getMaxPP, MoveSet } from "./move.js"
+import { isPressureMove } from "../battle.js"
 
 type Label = {
   species: string
   pov: POV
-}
-
-function isPressureMove({ target, flags: { mustpressure } }: Move) {
-  return (
-    [
-      "adjacentFoe",
-      "all",
-      "allAdjacent",
-      "allAdjacentFoes",
-      "any",
-      "normal",
-      "randomNormal",
-      "scripted"
-    ].includes(target) || mustpressure
-  )
 }
 
 export class Observer {
