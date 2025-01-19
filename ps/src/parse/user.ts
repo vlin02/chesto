@@ -35,6 +35,9 @@ export type Volatiles = {
     turn: number
     move: string
   }
+  "Trace"?: {
+    ability: string
+  }
   "Transform"?: {
     into: User
     ability: string | null
@@ -47,7 +50,7 @@ export type Volatiles = {
     name: string
   }
   "Locked Move"?: {
-    name: string
+    move: string
     attempt: number
   }
   "Protosynthesis"?: {
@@ -79,6 +82,10 @@ export type Status = {
   attempt?: number
 }
 
+function getAbility({ baseAbility, volatiles }: User) {
+  return volatiles["Trace"]?.ability ?? baseAbility
+}
+
 function clear(user: User) {
   user.volatiles = {}
   user.boosts = {}
@@ -102,7 +109,7 @@ export class AllyUser {
   forme: string
   gender: Gender
   hp: [number, number]
-  ability: string
+  baseAbility: string
   item: string | null
   stats: { [k in StatId]: number }
   baseMoveSet: MoveSet
@@ -120,14 +127,14 @@ export class AllyUser {
 
   constructor(
     gen: Generation,
-    { ident, details, condition, stats, item, moves, ability, teraType }: Member
+    { ident, details, condition, stats, item, moves, baseAbility, teraType }: Member
   ) {
     const { species } = parseLabel(ident)
     const { gender, lvl, forme } = parseTraits(details)
 
     if (species === "Ditto") {
       moves = ["Transform"]
-      ability = "Imposter"
+      baseAbility = "Imposter"
     }
 
     this.baseMoveSet = {}
@@ -145,14 +152,18 @@ export class AllyUser {
     this.gender = gender
     this.lvl = lvl
     this.revealed = false
-    this.teraType = teraType
-    this.ability = gen.abilities.get(ability)!.name
+    this.teraType = teraType!
+    this.baseAbility = gen.abilities.get(baseAbility)!.name
     this.item = item ? gen.items.get(item)!.name : "Leftovers"
     this.stats = stats
     this.hp = parseHp(condition)!
     this.volatiles = {}
     this.boosts = {}
     this.tera = false
+  }
+
+  get ability() {
+    return this.volatiles["Trace"]?.ability ?? this.baseAbility
   }
 
   disrupted() {
@@ -168,7 +179,7 @@ export class AllyUser {
   }
 
   setAbility(v: string) {
-    this.ability = v
+    this.baseAbility = v
   }
 
   setItem(v: string | null) {
@@ -183,7 +194,7 @@ export class FoeUser {
   forme: string
   gender: Gender
   hp: [number, number]
-  ability?: string
+  baseAbility?: string
   item?: string | null
   initial: {
     formeId: string
@@ -226,6 +237,10 @@ export class FoeUser {
     this.flags = {}
   }
 
+  get ability() {
+    return getAbility(this)
+  }
+
   get moveSet() {
     return getEffectiveMoveSet(this)
   }
@@ -241,7 +256,7 @@ export class FoeUser {
   setAbility(v: string) {
     const { initial } = this
 
-    this.ability = v
+    this.baseAbility = v
     initial.ability = initial.ability ?? v
   }
 

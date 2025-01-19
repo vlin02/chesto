@@ -96,7 +96,7 @@ export class Observer {
 
         if (choice && volatiles["Locked Move"]) {
           const [{ moves }] = choice
-          const { name } = volatiles["Locked Move"]
+          const { move: name } = volatiles["Locked Move"]
           if (!moves.every((x) => x.disabled || x.move === name)) delete volatiles["Locked Move"]
         }
 
@@ -107,24 +107,23 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const ability = p.args[1]
 
-        {
-          p = piped(line, p.i, -1)
-          const { from, of } = parseTags(p.args)
-          const { ability: prev } = parseEffect(from)
+        p = piped(line, p.i, -1)
+        const { from, of } = parseTags(p.args)
 
-          if (prev === "Trace") {
-            const target = this.member(this.label(of))
-
-            user.setAbility(prev)
-            target.setAbility(ability)
-          }
-        }
-
+        const { ability: fromAbility } = parseEffect(from)
         if (ability === "Intrepid Sword") {
           user.flags[ability] = true
         }
 
-        user.setAbility(ability)
+        if (fromAbility === "Trace") {
+          const target = this.member(this.label(of))
+
+          user.volatiles["Trace"] = { ability }
+          target.setAbility(ability)
+        } else {
+          user.setAbility(ability)
+        }
+
         break
       }
       case "switch":
@@ -171,18 +170,25 @@ export class Observer {
           }
         }
 
-        const { active } = this[pov]
+        const { active: prev } = this[pov]
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
-        user.clear()
         const { status } = user
         if (status?.id === "tox") status.turn! = 0
 
-        if (from === "Shed Tail" && "Substitute" in active.volatiles) {
-          user.volatiles["Substitute"] = active.volatiles["Substitute"]
+        if (prev.hp[0] && prev.ability === "Regenerator") {
+          const { hp } = prev
+          const heal = Math.floor(hp[1] / 3)
+          hp[0] = Math.min(hp[0] + heal, hp[1])
         }
+
+        if (from === "Shed Tail" && "Substitute" in prev.volatiles) {
+          user.volatiles["Substitute"] = prev.volatiles["Substitute"]
+        }
+
+        prev.clear()
 
         this[pov].active = user
         break
@@ -311,7 +317,7 @@ export class Observer {
             const n = volatiles["Locked Move"]!.attempt++
             if (n === 2) delete volatiles["Locked Move"]
           } else {
-            volatiles["Locked Move"] = { attempt: 0, name }
+            volatiles["Locked Move"] = { attempt: 0, move: name }
           }
         }
 

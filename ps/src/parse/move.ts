@@ -45,7 +45,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
   const available = []
 
   if (lockedMove) {
-    available.push(lockedMove.name)
+    available.push(lockedMove.move)
   } else {
     for (const name in moveSet) {
       const {

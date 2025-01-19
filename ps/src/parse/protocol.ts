@@ -12,10 +12,12 @@ export type Member = {
   condition: string
   active: boolean
   stats: { [k in StatId]: number }
+  baseAbility: string
   item: string
   ability: string
   moves: string[]
-  teraType: TypeName
+  teraType?: TypeName
+  terastallized?: boolean
 }
 
 export type ChoiceRequest = {
