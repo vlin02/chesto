@@ -82,8 +82,9 @@ export type Status = {
   attempt?: number
 }
 
-function getEffectiveMoveSet({ baseMoveSet, volatiles }: User) {
-  return volatiles["Transform"]?.moveSet ?? baseMoveSet
+export type FormeChange = {
+  name: string
+  reverts: boolean
 }
 
 export class AllyUser {
@@ -91,13 +92,16 @@ export class AllyUser {
   species: string
   revealed: boolean
   lvl: number
-  forme: string
   gender: Gender
   hp: [number, number]
-  baseAbility: string
+  formeChange?: FormeChange
+  base: {
+    forme: string
+    ability: string
+    moveSet: MoveSet
+  }
   item: string | null
   stats: { [k in StatId]: number }
-  baseMoveSet: MoveSet
   status?: Status
   teraType: TypeName
   flags: Flags
@@ -112,33 +116,36 @@ export class AllyUser {
 
   constructor(
     gen: Generation,
-    { ident, details, condition, stats, item, moves, baseAbility, teraType }: Member
+    { ident, details, condition, stats, item, moves: moveIds, baseAbility, teraType }: Member
   ) {
     const { species } = parseLabel(ident)
     const { gender, lvl, forme } = parseTraits(details)
 
     if (species === "Ditto") {
-      moves = ["Transform"]
+      moveIds = ["Transform"]
       baseAbility = "Imposter"
     }
 
-    this.baseMoveSet = {}
-    for (const name of moves) {
-      this.baseMoveSet[gen.moves.get(name)!.name] = {
+    const moveSet: MoveSet = {}
+    for (const id of moveIds) {
+      moveSet[gen.moves.get(id)!.name] = {
         used: 0,
-        max: getMaxPP(gen.moves.get(name)!)
+        max: getMaxPP(gen.moves.get(id)!)
       }
     }
 
     this.pov = "ally"
     this.species = species
     this.flags = {}
-    this.forme = forme
     this.gender = gender
     this.lvl = lvl
     this.revealed = false
     this.teraType = teraType!
-    this.baseAbility = gen.abilities.get(baseAbility)!.name
+    this.base = {
+      ability: gen.abilities.get(baseAbility)!.name,
+      forme,
+      moveSet
+    }
     this.item = item ? gen.items.get(item)!.name : "Leftovers"
     this.stats = stats
     this.hp = parseHp(condition)!
@@ -147,13 +154,28 @@ export class AllyUser {
     this.tera = false
   }
 
+  get forme() {
+    const {
+      formeChange,
+      base: { forme }
+    } = this
+    return formeChange?.name ?? forme
+  }
+
   get ability() {
-    const { volatiles, baseAbility } = this
-    return volatiles["Trace"]?.ability ?? baseAbility
+    const {
+      volatiles,
+      base: { ability }
+    } = this
+    return volatiles["Transform"]?.ability ?? volatiles["Trace"]?.ability ?? ability
   }
 
   get moveSet() {
-    return getEffectiveMoveSet(this)
+    const {
+      volatiles,
+      base: { moveSet }
+    } = this
+    return volatiles["Transform"]?.moveSet ?? moveSet
   }
 }
 
@@ -161,18 +183,17 @@ export class FoeUser {
   pov: "foe"
   lvl: number
   species: string
-  forme: string
   gender: Gender
   hp: [number, number]
-  baseAbility?: string
   item?: string | null
-  initial: {
-    formeId: string
+  formeChange?: FormeChange
+  base: {
+    forme: string
+    moveSet: MoveSet
     ability?: string
     item?: string
   }
   status?: Status
-  baseMoveSet: MoveSet
   flags: Flags
   lastMove?: string
   lastBerry?: {
@@ -193,13 +214,12 @@ export class FoeUser {
 
     this.pov = "foe"
     this.species = species
-    this.forme = forme
     this.lvl = lvl
     this.gender = gender
     this.hp = [100, 100]
-    this.baseMoveSet = {}
-    this.initial = {
-      formeId: gen.species.get(forme)!.id
+    this.base = {
+      forme,
+      moveSet: {}
     }
     this.volatiles = {}
     this.boosts = {}
@@ -208,12 +228,28 @@ export class FoeUser {
   }
 
   get ability() {
-    const { baseAbility, volatiles } = this
-    return volatiles["Trace"]?.ability ?? baseAbility
+    const {
+      volatiles,
+      base: { ability }
+    } = this
+
+    return volatiles["Transform"]?.ability ?? volatiles["Trace"]?.ability ?? ability
+  }
+
+  get forme() {
+    const {
+      formeChange,
+      base: { forme }
+    } = this
+    return formeChange?.name ?? forme
   }
 
   get moveSet() {
-    return getEffectiveMoveSet(this)
+    const {
+      volatiles,
+      base: { moveSet }
+    } = this
+    return volatiles["Transform"]?.moveSet ?? moveSet
   }
 }
 

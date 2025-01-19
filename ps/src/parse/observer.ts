@@ -59,30 +59,26 @@ export class Observer {
     return user
   }
 
-  clear(user: User) {
+  switchIn(user: User) {
     user.volatiles = {}
     user.boosts = {}
     delete user.lastBerry
     delete user.lastMove
   }
 
-  setAbility(user: User, ability: string) {
-    if (user.pov === "ally") return
-    const { initial } = user
-
-    user.baseAbility = ability
-    initial.ability = initial.ability ?? ability
+  setAbility({ base }: User, ability: string) {
+    base.ability = base.ability ?? ability
   }
 
   setItem(user: User, item: string | null) {
     user.item = item
     if (user.pov === "ally") return
 
-    const { initial } = user
-    initial.item = initial.item ?? item ?? undefined
+    const { base } = user
+    base.item = base.item ?? item ?? undefined
   }
 
-  disrupted(user: User) {
+  disrupt(user: User) {
     delete user.volatiles["Locked Move"]
   }
 
@@ -215,7 +211,7 @@ export class Observer {
           user.volatiles["Substitute"] = prev.volatiles["Substitute"]
         }
 
-        this.clear(prev)
+        this.switchIn(prev)
 
         this[pov].active = user
         break
@@ -352,7 +348,7 @@ export class Observer {
           volatiles["Choice Locked"] = { name }
         }
 
-        if (notarget != null || miss != null) this.disrupted(user)
+        if (notarget != null || miss != null) this.disrupt(user)
         if (name === "Wish") this[pov].wish = 0
 
         if (deductPP) {
@@ -370,7 +366,7 @@ export class Observer {
         p = piped(line, p.i)
         const { pov } = this.member(this.label(p.args[0]))
 
-        this.disrupted(this[OPP[pov]].active)
+        this.disrupt(this[OPP[pov]].active)
         break
       case "-heal":
       case "-sethp": {
@@ -526,13 +522,13 @@ export class Observer {
           const member = members.find((x) => this.label(x.ident).species === user.species)!
           ability = this.gen.abilities.get(member.ability)!.name
 
-          const { baseMoveSet } = into
+          const { moveSet } = into
           const moves = member.moves.map((id) => this.gen.moves.get(id)!)
 
           this.setAbility(into, ability)
           for (const move of moves) {
             const { name } = move
-            baseMoveSet[name] = baseMoveSet[name] ?? {
+            moveSet[name] = moveSet[name] ?? {
               used: 0,
               max: getMaxPP(move)
             }
@@ -540,7 +536,7 @@ export class Observer {
         } else {
           const user = into as AllyUser
           ability = user.ability
-          moveNames = Object.keys(user.baseMoveSet)
+          moveNames = Object.keys(user.moveSet)
         }
 
         const moveSet: MoveSet = {}
@@ -562,7 +558,7 @@ export class Observer {
           boosts: { ...boosts }
         }
 
-        user.baseAbility = "Imposter"
+        this.setAbility(user, "Imposter")
 
         break
       }
@@ -661,7 +657,13 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const forme = p.args[1]
 
-        user.forme = forme
+        // Shaymin emits both a forme & detailchange. ignore forme.
+        if (forme !== "Shaymin") {
+          user.formeChange = {
+            name: forme,
+            reverts: true
+          }
+        }
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
@@ -676,7 +678,10 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const { forme } = parseTraits(p.args[1])
 
-        user.forme = forme
+        user.formeChange = {
+          name: forme,
+          reverts: false
+        }
         break
       }
       case "-activate": {
@@ -745,10 +750,10 @@ export class Observer {
           team[user.species] = user.clone()
 
           user.species = species
-          user.forme = forme
+          user.base.forme = forme
           user.lvl = lvl
           user.gender = gender
-          user.initial.formeId = this.gen.species.get(forme)!.id
+          user.base.forme = this.gen.species.get(forme)!.id
           team[species] = user
         } else {
           delete this.illusion
