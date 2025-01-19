@@ -65,7 +65,7 @@ export class AllyUser {
 
     this.baseMoveSet = {}
     for (const name of moves) {
-      this.baseMoveSet[name] = {
+      this.baseMoveSet[gen.moves.get(name)!.name] = {
         used: 0,
         max: getMaxPP(gen.moves.get(name)!)
       }
@@ -155,12 +155,12 @@ export class FoeUser {
     this.flags = {}
   }
 
-  clear() {
-    clear(this)
-  }
-
   get moveSet() {
     return getEffectiveMoveSet(this)
+  }
+
+  clear() {
+    clear(this)
   }
 
   setAbility(v: string) {

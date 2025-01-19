@@ -13,7 +13,7 @@ import {
 import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
 import { Ally, Foe, OPP, POV, POVS } from "./party.js"
-import { AllyUser, User } from "./user.js"
+import { AllyUser, FoeUser, User } from "./user.js"
 import { getMaxPP, MoveSet } from "./move.js"
 import { isPressureMove } from "../battle.js"
 
@@ -85,6 +85,9 @@ export class Observer {
           for (let member of members) {
             const user = new AllyUser(this.gen, member)
             if (member.active) this.ally.active = user
+            const { species } = user
+
+            this.ally.team[species] = user
           }
         }
 
@@ -110,9 +113,10 @@ export class Observer {
           p = piped(line, p.i, -1)
           const { from, of } = parseTags(p.args)
           const { ability: prev } = parseEffect(from)
-          const target = this.member(this.label(of))
 
           if (prev === "Trace") {
+            const target = this.member(this.label(of))
+
             user.setAbility(prev)
             target.setAbility(ability)
           }
@@ -131,6 +135,7 @@ export class Observer {
           const active = this.request.side.pokemon.find((x) => x.active)!
           const { species } = this.label(active.ident)
           const user = this.ally.team[species]
+
           const {
             ability,
             flags: { "Illusion revealed": revealed }
@@ -161,25 +166,12 @@ export class Observer {
         if (pov === "ally") {
           user = this.member(label)
         } else {
-          const { forme, lvl, gender } = traits
+          const team = this.foe?.team ?? {}
+          user = team[species] = team[species] ?? new FoeUser(this.gen, species, traits)
 
-          const team = this.foe.team ?? {}
-
-          user = team[species] = team[species] ?? {
-            pov: "foe",
-            flags: {},
-            species,
-            forme,
-            lvl,
-            gender,
-            hp,
-            baseMoveSet: {},
-            initial: {
-              formeId: this.gen.species.get(forme)!.id
-            }
+          if (!this.foe) {
+            this.foe = { fields: {}, team: { [species]: user }, active: user }
           }
-
-          if (!this.foe) this.foe = { fields: {}, team, active: user }
         }
 
         const { active } = this[pov]
@@ -191,7 +183,7 @@ export class Observer {
         const { status } = user
         if (status?.id === "tox") status.turn! = 0
 
-        if (from === "Shed Tail") {
+        if (from === "Shed Tail" && "Substitute" in active.volatiles) {
           user.volatiles["Substitute"] = active.volatiles["Substitute"]
         }
 
@@ -223,8 +215,10 @@ export class Observer {
         }
 
         this.weather = { name, turn: 0 }
-        const user = this.member(this.label(of))
-        if (ability) user.setAbility(ability)
+        if (ability) {
+          const user = this.member(this.label(of))
+          user.setAbility(ability)
+        }
 
         break
       }
@@ -341,12 +335,15 @@ export class Observer {
         }
 
         const moveData = this.gen.moves.get(name)!
-        const slot = user.moveSet[name] ?? {
-          used: 0,
-          max: getMaxPP(moveData)
-        }
 
-        slot.used += isPressureMove(moveData) ? 2 : 1
+        if (deductPP) {
+          const slot = (user.moveSet[name] = user.moveSet[name] ?? {
+            used: 0,
+            max: getMaxPP(moveData)
+          })
+
+          slot.used += isPressureMove(moveData) ? 2 : 1
+        }
 
         break
       }
@@ -495,31 +492,35 @@ export class Observer {
         const { pov, volatiles } = user
 
         let ability
-        let moves
+        let moves: string[] = []
         if (pov === "ally") {
           const {
-            side: { pokemon }
+            side: { pokemon: members }
           } = this.request
 
-          const pkmn = pokemon.find((x) => this.label(x.ident).species === user.species)!
-          ability = this.gen.abilities.get(pkmn.ability)!.name
-          moves = pkmn.moves.map((x) => this.gen.moves.get(x)!.name)
+          const member = members.find((x) => this.label(x.ident).species === user.species)!
+          ability = this.gen.abilities.get(member.ability)!.name
+          moves = member.moves.map((x) => this.gen.moves.get(x)!.name)
 
-          {
-            const { baseMoveSet: moveSet } = into
+          const { baseMoveSet } = into
 
-            into.setAbility(ability)
-            for (const move of moves) moveSet[move] = moveSet[move] ?? 0
+          into.setAbility(ability)
+          for (const move of moves) {
+            const d = this.gen.moves.get(move)!
+            baseMoveSet[d.name] = baseMoveSet[d.name] ?? {
+              used: 0,
+              max: getMaxPP(d)
+            }
           }
         } else {
           const user = into as AllyUser
           ability = user.ability
-          moves = Object.keys(user.baseMoveSet)
+          for (const name in user.baseMoveSet) moves.push(name)
         }
 
         const { species, gender, boosts } = into
         const moveSet: MoveSet = {}
-        for (const move in moves) {
+        for (const move of moves) {
           moveSet[move] = {
             used: 0,
             max: 5
@@ -670,7 +671,7 @@ export class Observer {
           switch (item) {
             case "Leppa Berry": {
               p = piped(line, p.i, 1)
-              user.baseMoveSet[p.args[0]].used = 0
+              user.moveSet[p.args[0]].used = 0
               break
             }
           }
@@ -818,12 +819,12 @@ export class Observer {
           if (volatiles["Recharge"]?.turn === 1) delete volatiles["Recharge"]
 
           for (const name in volatiles) {
-            if (volatiles[name]?.turn !== undefined) volatiles[name].turn++
+            if (volatiles[name].turn !== undefined) volatiles[name].turn++
             if (volatiles[name].singleTurn) delete volatiles[name]
           }
 
           for (const name in conditions) {
-            if (conditions[name]?.turn !== undefined) conditions[name].turn++
+            if (conditions[name].turn !== undefined) conditions[name].turn++
           }
 
           if (side.wish) {
