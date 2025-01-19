@@ -36,10 +36,6 @@ function isPressureMove({ target, flags: { mustpressure } }: Move) {
   )
 }
 
-function getMaxPP({ noPPBoosts, pp }: Move) {
-  return noPPBoosts ? pp : Math.floor(pp * 1.6)
-}
-
 export class Observer {
   side!: Side
   name!: string
@@ -83,9 +79,9 @@ export class Observer {
   }
 
   setAbility(user: User, ability: string) {
-    if (user.ability === ability) return
+    if (user._ability === ability) return
 
-    user.ability = ability
+    user._ability = ability
     if (user.pov === "foe" && ability) {
       const { initial } = user
       initial.ability = initial.ability ?? ability
@@ -96,7 +92,7 @@ export class Observer {
     const { volatiles } = user
     if (item === null) delete volatiles["Choice Locked"]
 
-    user.item = item
+    user._item = item
     if (user.pov === "foe" && item) {
       const { initial } = user
       initial.item = initial.item ?? item
@@ -123,79 +119,32 @@ export class Observer {
 
         const {
           active,
-          side: { id, name, pokemon: pokemons }
+          side: { id, name, pokemon: members }
         } = this.request
 
         if (!this.ally) {
           this.side = id
           this.name = name
 
-          for (let {
-            ident,
-            details,
-            condition,
-            stats,
-            item,
-            moves,
-            ability,
-            active: isActive,
-            teraType
-          } of pokemons) {
-            const { species } = parseLabel(ident)
-            const { gender, lvl, forme } = parseTraits(details)
+          this.ally = { fields: {}, team: {} } as Ally
 
-            if (species === "Ditto") {
-              moves = ["Transform"]
-              ability = "Imposter"
-            }
-
-            const moveSet: MoveSet = {}
-            for (const name of moves) {
-              moveSet[name] = {
-                used: 0,
-                max: getMaxPP(this.gen.moves.get(name)!)
-              }
-            }
-
-            const party = { fields: {}, team: {} } as Ally
-
-            const user = (party.team[species] = {
-              pov: "ally",
-              species,
-              flags: {},
-              forme,
-              gender,
-              lvl,
-              revealed: false,
-              teraType,
-              ability: this.gen.abilities.get(ability)!.name,
-              item: item ? this.gen.items.get(item)!.name : "Leftovers",
-              stats,
-              hp: parseHp(condition)!,
-              volatiles: {},
-              moveSet,
-              boosts: {},
-              tera: false
-            })
-
-            if (isActive) {
-              party.active = user
-            }
+          for (let member of members) {
+            const user = new AllyUser(this.gen, member)
+            if (member.active) this.ally.active = user
           }
         }
 
-        {
-          if (
-            active &&
-            this.ally.active.volatiles["Locked Move"] &&
-            !(
-              active[0].moves.length === 1 &&
-              active[0].moves[0].move === this.ally.active.volatiles["Locked Move"].name
-            )
-          ) {
-            delete this.ally.active.volatiles["Locked Move"]
-          }
+        if (
+          active &&
+          this.ally.active.volatiles["Locked Move"] &&
+          !(
+            active[0].moves.length === 1 &&
+            active[0].moves[0].move === this.ally.active.volatiles["Locked Move"].name
+          )
+        ) {
+          delete this.ally.active.volatiles["Locked Move"]
         }
+
         break
       }
       case "-ability": {
@@ -430,7 +379,7 @@ export class Observer {
           }
         }
 
-        if (!volatiles["Choice Locked"] && user.item && CHOICE_ITEMS.includes(user.item)) {
+        if (!volatiles["Choice Locked"] && user._item && CHOICE_ITEMS.includes(user._item)) {
           volatiles["Choice Locked"] = { name }
         }
 
@@ -602,7 +551,7 @@ export class Observer {
           {
             const { moveSet: moveset } = into
 
-            into.ability = ability
+            into._ability = ability
             for (const move of moves) moveset[move] = moveset[move] ?? 0
           }
         } else {

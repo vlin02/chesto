@@ -6,24 +6,26 @@ export type Side = "p1" | "p2"
 export const SIDES = ["p1", "p2"] as const
 export const FOE = { p1: "p2", p2: "p1" } as const
 
+export type Member = {
+  ident: string
+  details: string
+  condition: string
+  active: boolean
+  stats: { [k in StatId]: number }
+  item: string
+  ability: string
+  moves: string[]
+  teraType: TypeName
+}
+
 export type ChoiceRequest = {
   side: {
     id: Side
     name: string
-    pokemon: {
-      ident: string
-      details: string
-      condition: string
-      active: boolean
-      stats: { [k in StatId]: number }
-      item: string
-      ability: string
-      moves: string[]
-      teraType: TypeName
-    }[]
+    pokemon: Member[]
   }
 } & {
-  active?: [{ moves: [{ move: string; disabled: boolean }], trapped?: boolean }]
+  active?: [{ moves: [{ move: string; disabled: boolean }]; trapped?: boolean }]
   forceswitch?: boolean[]
   wait?: true
 }
