@@ -1,12 +1,8 @@
-import { Generation, Move, TypeName } from "@pkmn/data"
+import { Generation, TypeName } from "@pkmn/data"
 import { StatusId, Gender, StatId } from "./dex.js"
-import { MoveSet } from "./move.js"
+import { getMaxPP, MoveSet } from "./move.js"
 import { Boosts, Volatiles } from "./volatile.js"
 import { Member, parseHp, parseLabel, parseTraits, Traits } from "./protocol.js"
-
-function getMaxPP({ noPPBoosts, pp }: Move) {
-  return noPPBoosts ? pp : Math.floor(pp * 1.6)
-}
 
 export type Flags = {
   "Battle Bond"?: boolean
