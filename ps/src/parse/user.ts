@@ -40,7 +40,7 @@ export type Volatiles = {
   }
   "Transform"?: {
     into: User
-    ability: string | null
+    ability: string
     moveSet: MoveSet
     boosts: Boosts
     gender: Gender
@@ -82,23 +82,8 @@ export type Status = {
   attempt?: number
 }
 
-function getAbility({ baseAbility, volatiles }: User) {
-  return volatiles["Trace"]?.ability ?? baseAbility
-}
-
-function clear(user: User) {
-  user.volatiles = {}
-  user.boosts = {}
-  delete user.lastBerry
-  delete user.lastMove
-}
-
-function getEffectiveMoveSet(user: User) {
-  return user.volatiles["Transform"]?.moveSet ?? user.baseMoveSet
-}
-
-function disrupted({ volatiles }: User) {
-  delete volatiles["Locked Move"]
+function getEffectiveMoveSet({ baseMoveSet, volatiles }: User) {
+  return volatiles["Transform"]?.moveSet ?? baseMoveSet
 }
 
 export class AllyUser {
@@ -163,27 +148,12 @@ export class AllyUser {
   }
 
   get ability() {
-    return this.volatiles["Trace"]?.ability ?? this.baseAbility
-  }
-
-  disrupted() {
-    disrupted(this)
-  }
-
-  clear() {
-    clear(this)
+    const { volatiles, baseAbility } = this
+    return volatiles["Trace"]?.ability ?? baseAbility
   }
 
   get moveSet() {
     return getEffectiveMoveSet(this)
-  }
-
-  setAbility(v: string) {
-    this.baseAbility = v
-  }
-
-  setItem(v: string | null) {
-    this.item = v
   }
 }
 
@@ -238,33 +208,12 @@ export class FoeUser {
   }
 
   get ability() {
-    return getAbility(this)
+    const { baseAbility, volatiles } = this
+    return volatiles["Trace"]?.ability ?? baseAbility
   }
 
   get moveSet() {
     return getEffectiveMoveSet(this)
-  }
-
-  disrupted() {
-    disrupted(this)
-  }
-
-  clear() {
-    clear(this)
-  }
-
-  setAbility(v: string) {
-    const { initial } = this
-
-    this.baseAbility = v
-    initial.ability = initial.ability ?? v
-  }
-
-  setItem(v: string | null) {
-    const { initial } = this
-
-    this.item = v
-    initial.item = initial.item ?? v ?? undefined
   }
 }
 

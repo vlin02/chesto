@@ -15,7 +15,7 @@ export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
     case "Terapagos":
       return forme === "Stellar" ? null : name
     case "Shaymin":
-      return forme === "Sky" ? null : name
+      return forme === "" ? null : name
     case "Ogerpon":
       return ["Cornerstone-Tera", "Wellspring-Tera", "Hearthflame-Tera", "Teal-Tera"].includes(
         forme
@@ -23,9 +23,11 @@ export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
         ? null
         : name
     case "Eiscue":
+      return forme === "Noice" ? null : name
+    case "Palafin":
+      return forme === "Hero" ? null : name
     case "Cramorant":
     case "Mimikyu":
-    case "Palafin":
     case "Meloetta":
     case "Morpeko": {
       return name
