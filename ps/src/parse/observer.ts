@@ -13,7 +13,7 @@ import {
 import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
 import { Ally, Foe, OPP, POV, POVS } from "./party.js"
-import { AllyUser, User, FoeUser } from "./user.js"
+import { AllyUser, User } from "./user.js"
 import { MoveSet } from "./move.js"
 
 type Label = {
@@ -79,9 +79,9 @@ export class Observer {
   }
 
   setAbility(user: User, ability: string) {
-    if (user._ability === ability) return
+    if (user.ability === ability) return
 
-    user._ability = ability
+    user.ability = ability
     if (user.pov === "foe" && ability) {
       const { initial } = user
       initial.ability = initial.ability ?? ability
@@ -92,7 +92,7 @@ export class Observer {
     const { volatiles } = user
     if (item === null) delete volatiles["Choice Locked"]
 
-    user._item = item
+    user.item = item
     if (user.pov === "foe" && item) {
       const { initial } = user
       initial.item = initial.item ?? item
@@ -379,7 +379,7 @@ export class Observer {
           }
         }
 
-        if (!volatiles["Choice Locked"] && user._item && CHOICE_ITEMS.includes(user._item)) {
+        if (!volatiles["Choice Locked"] && user.item && CHOICE_ITEMS.includes(user.item)) {
           volatiles["Choice Locked"] = { name }
         }
 
@@ -549,10 +549,10 @@ export class Observer {
           moves = pkmn.moves.map((x) => this.gen.moves.get(x)!.name)
 
           {
-            const { moveSet: moveset } = into
+            const { moveSet } = into
 
-            into._ability = ability
-            for (const move of moves) moveset[move] = moveset[move] ?? 0
+            into.setAbility(ability)
+            for (const move of moves) moveSet[move] = moveSet[move] ?? 0
           }
         } else {
           const user = into as AllyUser
@@ -757,47 +757,20 @@ export class Observer {
       case "replace": {
         p = piped(line, p.i, 3)
         const { pov, species } = this.label(p.args[0])
-        const { forme, lvl, gender } = parseTraits(p.args[1])
-
-        const src = this[pov]
-        const { team } = src
 
         if (pov === "foe") {
-          const active = src.active as FoeUser
+          const { forme, lvl, gender } = parseTraits(p.args[1])
 
-          {
-            const {
-              species,
-              forme,
-              lvl,
-              gender,
-              initial: { formeId }
-            } = active
+          const { team } = this.foe
+          const { active: user } = this.foe
+          team[user.species] = user.clone()
 
-            team[species] = {
-              pov: "foe",
-              flags: {},
-              species,
-              forme,
-              lvl,
-              gender,
-              hp: [100, 100],
-              moveSet: {},
-              volatiles: {},
-              boosts: {},
-              tera: false,
-              initial: {
-                formeId
-              }
-            }
-          }
-
-          active.species = species
-          active.forme = forme
-          active.lvl = lvl
-          active.gender = gender
-          active.initial.formeId = this.gen.species.get(forme)!.id
-          team[species] = active
+          user.species = species
+          user.forme = forme
+          user.lvl = lvl
+          user.gender = gender
+          user.initial.formeId = this.gen.species.get(forme)!.id
+          team[species] = user
         } else {
           delete this.illusion
         }

@@ -80,6 +80,14 @@ export class AllyUser {
     this.boosts = {}
     this.tera = false
   }
+
+  setAbility(v: string) {
+    this.ability = v
+  }
+
+  setItem(v: string | null) {
+    this.item = v
+  }
 }
 
 export class FoeUser {
@@ -107,8 +115,15 @@ export class FoeUser {
   volatiles: Volatiles
   boosts: Boosts
   tera: boolean
+  clone: () => FoeUser
 
-  constructor(gen: Generation, species: string, { forme, lvl, gender }: Traits) {
+  constructor(gen: Generation, species: string, traits: Traits) {
+    this.clone = () => {
+      return new FoeUser(gen, species, traits)
+    }
+
+    const { forme, lvl, gender } = traits
+
     this.pov = "foe"
     this.species = species
     this.forme = forme
@@ -132,11 +147,11 @@ export class FoeUser {
     initial.ability = initial.ability ?? v
   }
 
-  setItem(v: string) {
+  setItem(v: string | null) {
     const { initial } = this
 
     this.item = v
-    initial.item = initial.item ?? v
+    initial.item = initial.item ?? v ?? undefined
   }
 }
 

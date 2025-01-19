@@ -46,12 +46,11 @@ export type Traits = {
   forme: string
   lvl: number
   gender: Gender
-  tera: TypeName | null
 }
 
 export function parseTraits(s: string) {
   const parts = s.split(", ")
-  const traits: Traits = { forme: parts[0], lvl: 100, gender: null, tera: null }
+  const traits: Traits = { forme: parts[0], lvl: 100, gender: null }
 
   for (let i = 1; i < parts.length; i++) {
     const part = parts[i]
@@ -60,8 +59,6 @@ export function parseTraits(s: string) {
       traits.gender = part
     } else if (part[0] === "L") {
       traits.lvl = Number(part.slice(1))
-    } else if (part.startsWith("tera:")) {
-      traits.tera = part.slice("tera:".length) as TypeName
     }
   }
 
