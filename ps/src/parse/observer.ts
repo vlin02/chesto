@@ -187,7 +187,7 @@ export class Observer {
             lvl,
             gender,
             hp,
-            moveSet: {},
+            baseMoveSet: {},
             initial: {
               formeId: this.gen.species.get(forme)!.id
             }
@@ -201,7 +201,7 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
-        this.clear(user)
+        user.clear()
         const { status } = user
         if (status?.id === "tox") status.turn! = 0
 
@@ -355,7 +355,7 @@ export class Observer {
         }
 
         const moveData = this.gen.moves.get(name)!
-        const slot = this.moveSet(user)[name] ?? {
+        const slot = user.moveSet[name] ?? {
           used: 0,
           max: getMaxPP(moveData)
         }
@@ -520,7 +520,7 @@ export class Observer {
           moves = pkmn.moves.map((x) => this.gen.moves.get(x)!.name)
 
           {
-            const { moveSet } = into
+            const { baseMoveSet: moveSet } = into
 
             into.setAbility(ability)
             for (const move of moves) moveSet[move] = moveSet[move] ?? 0
@@ -528,7 +528,7 @@ export class Observer {
         } else {
           const user = into as AllyUser
           ability = user.ability
-          moves = Object.keys(user.moveSet)
+          moves = Object.keys(user.baseMoveSet)
         }
 
         const { species, gender, boosts } = into
@@ -684,7 +684,7 @@ export class Observer {
           switch (item) {
             case "Leppa Berry": {
               p = piped(line, p.i, 1)
-              user.moveSet[p.args[0]].used = 0
+              user.baseMoveSet[p.args[0]].used = 0
               break
             }
           }

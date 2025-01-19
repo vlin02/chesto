@@ -23,8 +23,8 @@ function clear(user: User) {
   delete user.lastMove
 }
 
-function activeMoveSet(user: User) {
-  return user.volatiles["Transform"]?.moveSet ?? user.moveSet
+function getEffectiveMoveSet(user: User) {
+  return user.volatiles["Transform"]?.moveSet ?? user.baseMoveSet
 }
 
 export class AllyUser {
@@ -38,7 +38,7 @@ export class AllyUser {
   ability: string
   item: string | null
   stats: { [k in StatId]: number }
-  moveSet: MoveSet
+  baseMoveSet: MoveSet
   status?: Status
   teraType: TypeName
   flags: Flags
@@ -63,9 +63,9 @@ export class AllyUser {
       ability = "Imposter"
     }
 
-    this.moveSet = {}
+    this.baseMoveSet = {}
     for (const name of moves) {
-      this.moveSet[name] = {
+      this.baseMoveSet[name] = {
         used: 0,
         max: getMaxPP(gen.moves.get(name)!)
       }
@@ -92,8 +92,8 @@ export class AllyUser {
     clear(this)
   }
 
-  activeMoveSet() {
-    activeMoveSet(this)
+  get moveSet() {
+    return getEffectiveMoveSet(this)
   }
 
   setAbility(v: string) {
@@ -120,7 +120,7 @@ export class FoeUser {
     item?: string
   }
   status?: Status
-  moveSet: MoveSet
+  baseMoveSet: MoveSet
   flags: Flags
   lastMove?: string
   lastBerry?: {
@@ -145,7 +145,7 @@ export class FoeUser {
     this.lvl = lvl
     this.gender = gender
     this.hp = [100, 100]
-    this.moveSet = {}
+    this.baseMoveSet = {}
     this.initial = {
       formeId: gen.species.get(forme)!.id
     }
@@ -159,8 +159,8 @@ export class FoeUser {
     clear(this)
   }
 
-  activeMoveSet() {
-    activeMoveSet(this)
+  get moveSet() {
+    return getEffectiveMoveSet(this)
   }
 
   setAbility(v: string) {

@@ -47,7 +47,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
     lastMove
   } = active
 
-  const moveSet = obs.moveSet(active)
+  const { moveSet } = active
 
   if (recharge) return ["Recharge"]
 
