@@ -339,6 +339,12 @@ export class Observer {
 
         break
       }
+      case "immune":
+        p = piped(line, p.i)
+        const { pov } = this.member(this.label(p.args[0]))
+
+        this[OPP[pov]].active.disrupted()
+        break
       case "-heal":
       case "-sethp": {
         p = piped(line, p.i, 2)
@@ -617,12 +623,12 @@ export class Observer {
         if (ability) src.setAbility(ability)
         if (item) src.setItem(item)
         if (fatigue !== undefined) delete volatiles["Locked Move"]
-
         break
       }
       case "-terastallize": {
         p = piped(line, p.i, 2)
         const user = this.member(this.label(p.args[0]))
+
         user.tera = true
         break
       }
