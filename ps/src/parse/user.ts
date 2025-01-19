@@ -79,6 +79,21 @@ export type Status = {
   attempt?: number
 }
 
+function clear(user: User) {
+  user.volatiles = {}
+  user.boosts = {}
+  delete user.lastBerry
+  delete user.lastMove
+}
+
+function getEffectiveMoveSet(user: User) {
+  return user.volatiles["Transform"]?.moveSet ?? user.baseMoveSet
+}
+
+function disrupted({ volatiles }: User) {
+  delete volatiles["Locked Move"]
+}
+
 export class AllyUser {
   pov: "ally"
   species: string
@@ -138,6 +153,10 @@ export class AllyUser {
     this.volatiles = {}
     this.boosts = {}
     this.tera = false
+  }
+
+  disrupted() {
+    disrupted(this)
   }
 
   clear() {
@@ -211,6 +230,10 @@ export class FoeUser {
     return getEffectiveMoveSet(this)
   }
 
+  disrupted() {
+    disrupted(this)
+  }
+
   clear() {
     clear(this)
   }
@@ -228,17 +251,6 @@ export class FoeUser {
     this.item = v
     initial.item = initial.item ?? v ?? undefined
   }
-}
-
-function clear(user: User) {
-  user.volatiles = {}
-  user.boosts = {}
-  delete user.lastBerry
-  delete user.lastMove
-}
-
-function getEffectiveMoveSet(user: User) {
-  return user.volatiles["Transform"]?.moveSet ?? user.baseMoveSet
 }
 
 export type User = AllyUser | FoeUser

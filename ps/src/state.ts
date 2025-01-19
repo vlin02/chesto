@@ -7,6 +7,34 @@ function scale(n: number, lo: number, hi: number) {
   return (n - lo) / (hi - lo)
 }
 
+export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
+  switch (baseSpecies) {
+    case "Minior": {
+      return forme === "Meteor" ? name : baseSpecies
+    }
+    case "Terapagos":
+      return forme === "Stellar" ? null : name
+    case "Shaymin":
+      return forme === "Sky" ? null : name
+    case "Ogerpon":
+      return ["Cornerstone-Tera", "Wellspring-Tera", "Hearthflame-Tera", "Teal-Tera"].includes(
+        forme
+      )
+        ? null
+        : name
+    case "Eiscue":
+    case "Cramorant":
+    case "Mimikyu":
+    case "Palafin":
+    case "Meloetta":
+    case "Morpeko": {
+      return name
+    }
+    default:
+      return null
+  }
+}
+
 export function extract(obs: Observer) {
   const gen = new Generations(Dex).get(9)
   const stats = new Stats(Dex)

@@ -1,7 +1,7 @@
-import { Generation, Move, Specie } from "@pkmn/data"
-import { Observer } from "./parse/observer.js"
+import { Generation, Move } from "@pkmn/data"
+import { Observer } from "./observer.js"
 
-export function isPressureMove({ target, flags: { mustpressure } }: Move) {
+export function isPressured({ target, flags: { mustpressure } }: Move) {
   return (
     [
       "adjacentFoe",
@@ -16,32 +16,8 @@ export function isPressureMove({ target, flags: { mustpressure } }: Move) {
   )
 }
 
-export function toTransitionaryForme({ baseSpecies, forme, name }: Specie) {
-  switch (baseSpecies) {
-    case "Minior": {
-      return forme === "Meteor" ? name : baseSpecies
-    }
-    case "Terapagos":
-      return forme === "Stellar" ? null : name
-    case "Shaymin":
-      return forme === "Sky" ? null : name
-    case "Ogerpon":
-      return ["Cornerstone-Tera", "Wellspring-Tera", "Hearthflame-Tera", "Teal-Tera"].includes(
-        forme
-      )
-        ? null
-        : name
-    case "Eiscue":
-    case "Cramorant":
-    case "Mimikyu":
-    case "Palafin":
-    case "Meloetta":
-    case "Morpeko": {
-      return name
-    }
-    default:
-      return null
-  }
+export function isLocked({ self }: Move) {
+  return self?.volatileStatus === "lockedmove"
 }
 
 export function availableMoves(gen: Generation, obs: Observer): string[] {

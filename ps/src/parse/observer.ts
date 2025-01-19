@@ -14,7 +14,7 @@ import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS } from "./species.js"
 import { Ally, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
 import { AllyUser, FoeUser, getMaxPP, MoveSet, User } from "./user.js"
-import { isPressureMove } from "../battle.js"
+import { isLocked, isPressured } from "./move.js"
 
 type Label = {
   species: string
@@ -102,6 +102,10 @@ export class Observer {
         }
 
         break
+      }
+      case "": {
+      }
+      case "immune": {
       }
       case "-ability": {
         p = piped(line, p.i, 2)
@@ -285,68 +289,52 @@ export class Observer {
         const user = this.member(this.label(p.args[0]))
         const name = p.args[1]
 
-        const { pov } = user
+        const { pov, volatiles, status } = user
+        const move = this.gen.moves.get(name)!
 
-        const { volatiles, status } = user
+        p = piped(line, p.i, -1)
+        const { from, notarget, miss } = parseTags(p.args)
+        const effect = parseEffect(from)
 
         let deductPP = true
+        user.lastMove = name
 
-        {
-          p = piped(line, p.i, -1)
-          const { from, notarget, miss } = parseTags(p.args)
-          user.lastMove = name
+        for (const name in volatiles) {
+          if (volatiles[name].singleMove) delete volatiles[name]
+        }
 
-          for (const name in volatiles) {
-            if (volatiles[name].singleMove) delete volatiles[name]
-          }
+        if (status?.attempt) status.attempt++
 
-          if (status?.attempt) status.attempt++
+        if (effect.move) deductPP = false
 
-          const effect = parseEffect(from)
+        if (effect.ability) {
+          user.setAbility(effect.ability)
+          deductPP = false
+        }
 
-          if (effect.move) deductPP = false
-
-          if (effect.ability) {
-            user.setAbility(effect.ability)
-            deductPP = false
-          }
-
-          if (miss === undefined) {
-            switch (name) {
-              case "Petal Dance":
-              case "Outrage": {
-                if (from !== "lockedmove" && notarget === undefined) {
-                  volatiles["Locked Move"] = { attempt: 0, name }
-                }
-
-                if (from === "lockedmove") {
-                  const n = volatiles["Locked Move"]!.attempt++
-                  if (n === 2) delete volatiles["Locked Move"]
-
-                  deductPP = false
-                }
-                break
-              }
-              case "Wish": {
-                this[pov].wish = 0
-              }
-            }
+        if (isLocked(move)) {
+          if (from === "lockedmove") {
+            const n = volatiles["Locked Move"]!.attempt++
+            if (n == 2) delete volatiles["Locked Move"]
+          } else {
+            volatiles["Locked Move"] = { attempt: 0, name }
           }
         }
 
-        if (!volatiles["Choice Locked"] && user.item && CHOICE_ITEMS.includes(user.item)) {
+        if (user.item && CHOICE_ITEMS.includes(user.item)) {
           volatiles["Choice Locked"] = { name }
         }
 
-        const moveData = this.gen.moves.get(name)!
+        if (notarget != null || miss != null) user.disrupted()
+        if (name === "Wish") this[pov].wish = 0
 
         if (deductPP) {
           const slot = (user.moveSet[name] = user.moveSet[name] ?? {
             used: 0,
-            max: getMaxPP(moveData)
+            max: getMaxPP(move)
           })
 
-          slot.used += isPressureMove(moveData) ? 2 : 1
+          slot.used += isPressured(move) ? 2 : 1
         }
 
         break
@@ -378,17 +366,15 @@ export class Observer {
         if (hp) user.hp = hp
         else user.hp[0] = 0
 
-        {
-          p = piped(line, p.i, -1)
+        p = piped(line, p.i, -1)
 
-          const { from, of } = parseTags(p.args)
+        const { from, of } = parseTags(p.args)
 
-          const { item, ability } = parseEffect(from)
-          const target = of ? this.member(this.label(of)) : user
+        const { item, ability } = parseEffect(from)
+        const target = of ? this.member(this.label(of)) : user
 
-          if (ability) target.setAbility(ability)
-          if (item) target.setItem(item)
-        }
+        if (ability) target.setAbility(ability)
+        if (item) target.setItem(item)
 
         break
       }
