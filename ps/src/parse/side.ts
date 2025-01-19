@@ -26,4 +26,6 @@ export type Foe = {
   wish?: number
 }
 
-export type Party = Ally | Foe
+export const HAZARDS = ["Sticky Web", "Toxic Spikes", "Stealth Rock", "Spikes"]
+
+export type Side = Ally | Foe

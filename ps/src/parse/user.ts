@@ -73,7 +73,7 @@ export type Flags = {
 export type Status = {
   id: StatusId
   turn?: number
-  move?: number
+  attempt?: number
 }
 
 export class AllyUser {

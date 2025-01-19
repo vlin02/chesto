@@ -12,10 +12,9 @@ import {
 } from "./protocol.js"
 import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS } from "./species.js"
-import { Ally, Foe, OPP, POV, POVS } from "./party.js"
+import { Ally, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
 import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
 import { isPressureMove } from "../battle.js"
-import { HAZARDS } from "./battle.js"
 
 export function getMaxPP({ noPPBoosts, pp }: Move) {
   return noPPBoosts ? pp : Math.floor(pp * 1.6)
@@ -255,7 +254,7 @@ export class Observer {
         user.status = {
           id,
           turn: id === "tox" ? 0 : undefined,
-          move: id === "slp" ? 0 : undefined
+          attempt: id === "slp" ? 0 : undefined
         }
 
         {
@@ -305,7 +304,7 @@ export class Observer {
             if (volatiles[name].singleMove) delete volatiles[name]
           }
 
-          if (status?.move) status.move++
+          if (status?.attempt) status.attempt++
 
           const effect = parseEffect(from)
 
@@ -325,7 +324,9 @@ export class Observer {
                 }
 
                 if (from === "lockedmove") {
-                  volatiles["Locked Move"]
+                  const n = volatiles["Locked Move"]!.attempt++
+                  if (n === 2) delete volatiles["Locked Move"]
+
                   deductPP = false
                 }
                 break
@@ -745,14 +746,11 @@ export class Observer {
       case "-end": {
         p = piped(line, p.i, 2)
         const user = this.member(this.label(p.args[0]))
-
         let { stripped: name } = parseEffect(p.args[1])
 
         const { volatiles } = user
 
-        if (name.startsWith("fallen")) {
-          name = "Fallen"
-        }
+        if (name.startsWith("fallen")) name = "Fallen"
 
         delete volatiles[name]
         break
@@ -816,28 +814,24 @@ export class Observer {
           const { fields: conditions } = side
 
           const {
-            active: { lastBerry, lastMove, volatiles, status }
+            active: { lastBerry, volatiles, status }
           } = side
 
           if (lastBerry) lastBerry.turn++
-
           if (status?.turn !== undefined) status.turn++
+          if (side.wish) side.wish++
 
           for (const name in volatiles) {
             if (volatiles[name].turn !== undefined) volatiles[name].turn++
             if (volatiles[name].singleTurn) delete volatiles[name]
           }
 
-          if (volatiles["Recharge"]?.turn === 2) delete volatiles["Recharge"]
-
           for (const name in conditions) {
             if (conditions[name].turn !== undefined) conditions[name].turn++
           }
 
-          if (side.wish) {
-            if (side.wish === 0) side.wish++
-            else delete side.wish
-          }
+          if (volatiles["Recharge"]?.turn === 2) delete volatiles["Recharge"]
+          if (side.wish === 2) delete side.wish
         }
 
         return "turn"
