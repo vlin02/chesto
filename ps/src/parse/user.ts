@@ -1,7 +1,10 @@
-import { Generation, TypeName } from "@pkmn/data"
+import { Generation, Move, TypeName } from "@pkmn/data"
 import { StatusId, Gender, BoostId, StatId } from "./species.js"
 import { Member, parseHp, parseLabel, parseTraits, Traits } from "./protocol.js"
-import { getMaxPP } from "./observer.js"
+
+export function getMaxPP({ noPPBoosts, pp }: Move) {
+  return noPPBoosts ? pp : Math.floor(pp * 1.6)
+}
 
 export type Boosts = {
   [k in BoostId]?: number

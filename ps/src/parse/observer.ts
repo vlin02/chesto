@@ -1,4 +1,4 @@
-import { Generation, Move } from "@pkmn/data"
+import { Generation } from "@pkmn/data"
 import {
   ChoiceRequest,
   parseEffect,
@@ -13,12 +13,8 @@ import {
 import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS } from "./species.js"
 import { Ally, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
-import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
+import { AllyUser, FoeUser, getMaxPP, MoveSet, User } from "./user.js"
 import { isPressureMove } from "../battle.js"
-
-export function getMaxPP({ noPPBoosts, pp }: Move) {
-  return noPPBoosts ? pp : Math.floor(pp * 1.6)
-}
 
 type Label = {
   species: string
@@ -500,7 +496,7 @@ export class Observer {
         const { pov, volatiles } = user
 
         let ability
-        let moves: string[] = []
+        let moveNames: string[] = []
         if (pov === "ally") {
           const {
             side: { pokemon: members }
@@ -508,32 +504,33 @@ export class Observer {
 
           const member = members.find((x) => this.label(x.ident).species === user.species)!
           ability = this.gen.abilities.get(member.ability)!.name
-          moves = member.moves.map((x) => this.gen.moves.get(x)!.name)
 
           const { baseMoveSet } = into
+          const moves = member.moves.map((id) => this.gen.moves.get(id)!)
 
           into.setAbility(ability)
           for (const move of moves) {
-            const d = this.gen.moves.get(move)!
-            baseMoveSet[d.name] = baseMoveSet[d.name] ?? {
+            const { name } = move
+            baseMoveSet[name] = baseMoveSet[name] ?? {
               used: 0,
-              max: getMaxPP(d)
+              max: getMaxPP(move)
             }
           }
         } else {
           const user = into as AllyUser
           ability = user.ability
-          for (const name in user.baseMoveSet) moves.push(name)
+          moveNames = Object.keys(user.baseMoveSet)
         }
 
-        const { species, gender, boosts } = into
         const moveSet: MoveSet = {}
-        for (const move of moves) {
-          moveSet[move] = {
+        for (const name of moveNames) {
+          moveSet[name] = {
             used: 0,
             max: 5
           }
         }
+
+        const { species, gender, boosts } = into
 
         volatiles["Transform"] = {
           into,
