@@ -81,7 +81,7 @@ export class Observer {
 
           this.ally = { fields: {}, team: {} } as Ally
 
-          for (let member of members) {
+          for (const member of members) {
             const user = new AllyUser(this.gen, member)
             if (member.active) this.ally.active = user
             const { species } = user
@@ -102,10 +102,6 @@ export class Observer {
         }
 
         break
-      }
-      case "": {
-      }
-      case "immune": {
       }
       case "-ability": {
         p = piped(line, p.i, 2)
@@ -315,7 +311,7 @@ export class Observer {
         if (isLocked(move)) {
           if (from === "lockedmove") {
             const n = volatiles["Locked Move"]!.attempt++
-            if (n == 2) delete volatiles["Locked Move"]
+            if (n === 2) delete volatiles["Locked Move"]
           } else {
             volatiles["Locked Move"] = { attempt: 0, name }
           }
@@ -339,7 +335,7 @@ export class Observer {
 
         break
       }
-      case "immune":
+      case "-immune":
         p = piped(line, p.i)
         const { pov } = this.member(this.label(p.args[0]))
 
