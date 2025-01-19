@@ -26,7 +26,7 @@ export type AllyUser = {
   ability: string
   item: string | null
   stats: { [k in StatId]: number }
-  moveset: MoveSet
+  moveSet: MoveSet
   status?: Status
   teraType: TypeName
   flags: Flags
@@ -55,7 +55,7 @@ export type FoeUser = {
     item?: string
   }
   status?: Status
-  moveset: MoveSet
+  moveSet: MoveSet
   flags: Flags
   lastMove?: string
   lastBerry?: {

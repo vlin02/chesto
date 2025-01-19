@@ -1,7 +1,7 @@
 import { TypeName } from "@pkmn/data"
 import { BoostId, Gender, StatId } from "./dex.js"
 import { User } from "./user.js"
-import { MoveSlot } from "./move.js"
+import { MoveSet } from "./move.js"
 
 export type Boosts = {
   [k in BoostId]?: number
@@ -28,18 +28,16 @@ export type Volatiles = {
   "Transform"?: {
     into: User
     ability: string | null
-    moveset: {
-      [k: string]: MoveSlot
-    }
+    moveSet: MoveSet
     boosts: Boosts
     gender: Gender
     species: string
   }
   "Choice Locked"?: {
-    move: string
+    name: string
   }
   "Locked Move"?: {
-    move: string
+    name: string
     turn: number
   }
   "Protosynthesis"?: {

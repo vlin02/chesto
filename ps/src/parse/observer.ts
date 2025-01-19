@@ -15,7 +15,6 @@ import { StatusId, StatId, BoostId, CHOICE_ITEMS, HAZARDS } from "./dex.js"
 import { Ally, Foe, OPP, POV, POVS } from "./party.js"
 import { AllyUser, User, FoeUser } from "./user.js"
 import { MoveSet } from "./move.js"
-import { Volatiles } from "./volatile.js"
 
 type Label = {
   species: string
@@ -37,7 +36,7 @@ function isPressureMove({ target, flags: { mustpressure } }: Move) {
   )
 }
 
-function maxPP({ noPPBoosts, pp }: Move) {
+function getMaxPP({ noPPBoosts, pp }: Move) {
   return noPPBoosts ? pp : Math.floor(pp * 1.6)
 }
 
@@ -79,8 +78,8 @@ export class Observer {
     return user
   }
 
-  moveset(user: User) {
-    return user.volatiles["Transform"]?.moveset ?? user.moveset
+  moveSet(user: User) {
+    return user.volatiles["Transform"]?.moveSet ?? user.moveSet
   }
 
   setAbility(user: User, ability: string) {
@@ -112,7 +111,6 @@ export class Observer {
   }
 
   read(line: string) {
-    const { gen } = this
     if (line[0] !== "|") return
 
     let p: { args: string[]; i: number }
@@ -151,11 +149,12 @@ export class Observer {
               ability = "Imposter"
             }
 
-            const volatiles: Volatiles = {}
-            const moveset = new MoveSet(volatiles)
-
+            const moveSet: MoveSet = {}
             for (const name of moves) {
-              moveset.add(name, maxPP(gen.moves.get(name)!))
+              moveSet[name] = {
+                used: 0,
+                max: getMaxPP(this.gen.moves.get(name)!)
+              }
             }
 
             const party = { fields: {}, team: {} } as Ally
@@ -173,8 +172,8 @@ export class Observer {
               item: item ? this.gen.items.get(item)!.name : "Leftovers",
               stats,
               hp: parseHp(condition)!,
-              volatiles,
-              moveset: moveset,
+              volatiles: {},
+              moveSet,
               boosts: {},
               tera: false
             })
@@ -191,7 +190,7 @@ export class Observer {
             this.ally.active.volatiles["Locked Move"] &&
             !(
               active[0].moves.length === 1 &&
-              active[0].moves[0].move === this.ally.active.volatiles["Locked Move"].move
+              active[0].moves[0].move === this.ally.active.volatiles["Locked Move"].name
             )
           ) {
             delete this.ally.active.volatiles["Locked Move"]
@@ -271,7 +270,7 @@ export class Observer {
             lvl,
             gender,
             hp,
-            moveset: {},
+            moveSet: {},
             initial: {
               formeId: this.gen.species.get(forme)!.id
             }
@@ -386,19 +385,18 @@ export class Observer {
       case "move": {
         p = piped(line, p.i, 3)
         const user = this.member(this.label(p.args[0]))
-        const move = p.args[1]
-        const target = this.foe.active
+        const name = p.args[1]
 
         const { pov } = user
 
-        const { volatiles, status, moveset: moveSet } = user
+        const { volatiles, status } = user
 
         let deductPP = true
 
         {
           p = piped(line, p.i, -1)
           const { from, notarget, miss } = parseTags(p.args)
-          user.lastMove = move
+          user.lastMove = name
 
           for (const name in volatiles) {
             if (volatiles[name].singleMove) delete volatiles[name]
@@ -408,9 +406,7 @@ export class Observer {
 
           const effect = parseEffect(from)
 
-          if (effect.move) {
-            deductPP = false
-          }
+          if (effect.move) deductPP = false
 
           if (effect.ability) {
             this.setAbility(user, effect.ability)
@@ -418,11 +414,11 @@ export class Observer {
           }
 
           if (miss === undefined) {
-            switch (move) {
+            switch (name) {
               case "Petal Dance":
               case "Outrage": {
                 if (from !== "lockedmove" && notarget === undefined) {
-                  volatiles["Locked Move"] = { turn: 0, move }
+                  volatiles["Locked Move"] = { turn: 0, name }
                 }
                 if (from === "lockedmove") deductPP = false
                 break
@@ -435,19 +431,17 @@ export class Observer {
         }
 
         if (!volatiles["Choice Locked"] && user.item && CHOICE_ITEMS.includes(user.item)) {
-          volatiles["Choice Locked"] = { move }
+          volatiles["Choice Locked"] = { name }
         }
-        if (deductPP)
-          moveSet.add(
-            target?.ability === "Pressure" && isPressureMove(this.gen.moves.get(move)!) ? 2 : 1
-          )
 
-        break
-      }
-      case "cant": {
-        p = piped(line, p.i, 2)
-        const { lastMove } = this.member(this.label(p.args[0]))
-        if (lastMove) lastMove.failed = true
+        const moveData = this.gen.moves.get(name)!
+        const slot = this.moveSet(user)[name] ?? {
+          used: 0,
+          max: getMaxPP(moveData)
+        }
+
+        slot.used += isPressureMove(moveData) ? 2 : 1
+
         break
       }
       case "-heal":
@@ -466,14 +460,6 @@ export class Observer {
         // berries already include an -enditem
         if (item === "Leftovers") this.setItem(user, item)
 
-        break
-      }
-      case "-immune": {
-        p = piped(line, p.i)
-        const { pov } = this.member(this.label(p.args[0]))
-        const { active } = this[OPP[pov]]
-
-        if (active.lastMove) active.lastMove.failed = true
         break
       }
       case "-damage": {
@@ -614,7 +600,7 @@ export class Observer {
           moves = pkmn.moves.map((x) => this.gen.moves.get(x)!.name)
 
           {
-            const { moveset: moveset } = into
+            const { moveSet: moveset } = into
 
             into.ability = ability
             for (const move of moves) moveset[move] = moveset[move] ?? 0
@@ -622,16 +608,23 @@ export class Observer {
         } else {
           const user = into as AllyUser
           ability = user.ability
-          moves = Object.keys(user.moveset)
+          moves = Object.keys(user.moveSet)
         }
 
         const { species, gender, boosts } = into
+        const moveSet: MoveSet = {}
+        for (const move in moves) {
+          moveSet[move] = {
+            used: 0,
+            max: 5
+          }
+        }
 
         volatiles["Transform"] = {
           into,
           species,
           gender,
-          moveset: Object.fromEntries(moves.map((x) => [x, 0])),
+          moveSet,
           ability,
           boosts: { ...boosts }
         }
@@ -700,7 +693,7 @@ export class Observer {
             case "Encore": {
               volatiles[name] = {
                 turn: 0,
-                move: user.lastMove!.name
+                move: user.lastMove!
               }
               break
             }
@@ -761,8 +754,7 @@ export class Observer {
       case "-activate": {
         p = piped(line, p.i, 2)
         const user = this.member(this.label(p.args[0]))
-        const { party } = user
-        const opp = OPP[pov]
+        const { pov } = user
 
         let { ability, item, move, stripped } = parseEffect(p.args[1])
 
@@ -772,7 +764,7 @@ export class Observer {
           switch (item) {
             case "Leppa Berry": {
               p = piped(line, p.i, 1)
-              user.moveset[p.args[0]] = 0
+              user.moveSet[p.args[0]].used = 0
               break
             }
           }
@@ -841,7 +833,7 @@ export class Observer {
               lvl,
               gender,
               hp: [100, 100],
-              moveset: {},
+              moveSet: {},
               volatiles: {},
               boosts: {},
               tera: false,
@@ -949,8 +941,6 @@ export class Observer {
           for (const name in volatiles) {
             if (volatiles[name]?.turn !== undefined) volatiles[name].turn++
             if (volatiles[name].singleTurn) delete volatiles[name]
-
-            if (name === "Locked Move" && lastMove?.failed) delete volatiles[name]
           }
 
           for (const name in conditions) {

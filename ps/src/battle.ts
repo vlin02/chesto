@@ -34,7 +34,6 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
 
   let {
     volatiles: {
-      "Transform": transform,
       "Encore": encore,
       "Taunt": taunt,
       "Heal Block": healBlock,
@@ -48,26 +47,23 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
     lastMove
   } = active
 
-  const transformed = !!transform
-  const moveset = obs.moveset(active)
+  const moveSet = obs.moveSet(active)
 
   if (recharge) return ["Recharge"]
 
   const available = []
 
   if (lockedMove) {
-    available.push(lockedMove.move)
+    available.push(lockedMove.name)
   } else {
-    for (const name in moveset) {
+    for (const name in moveSet) {
       const {
-        pp,
         category,
-        noPPBoosts,
         flags: { heal, sound }
       } = gen.moves.get(name)!
-      if (moveset[name] >= (transformed ? 5 : Math.floor((noPPBoosts ? 1 : 1.6) * pp))) {
-        continue
-      }
+
+      const { used, max } = moveSet[name]
+      if (used >= max) continue
 
       switch (name) {
         case "Stuff Cheeks": {
@@ -76,36 +72,29 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
         }
         case "Gigaton Hammer":
         case "Blood Moon": {
-          if (lastMove?.name === name) continue
+          if (lastMove === name) continue
         }
       }
 
       if (disable?.move === name) {
-        // console.log("=== name")
         continue
       }
-      if (choiceLocked && name !== choiceLocked.move) {
-        // console.log("choice")
+      if (choiceLocked && name !== choiceLocked.name) {
         continue
       }
       if (encore && name !== encore.move) {
-        // console.log(".move")
         continue
       }
       if (taunt && category === "Status") {
-        // console.log("Status")
         continue
       }
       if (healBlock && heal) {
-        // console.log("&& heal")
         continue
       }
       if (throatChop && sound) {
-        // console.log("&& sound")
         continue
       }
       if (item === "Assault Vest" && category === "Status") {
-        // console.log("=== 0")
         continue
       }
 
