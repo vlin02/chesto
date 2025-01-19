@@ -122,7 +122,7 @@ export class AllyUser {
     const { gender, lvl, forme } = parseTraits(details)
 
     if (species === "Ditto") {
-      moveIds = ["Transform"]
+      moveIds = ["transform"]
       baseAbility = "Imposter"
     }
 

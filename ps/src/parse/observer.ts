@@ -146,6 +146,8 @@ export class Observer {
           const target = this.member(this.label(of))
 
           user.volatiles["Trace"] = { ability }
+          user.base.ability = "Trace"
+          
           this.setAbility(target, ability)
         } else {
           this.setAbility(user, ability)
@@ -156,7 +158,9 @@ export class Observer {
       case "faint": {
         p = piped(line, p.i)
         const user = this.member(this.label(p.args[0]))
+
         user.tera = false
+        user.hp[0] = 0
         break
       }
       case "switch":
@@ -703,6 +707,13 @@ export class Observer {
           name: forme,
           reverts: false
         }
+
+        if (forme === "Terapagos-Terastal") {
+          user.base.ability = "Tera Shell"
+        } else if (forme === "Terapagos-Stellar") {
+          user.base.ability = "Teraform Zero"
+        }
+
         break
       }
       case "-activate": {
@@ -810,13 +821,7 @@ export class Observer {
         user.volatiles[name] = { singleMove: true }
         break
       }
-      case "faint": {
-        p = piped(line, p.i)
-        const user = this.member(this.label(p.args[0]))
-        user.hp[0] = 0
 
-        break
-      }
       case "-sidestart": {
         p = piped(line, p.i, 2)
         const { pov } = this.label(p.args[0])
