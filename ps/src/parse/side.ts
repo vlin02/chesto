@@ -13,6 +13,8 @@ export type Fields = {
 }
 
 export type Ally = {
+  teraUsed: boolean
+  tera?: AllyUser
   fields: Fields
   active: AllyUser
   team: { [k: string]: AllyUser }
@@ -20,6 +22,8 @@ export type Ally = {
 }
 
 export type Foe = {
+  teraUsed: boolean
+  tera?: FoeUser
   fields: Fields
   active: FoeUser
   team: { [k: string]: FoeUser }

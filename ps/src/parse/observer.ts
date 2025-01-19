@@ -59,15 +59,19 @@ export class Observer {
     return user
   }
 
-  switchIn(user: User) {
+  switchOut(user: User) {
     user.volatiles = {}
     user.boosts = {}
     delete user.lastBerry
     delete user.lastMove
   }
 
-  setAbility({ base }: User, ability: string) {
-    base.ability = base.ability ?? ability
+  setAbility({ forme, volatiles, base }: User, ability: string) {
+    // As One is treated as two abilities, with separate messages
+    if (["Calyrex-Shadow", "Calyrex-Ice"].includes(forme)) return
+    if (volatiles["Trace"] || volatiles["Transform"]) return
+
+    base.ability = ability
   }
 
   setItem(user: User, item: string | null) {
@@ -102,7 +106,7 @@ export class Observer {
           this.side = id
           this.name = name
 
-          this.ally = { fields: {}, team: {} } as Ally
+          this.ally = { fields: {}, team: {}, teraUsed: false } as Ally
 
           for (const member of members) {
             const user = new AllyUser(this.gen, member)
@@ -149,6 +153,12 @@ export class Observer {
 
         break
       }
+      case "faint": {
+        p = piped(line, p.i)
+        const user = this.member(this.label(p.args[0]))
+        user.tera = false
+        break
+      }
       case "switch":
       case "drag": {
         {
@@ -186,10 +196,19 @@ export class Observer {
           user = this.member(label)
         } else {
           const team = this.foe?.team ?? {}
-          user = team[species] = team[species] ?? new FoeUser(this.gen, species, traits)
+          user = team[species]
+          if (!user) {
+            user = team[species] = new FoeUser(this.gen, species, traits)
+
+            const { forme, base } = user
+            base.ability = {
+              "Calyrex-Ice": "As One (Glastrier)",
+              "Calyrex-Shadow": "As One (Spectrier)"
+            }[forme]
+          }
 
           if (!this.foe) {
-            this.foe = { fields: {}, team: { [species]: user }, active: user }
+            this.foe = { fields: {}, team: { [species]: user }, active: user, teraUsed: true }
           }
         }
 
@@ -211,7 +230,7 @@ export class Observer {
           user.volatiles["Substitute"] = prev.volatiles["Substitute"]
         }
 
-        this.switchIn(prev)
+        this.switchOut(prev)
 
         this[pov].active = user
         break
@@ -648,7 +667,9 @@ export class Observer {
       case "-terastallize": {
         p = piped(line, p.i, 2)
         const user = this.member(this.label(p.args[0]))
+        const { pov } = user
 
+        this[pov].teraUsed = false
         user.tera = true
         break
       }

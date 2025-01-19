@@ -202,8 +202,8 @@ export class FoeUser {
   }
   volatiles: Volatiles
   boosts: Boosts
-  tera: boolean
   clone: () => FoeUser
+  tera: boolean
 
   constructor(gen: Generation, species: string, traits: Traits) {
     this.clone = () => {
@@ -223,8 +223,8 @@ export class FoeUser {
     }
     this.volatiles = {}
     this.boosts = {}
-    this.tera = false
     this.flags = {}
+    this.tera = false
   }
 
   get ability() {
