@@ -703,11 +703,11 @@ export class Observer {
         }
 
         if (forme === "Terapagos-Terastal") {
-          user.base.ability = "Tera Shell"
+          user.ability = "Tera Shell"
         } else if (forme === "Terapagos-Stellar") {
-          user.base.ability = "Teraform Zero"
+          user.ability = "Teraform Zero"
         } else if (forme === "Shaymin") {
-          user.base.ability = "Natural Cure"
+          user.ability = "Natural Cure"
         }
 
         break

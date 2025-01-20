@@ -43,7 +43,7 @@ export type Volatiles = {
     moveSet: MoveSet
     boosts: Boosts
     gender: Gender
-    species: string
+    forme: string
   }
   "Choice Locked"?: {
     name: string
@@ -149,18 +149,18 @@ export class AllyUser {
   }
 
   get current() {
-    let { volatiles, ability, gender, species, forme, moveSet } = this
+    let { volatiles, ability, gender, forme, moveSet, formeChange } = this
     const { Transform: transform, Trace: trace } = volatiles
 
     const base = transform ?? {
       ability,
       moveSet,
       gender,
-      forme,
-      species
+      forme
     }
 
     if (trace) base.ability = trace.ability
+    if (formeChange) base.forme = formeChange.name
 
     return base
   }
@@ -210,18 +210,18 @@ export class FoeUser {
   }
 
   get current() {
-    let { volatiles, ability, gender, species, forme, moveSet } = this
+    let { volatiles, ability, gender, forme, moveSet, formeChange } = this
     const { Transform: transform, Trace: trace } = volatiles
 
     const base = transform ?? {
       ability,
       moveSet,
       gender,
-      forme,
-      species
+      forme
     }
 
     if (trace) base.ability = trace.ability
+    if (formeChange) base.forme = formeChange.name
 
     return base
   }
