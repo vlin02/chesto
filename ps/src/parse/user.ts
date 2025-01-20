@@ -167,7 +167,7 @@ export class AllyUser {
       volatiles,
       base: { ability }
     } = this
-    return volatiles["Transform"]?.ability ?? volatiles["Trace"]?.ability ?? ability
+    return volatiles["Trace"]?.ability ?? volatiles["Transform"]?.ability ?? ability
   }
 
   get moveSet() {
@@ -233,7 +233,7 @@ export class FoeUser {
       base: { ability }
     } = this
 
-    return volatiles["Transform"]?.ability ?? volatiles["Trace"]?.ability ?? ability
+    return volatiles["Trace"]?.ability ?? volatiles["Transform"]?.ability ?? ability
   }
 
   get forme() {
