@@ -658,7 +658,8 @@ export class Observer {
 
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
-        if (fatigue !== undefined) delete volatiles["Locked Move"]
+
+        if (fatigue != null) delete volatiles["Locked Move"]
         break
       }
       case "-terastallize": {
