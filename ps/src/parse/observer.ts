@@ -66,18 +66,20 @@ export class Observer {
     delete user.lastMove
   }
 
-  setAbility({ forme, volatiles, base }: User, ability: string) {
+  setAbility(user: User, ability: string) {
+    const { volatiles, base } = user
     // As One is treated as two abilities, with separate messages
-    if (["Calyrex-Shadow", "Calyrex-Ice"].includes(forme)) return
-    ;(volatiles["Trace"] ?? volatiles["Transform"] ?? base).ability = ability
+    if (user.ability?.startsWith("As One")) return
+    if (volatiles["Trace"] || volatiles["Transform"]) return
+
+    base.ability = ability
   }
 
   setItem(user: User, item: string | null) {
     user.item = item
     if (user.pov === "ally") return
 
-    const { base } = user
-    base.item = base.item ?? item ?? undefined
+    user.firstItem = user.firstItem ?? item ?? undefined
   }
 
   disrupt(user: User) {
@@ -564,18 +566,19 @@ export class Observer {
           moves = Object.keys(user.moveSet)
         }
 
-        const { species, gender, boosts } = into
+        const { boosts } = into
+        const { forme, gender } = into.base
 
         this.setAbility(from, "Imposter")
 
         volatiles["Transform"] = {
-          user: into,
-          species,
+          forme,
           gender,
           ability,
           moveSet: Object.fromEntries(moves.map((x) => [x, { used: 0, max: 5 }])),
           boosts: { ...boosts }
         }
+
         break
       }
       case "-start": {
@@ -679,7 +682,7 @@ export class Observer {
         // Shaymin emits both a forme & detailchange. ignore forme.
         if (forme !== "Shaymin") {
           user.formeChange = {
-            name: forme,
+            forme: forme,
             reverts: true
           }
         }
@@ -698,17 +701,17 @@ export class Observer {
         const { forme } = parseTraits(p.args[1])
 
         user.formeChange = {
-          name: forme,
+          forme: forme,
           reverts: false
         }
 
-        if (forme === "Terapagos-Terastal") {
-          user.ability = "Tera Shell"
-        } else if (forme === "Terapagos-Stellar") {
-          user.ability = "Teraform Zero"
-        } else if (forme === "Shaymin") {
-          user.ability = "Natural Cure"
-        }
+        const ability = {
+          "Terapagos-Terastal": "Tera Shell",
+          "Terapagos-Stellar": "Teraform Zero",
+          "Shaymin": "Natural Cure"
+        }[forme]
+
+        if (ability) this.setAbility(user, ability)
 
         break
       }
@@ -773,16 +776,17 @@ export class Observer {
         if (pov === "foe") {
           const { forme, lvl, gender } = parseTraits(p.args[1])
 
-          const { team } = this.foe
-          const { active: user } = this.foe
-          team[user.species] = user.clone()
+          const { team, active: from } = this.foe
+          const { base } = from
 
-          user.species = species
-          user.base.forme = forme
-          user.lvl = lvl
-          user.gender = gender
-          user.base.forme = this.gen.species.get(forme)!.id
-          team[species] = user
+          team[from.species] = from.clone()
+
+          from.lvl = lvl
+          from.species = species
+          base.forme = forme
+          base.gender = gender
+
+          team[species] = from
         } else {
           delete this.illusion
         }
