@@ -69,7 +69,11 @@ export class Observer {
   setAbility(user: User, ability: string) {
     const { volatiles, base } = user
     // As One is treated as two abilities, with separate messages
-    if (user.ability?.startsWith("As One")) return
+    if (
+      user.ability?.startsWith("As One") &&
+      ["Unnerve", "Chilling Neigh", "Grim Neight"].includes(ability)
+    )
+      return
     if (volatiles["Trace"] || volatiles["Transform"]) return
 
     base.ability = ability
@@ -145,7 +149,7 @@ export class Observer {
         if (effect.ability === "Trace") {
           const target = this.user(this.label(of))
 
-          this.setAbility(user, effect.ability)
+          this.setAbility(user, "Trace")
           user.volatiles["Trace"] = { ability }
 
           this.setAbility(target, ability)
@@ -299,23 +303,20 @@ export class Observer {
         const user = this.user(this.label(p.args[0]))
         const id = p.args[1] as StatusId
 
+        p = piped(line, p.i, -1)
+        const { from, of } = parseTags(p.args)
+
         user.status = {
           id,
           turn: id === "tox" ? 0 : undefined,
           attempt: id === "slp" ? 0 : undefined
         }
 
-        {
-          p = piped(line, p.i, -1)
+        const src = of ? this.user(this.label(of)) : user
+        const { ability, item } = parseEffect(from)
 
-          const { from, of } = parseTags(p.args)
-
-          const src = of ? this.user(this.label(of)) : user
-          const { ability, item } = parseEffect(from)
-
-          if (item) this.setItem(src, item)
-          if (ability) this.setAbility(src, ability)
-        }
+        if (item) this.setItem(src, item)
+        if (ability) this.setAbility(src, ability)
         break
       }
       case "-curestatus": {

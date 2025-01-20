@@ -151,7 +151,7 @@ export class AllyUser {
     this.boosts = {}
     this.tera = false
   }
-
+  
   get moveSet() {
     const { volatiles, base } = this
     return (volatiles["Transform"] ?? base).moveSet
