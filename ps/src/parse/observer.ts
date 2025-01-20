@@ -569,7 +569,7 @@ export class Observer {
         this.setAbility(from, "Imposter")
 
         volatiles["Transform"] = {
-          into,
+          user: into,
           species,
           gender,
           ability,
@@ -659,7 +659,7 @@ export class Observer {
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
 
-        if (fatigue != null) delete volatiles["Locked Move"]
+        if (fatigue !== null) delete volatiles["Locked Move"]
         break
       }
       case "-terastallize": {

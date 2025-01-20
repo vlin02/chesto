@@ -39,7 +39,6 @@ export type Volatiles = {
     ability: string
   }
   "Transform"?: {
-    into: User
     ability: string
     moveSet: MoveSet
     boosts: Boosts
@@ -95,11 +94,9 @@ export class AllyUser {
   gender: Gender
   hp: [number, number]
   formeChange?: FormeChange
-  base: {
-    forme: string
-    ability: string
-    moveSet: MoveSet
-  }
+  forme: string
+  ability: string
+  moveSet: MoveSet
   item: string | null
   stats: { [k in StatId]: number }
   status?: Status
@@ -116,22 +113,14 @@ export class AllyUser {
 
   constructor(
     gen: Generation,
-    { ident, details, condition, stats, item, moves: moveIds, baseAbility, teraType }: Member
+    { ident, details, condition, stats, item, moves, baseAbility, teraType }: Member
   ) {
     const { species } = parseLabel(ident)
     const { gender, lvl, forme } = parseTraits(details)
 
     if (species === "Ditto") {
-      moveIds = ["transform"]
+      moves = ["transform"]
       baseAbility = "Imposter"
-    }
-
-    const moveSet: MoveSet = {}
-    for (const id of moveIds) {
-      moveSet[gen.moves.get(id)!.name] = {
-        used: 0,
-        max: getMaxPP(gen.moves.get(id)!)
-      }
     }
 
     this.pov = "ally"
@@ -141,11 +130,16 @@ export class AllyUser {
     this.lvl = lvl
     this.revealed = false
     this.teraType = teraType!
-    this.base = {
-      ability: gen.abilities.get(baseAbility)!.name,
-      forme,
-      moveSet
-    }
+
+    this.ability = gen.abilities.get(baseAbility)!.name
+    this.forme = forme
+    this.moveSet = Object.fromEntries(
+      moves.map((id) => {
+        const move = gen.moves.get(id)!
+        return [move.name, { used: 0, max: getMaxPP(move) }]
+      })
+    )
+
     this.item = item ? gen.items.get(item)!.name : "Leftovers"
     this.stats = stats
     this.hp = parseHp(condition)!
@@ -154,28 +148,21 @@ export class AllyUser {
     this.tera = false
   }
 
-  get forme() {
-    const {
-      formeChange,
-      base: { forme }
-    } = this
-    return formeChange?.name ?? forme
-  }
+  get current() {
+    let { volatiles, ability, gender, species, forme, moveSet } = this
+    const { Transform: transform, Trace: trace } = volatiles
 
-  get ability() {
-    const {
-      volatiles,
-      base: { ability }
-    } = this
-    return volatiles["Trace"]?.ability ?? volatiles["Transform"]?.ability ?? ability
-  }
+    const base = transform ?? {
+      ability,
+      moveSet,
+      gender,
+      forme,
+      species
+    }
 
-  get moveSet() {
-    const {
-      volatiles,
-      base: { moveSet }
-    } = this
-    return volatiles["Transform"]?.moveSet ?? moveSet
+    if (trace) base.ability = trace.ability
+
+    return base
   }
 }
 
@@ -186,13 +173,10 @@ export class FoeUser {
   gender: Gender
   hp: [number, number]
   item?: string | null
+  ability?: string
+  forme: string
+  moveSet: MoveSet
   formeChange?: FormeChange
-  base: {
-    forme: string
-    moveSet: MoveSet
-    ability?: string
-    item?: string
-  }
   status?: Status
   flags: Flags
   lastMove?: string
@@ -217,39 +201,29 @@ export class FoeUser {
     this.lvl = lvl
     this.gender = gender
     this.hp = [100, 100]
-    this.base = {
-      forme,
-      moveSet: {}
-    }
+    this.forme = forme
     this.volatiles = {}
     this.boosts = {}
     this.flags = {}
     this.tera = false
+    this.moveSet = {}
   }
 
-  get ability() {
-    const {
-      volatiles,
-      base: { ability }
-    } = this
+  get current() {
+    let { volatiles, ability, gender, species, forme, moveSet } = this
+    const { Transform: transform, Trace: trace } = volatiles
 
-    return volatiles["Trace"]?.ability ?? volatiles["Transform"]?.ability ?? ability
-  }
+    const base = transform ?? {
+      ability,
+      moveSet,
+      gender,
+      forme,
+      species
+    }
 
-  get forme() {
-    const {
-      formeChange,
-      base: { forme }
-    } = this
-    return formeChange?.name ?? forme
-  }
+    if (trace) base.ability = trace.ability
 
-  get moveSet() {
-    const {
-      volatiles,
-      base: { moveSet }
-    } = this
-    return volatiles["Transform"]?.moveSet ?? moveSet
+    return base
   }
 }
 
