@@ -45,8 +45,9 @@ export type Volatiles = {
     gender: Gender
     forme: string
   }
+  "Pressure"?: {}
   "Choice Locked"?: {
-    name: string
+    move: string
   }
   "Locked Move"?: {
     move: string
@@ -151,7 +152,7 @@ export class AllyUser {
     this.boosts = {}
     this.tera = false
   }
-  
+
   get moveSet() {
     const { volatiles, base } = this
     return (volatiles["Transform"] ?? base).moveSet

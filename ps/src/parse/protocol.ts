@@ -27,7 +27,13 @@ export type ChoiceRequest = {
     pokemon: Member[]
   }
 } & {
-  active?: [{ moves: [{ move: string; disabled: boolean }]; trapped?: boolean }]
+  active?: [
+    {
+      moves: [{ move: string; disabled: boolean; pp: number; maxpp: number }]
+      trapped?: boolean
+      canTerastallize?: boolean
+    }
+  ]
   forceswitch?: boolean[]
   wait?: true
 }
