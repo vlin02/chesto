@@ -124,7 +124,6 @@ export class Observer {
         this.request = JSON.parse(line.slice(p.i + 1))
 
         const {
-          active: options,
           side: { id, name, pokemon: members }
         } = this.request
 
@@ -188,9 +187,13 @@ export class Observer {
       }
       case "switch":
       case "drag": {
-        {
-          const active = this.request.side.pokemon.find((x) => x.active)!
-          const { species } = this.label(active.ident)
+        p = piped(line, p.i, 3)
+        let label = this.label(p.args[0])
+        const { pov, species } = label
+
+        if (pov === "ally") {
+          const { ident } = this.request.side.pokemon.find((x) => x.active)!
+          const { species } = this.label(ident)
 
           const user = this.ally.team[species]
 
@@ -211,10 +214,6 @@ export class Observer {
             delete this.illusion
           }
         }
-
-        p = piped(line, p.i, 3)
-        let label = this.label(p.args[0])
-        const { pov, species } = label
 
         const traits = parseTraits(p.args[1])
 
