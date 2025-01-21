@@ -88,8 +88,8 @@ export function parseTags(strs: string[]) {
 
 export function parseCondition(
   s: string
-): { hp: null, status: undefined } | { hp: [number, number]; status?: StatusId } {
-  if (s.slice(-3) === "fnt") return { hp: [0, 0] }
+): { hp: null; status: undefined } | { hp: [number, number]; status?: StatusId } {
+  if (s.slice(-3) === "fnt") return { hp: null, status: undefined }
   let [frac, status] = s.split(" ")
 
   return {

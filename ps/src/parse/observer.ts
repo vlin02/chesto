@@ -195,20 +195,20 @@ export class Observer {
           const { ident } = this.request.side.pokemon.find((x) => x.active)!
           const { species } = this.label(ident)
 
-          const user = this.ally.team[species]
+          const from = this.ally.team[species]
 
           const {
             ability,
             flags: { "Illusion revealed": revealed }
-          } = user
+          } = from
 
           if (ability === "Illusion" && !revealed) {
             const target = [...this.request.side.pokemon]
               .reverse()
-              .find((x) => parseCondition(x.condition) !== null && !x.active)
+              .find((x) => parseCondition(x.condition).hp && !x.active)
             if (target) {
               const to = this.ally.team[this.label(target.ident).species]
-              this.illusion = { from: user, to }
+              this.illusion = { from, to }
             }
           } else {
             delete this.illusion
