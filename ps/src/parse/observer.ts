@@ -145,7 +145,7 @@ export class Observer {
         const { volatiles } = this.ally.active
         const { "Locked Move": lockedMove } = volatiles
 
-        if (lockedMove && checkLocked(this.request, lockedMove.move)) {
+        if (lockedMove && checkLocked(this.request, lockedMove.move) === false) {
           delete volatiles["Locked Move"]
         }
 
@@ -444,12 +444,15 @@ export class Observer {
       case "-sethp": {
         p = piped(line, p.i, 2)
         const user = this.user(this.label(p.args[0]))
-        const { hp } = parseCondition(p.args[1])
+        const { hp, status } = parseCondition(p.args[1])
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
         user.hp = hp!
+        if (user.status?.id !== status) {
+          user.status = status ? { id: status } : undefined
+        }
 
         const { ability, item, move } = parseEntity(from)
         if (ability) this.setAbility(user, ability)
@@ -720,7 +723,8 @@ export class Observer {
         const { "Locked Move": lockedMove } = volatiles
         if (fatigue != null && lockedMove) {
           const { move } = lockedMove
-          if (pov === "foe" || checkLocked(this.request, move)) delete volatiles["Locked Move"]
+          if (pov === "foe" || checkLocked(this.request, move) === false)
+            delete volatiles["Locked Move"]
         }
         break
       }
