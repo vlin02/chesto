@@ -188,6 +188,7 @@ export class Observer {
 
         user.tera = false
         user.hp[0] = 0
+        user.status = undefined
         break
       }
       case "switch":
@@ -376,6 +377,7 @@ export class Observer {
         if (notarget != null || miss != null) this.disrupt(user)
 
         let deductFrom: string | null = move
+        let choiceLockable = true
 
         switch (move) {
           case "Sleep Talk":
@@ -391,9 +393,13 @@ export class Observer {
         }
 
         if (cause.move === "Sleep Talk") deductFrom = "Sleep Talk"
+        if (cause.ability === "Magic Bounce") {
+          deductFrom = null
+          choiceLockable = false
+        }
         if (this.prevLine?.dancer) deductFrom = null
 
-        if (user.item && CHOICE_ITEMS.includes(user.item)) {
+        if (choiceLockable && user.item && CHOICE_ITEMS.includes(user.item)) {
           const locked = volatiles["Choice Locked"]?.move
           if (locked && locked !== move) deductFrom = null
           else volatiles["Choice Locked"] = { move }
@@ -711,7 +717,7 @@ export class Observer {
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
 
-        if (fatigue !== null) {
+        if (fatigue != null) {
           const { move } = volatiles["Move Locked"]!
           if (pov === "foe" || checkLocked(this.request, move)) delete volatiles["Move Locked"]
         }
