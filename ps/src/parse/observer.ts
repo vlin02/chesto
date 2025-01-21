@@ -100,7 +100,7 @@ export class Observer {
   }
 
   disrupt(user: User) {
-    delete user.volatiles["Move Locked"]
+    delete user.volatiles["Locked Move"]
   }
 
   allocateSlot(moveSet: MoveSet, move: string) {
@@ -124,7 +124,7 @@ export class Observer {
         this.request = JSON.parse(line.slice(p.i + 1))
 
         const {
-          active: choice,
+          active: options,
           side: { id, name, pokemon: members }
         } = this.request
 
@@ -143,16 +143,11 @@ export class Observer {
           }
         }
 
-        const {
-          active: { volatiles }
-        } = this.ally
+        const { volatiles } = this.ally.active
+        const { "Locked Move": lockedMove } = volatiles
 
-        if (choice && volatiles["Move Locked"]) {
-          const [{ moves }] = choice
-          const { move } = volatiles["Move Locked"]
-          if (!moves.every((x) => x.disabled || x.move === move)) {
-            delete volatiles["Move Locked"]
-          }
+        if (lockedMove && checkLocked(this.request, lockedMove.move)) {
+          delete volatiles["Locked Move"]
         }
 
         break
@@ -399,6 +394,16 @@ export class Observer {
         }
         if (this.prevLine?.dancer) deductFrom = null
 
+        if (from === "lockedmove") {
+          deductFrom = null
+          const { "Locked Move": lockedMove } = volatiles
+
+          if (lockedMove) {
+            const n = lockedMove.attempt++
+            if (n === 2) delete volatiles["Locked Move"]
+          }
+        }
+
         if (choiceLockable && user.item && CHOICE_ITEMS.includes(user.item)) {
           const locked = volatiles["Choice Locked"]?.move
           if (locked && locked !== move) deductFrom = null
@@ -414,16 +419,12 @@ export class Observer {
             (move === "Curse" ? user.types.includes("Ghost") : isPressured(this.gen, move))
               ? 2
               : 1
-        }
 
-        if (from === "lockedmove") {
-          const n = volatiles["Move Locked"]!.attempt++
-          if (n === 2) delete volatiles["Move Locked"]
-          deductFrom = null
+          user.lastMove = deductFrom
         }
 
         if (isLocking(this.gen, move) && (pov === "foe" || checkLocked(this.request, move))) {
-          volatiles["Move Locked"] = { attempt: 0, move: move }
+          volatiles["Locked Move"] = { attempt: 0, move: move }
         }
 
         break
@@ -717,9 +718,10 @@ export class Observer {
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
 
-        if (fatigue != null) {
-          const { move } = volatiles["Move Locked"]!
-          if (pov === "foe" || checkLocked(this.request, move)) delete volatiles["Move Locked"]
+        const { "Locked Move": lockedMove } = volatiles
+        if (fatigue != null && lockedMove) {
+          const { move } = lockedMove
+          if (pov === "foe" || checkLocked(this.request, move)) delete volatiles["Locked Move"]
         }
         break
       }

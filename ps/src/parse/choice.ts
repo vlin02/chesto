@@ -9,7 +9,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
       "Encore": encore,
       "Taunt": taunt,
       "Heal Block": healBlock,
-      "Move Locked": moveLocked,
+      "Locked Move": moveLocked,
       "Disable": disable,
       "Throat Chop": throatChop,
       "Recharge": recharge,

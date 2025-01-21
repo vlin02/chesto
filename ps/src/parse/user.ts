@@ -46,7 +46,7 @@ export type Volatiles = {
   "Choice Locked"?: {
     move: string
   }
-  "Move Locked"?: {
+  "Locked Move"?: {
     move: string
     attempt: number
   }
