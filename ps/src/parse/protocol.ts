@@ -92,7 +92,7 @@ export function parseHp(s: string): [number, number] | null {
   return [Number(a), Number(b)]
 }
 
-export function parseEffect(s: string | undefined) {
+export function parseEntity(s: string | undefined) {
   let item = undefined
   let ability = undefined
   let move = undefined

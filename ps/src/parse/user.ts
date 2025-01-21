@@ -1,10 +1,7 @@
-import { Generation, Move, TypeName } from "@pkmn/data"
+import { Generation, TypeName } from "@pkmn/data"
 import { StatusId, Gender, BoostId, StatId } from "./species.js"
 import { Member, parseHp, parseLabel, parseTraits, Traits } from "./protocol.js"
-
-export function getMaxPP({ noPPBoosts, pp }: Move) {
-  return noPPBoosts ? pp : Math.floor(pp * 1.6)
-}
+import { getMaxPP } from "./move.js"
 
 export type Boosts = {
   [k in BoostId]?: number
@@ -49,7 +46,7 @@ export type Volatiles = {
   "Choice Locked"?: {
     move: string
   }
-  "Locked Move"?: {
+  "Move Locked"?: {
     move: string
     attempt: number
   }

@@ -1,7 +1,7 @@
 import { Generation } from "@pkmn/data"
 import {
   ChoiceRequest,
-  parseEffect,
+  parseEntity,
   parseHp,
   parseLabel,
   parseTags,
@@ -13,12 +13,18 @@ import {
 import { WeatherName } from "@pkmn/client"
 import { StatusId, StatId, BoostId, CHOICE_ITEMS } from "./species.js"
 import { Ally, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
-import { AllyUser, FoeUser, getMaxPP, User } from "./user.js"
-import { isLocked, isPressured } from "./move.js"
+import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
+import { getMaxPP, isLocking, isPressured } from "./move.js"
+import { checkLocked } from "./request.js"
 
 type Label = {
   species: string
   pov: POV
+}
+
+type Line = {
+  dancer?: boolean
+  sleepTalk?: boolean
 }
 
 export class Observer {
@@ -40,10 +46,7 @@ export class Observer {
   fields: { [k: string]: number }
   weather?: { name: WeatherName; turn: number }
   winner?: POV
-  prev?: {
-    isDancer?: boolean
-    move?: string
-  }
+  prevLine?: Line
 
   constructor(gen: Generation) {
     this.gen = gen
@@ -97,7 +100,14 @@ export class Observer {
   }
 
   disrupt(user: User) {
-    delete user.volatiles["Locked Move"]
+    delete user.volatiles["Move Locked"]
+  }
+
+  allocateSlot(moveSet: MoveSet, move: string) {
+    return (moveSet[move] = moveSet[move] ?? {
+      used: 0,
+      max: getMaxPP(this.gen, move)
+    })
   }
 
   read(line: string) {
@@ -107,10 +117,7 @@ export class Observer {
     p = piped(line, 0)
     const msgType = p.args[0]
 
-    const next: {
-      isDancer?: boolean
-      move?: string
-    } = {}
+    const currLine: Line = {}
 
     switch (msgType) {
       case "request": {
@@ -140,11 +147,11 @@ export class Observer {
           active: { volatiles }
         } = this.ally
 
-        if (choice && volatiles["Locked Move"]) {
+        if (choice && volatiles["Move Locked"]) {
           const [{ moves }] = choice
-          const { move } = volatiles["Locked Move"]
+          const { move } = volatiles["Move Locked"]
           if (!moves.every((x) => x.disabled || x.move === move)) {
-            delete volatiles["Locked Move"]
+            delete volatiles["Move Locked"]
           }
         }
 
@@ -157,17 +164,12 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)
+        const cause = parseEntity(from)
 
-        const effect = parseEffect(from)
-        if (ability === "Intrepid Sword") {
-          user.flags[ability] = true
-        }
+        if (ability === "Intrepid Sword") user.flags[ability] = true
+        if (ability === "Pressure") user.volatiles["Pressure"] = {}
 
-        if (ability === "Pressure") {
-          user.volatiles["Pressure"] = {}
-        }
-
-        if (effect.ability === "Trace") {
+        if (cause.ability === "Trace") {
           const target = this.user(this.label(of))
 
           this.setAbility(user, "Trace")
@@ -282,7 +284,7 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { upkeep, from, of } = parseTags(p.args)
-        const { ability } = parseEffect(from)
+        const { ability } = parseEntity(from)
 
         if (upkeep === "") {
           this.weather!.turn++
@@ -299,14 +301,14 @@ export class Observer {
       }
       case "-fieldstart": {
         p = piped(line, p.i)
-        const { move: name } = parseEffect(p.args[0])
+        const { move: name } = parseEntity(p.args[0])
 
         this.fields[name!] = 0
 
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)
 
-        const { ability } = parseEffect(from)
+        const { ability } = parseEntity(from)
 
         const user = this.user(this.label(of))
         if (ability) this.setAbility(user, ability)
@@ -314,7 +316,7 @@ export class Observer {
       }
       case "-fieldend": {
         p = piped(line, p.i)
-        const { move: field } = parseEffect(p.args[0])
+        const { move: field } = parseEntity(p.args[0])
 
         delete this.fields[field!]
         break
@@ -334,7 +336,7 @@ export class Observer {
         }
 
         const src = of ? this.user(this.label(of)) : user
-        const { ability, item } = parseEffect(from)
+        const { ability, item } = parseEntity(from)
 
         if (item) this.setItem(src, item)
         if (ability) this.setAbility(src, ability)
@@ -349,7 +351,7 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
-        const { ability } = parseEffect(from)
+        const { ability } = parseEntity(from)
         if (ability) this.setAbility(target, ability)
 
         break
@@ -357,87 +359,66 @@ export class Observer {
       case "move": {
         p = piped(line, p.i, 3)
         const user = this.user(this.label(p.args[0]))
-        const name = p.args[1]
+        const move = p.args[1]
 
         const { pov, volatiles, status } = user
-        const move = this.gen.moves.get(name)!
 
         p = piped(line, p.i, -1)
         const { from, notarget, miss } = parseTags(p.args)
-        const effect = parseEffect(from)
-
-        let deductPP = true
-        user.lastMove = name
+        const cause = parseEntity(from)
 
         for (const name in volatiles) {
           if (volatiles[name].singleMove) delete volatiles[name]
         }
 
         if (status?.attempt) status.attempt++
-
-        if (this.prev?.isDancer) deductPP = false
-        if (name === "Sleep Talk" || name === "Struggle") deductPP = false
-        if (name === "Sleep Talk") {
-          next.move = "Sleep Talk"
-        }
-
-        if (effect.ability) {
-          this.setAbility(user, effect.ability)
-          deductPP = false
-        }
-
-        if (isLocked(move)) {
-          if (from === "lockedmove") {
-            const n = (volatiles["Locked Move"] ?? { attempt: 0 }).attempt++
-            if (n === 2) delete volatiles["Locked Move"]
-            deductPP = false
-          } else {
-            let islocked = true
-            if (pov === "ally" && this.request.active) {
-              const [{ moves }] = this.request.active!
-              islocked = moves.every((x) => x.disabled || x.move === move.name)
-            }
-
-            if (islocked) {
-              volatiles["Locked Move"] = { attempt: 0, move: name }
-            }
-          }
-        }
-
-        const effectiveMove = effect.move === "Sleep Talk" ? effect.move : name
-
-        if (effect.ability !== "Magic Bounce") {
-          if (user.item && CHOICE_ITEMS.includes(user.item)) {
-            if (
-              volatiles["Choice Locked"]?.move &&
-              volatiles["Choice Locked"].move !== effectiveMove
-            ) {
-              deductPP = false
-            } else {
-              volatiles["Choice Locked"] = { move: effectiveMove }
-            }
-          }
-        }
-
+        if (cause.ability) this.setAbility(user, cause.ability)
         if (notarget != null || miss != null) this.disrupt(user)
-        if (name === "Wish") this[pov].wish = 0
 
-        if (!effect.ability) {
-          const slot = (user.moveSet[effectiveMove] = user.moveSet[effectiveMove] ?? {
-            used: 0,
-            max: getMaxPP(move)
-          })
-          if (deductPP) {
-            const t =
-              this[OPP[pov]].active.volatiles["Pressure"] &&
-              this[OPP[pov]].active.hp[0] !== 0 &&
-              name !== "Curse" &&
-              isPressured(move)
-                ? 2
-                : 1
+        let deductFrom: string | null = move
 
-            slot.used += t
-          }
+        switch (move) {
+          case "Sleep Talk":
+            currLine.sleepTalk = true
+            deductFrom = null
+            break
+          case "Wish":
+            this[pov].wish = 0
+            break
+          case "Struggle":
+            deductFrom = null
+            break
+        }
+
+        if (cause.move === "Sleep Talk") deductFrom = "Sleep Talk"
+        if (this.prevLine?.dancer) deductFrom = null
+
+        if (user.item && CHOICE_ITEMS.includes(user.item)) {
+          const locked = volatiles["Choice Locked"]?.move
+          if (locked && locked !== move) deductFrom = null
+          else volatiles["Choice Locked"] = { move }
+        }
+
+        if (deductFrom) {
+          const slot = this.allocateSlot(user.moveSet, deductFrom)
+
+          slot.used +=
+            this[OPP[pov]].active.volatiles["Pressure"] &&
+            this[OPP[pov]].active.hp[0] !== 0 &&
+            move !== "Curse" &&
+            isPressured(this.gen, move)
+              ? 2
+              : 1
+        }
+
+        if (from === "lockedmove") {
+          const n = (volatiles["Move Locked"] ?? { attempt: 0 }).attempt++
+          if (n === 2) delete volatiles["Move Locked"]
+          deductFrom = null
+        }
+
+        if (isLocking(this.gen, move) && (pov === "foe" || checkLocked(this.request, move))) {
+          volatiles["Move Locked"] = { attempt: 0, move: move }
         }
 
         break
@@ -446,7 +427,7 @@ export class Observer {
       case "-fail":
         p = piped(line, p.i)
         const { moveSet } = this.user(this.label(p.args[0]))
-        if (this.prev?.move === "Sleep Talk") moveSet["Sleep Talk"].used++
+        if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
       case "-immune":
         p = piped(line, p.i)
@@ -464,7 +445,7 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
 
-        const { ability, item, move } = parseEffect(from)
+        const { ability, item, move } = parseEntity(from)
         if (ability) this.setAbility(user, ability)
         if (move === "Lunar Dance") {
           for (const move in user.moveSet) {
@@ -490,7 +471,7 @@ export class Observer {
 
         const { from, of } = parseTags(p.args)
 
-        const { item, ability } = parseEffect(from)
+        const { item, ability } = parseEntity(from)
         const target = of ? this.user(this.label(of)) : user
 
         if (ability) this.setAbility(target, ability)
@@ -512,7 +493,7 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
-        const { item } = parseEffect(from)
+        const { item } = parseEntity(from)
 
         // boosts from item consume it
         if (item) {
@@ -552,7 +533,7 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)
-        const { ability } = parseEffect(from)
+        const { ability } = parseEntity(from)
 
         const src = of ? this.user(this.label(of)) : undefined
 
@@ -621,7 +602,7 @@ export class Observer {
           for (const move of moves) {
             moveSet[move] = moveSet[move] ?? {
               used: 0,
-              max: getMaxPP(this.gen.moves.get(move)!)
+              max: getMaxPP(this.gen, move)
             }
           }
 
@@ -653,7 +634,7 @@ export class Observer {
         p = piped(line, p.i, 2)
 
         const user = this.user(this.label(p.args[0]))
-        let { stripped: name } = parseEffect(p.args[1])
+        let { stripped: name } = parseEntity(p.args[1])
 
         const { pov, volatiles } = user
         const opp = OPP[pov]
@@ -724,17 +705,17 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from, of, fatigue } = parseTags(p.args)
 
-        const { ability, item } = parseEffect(from)
+        const { ability, item } = parseEntity(from)
         const src = of ? this.user(this.label(of)) : user
 
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
 
-        if (fatigue !== null && volatiles["Locked Move"]) {
+        if (fatigue !== null && volatiles["Move Locked"]) {
           if (pov === "ally" && this.request.active) {
             const [{ moves }] = this.request.active!
-            if (!moves.every((x) => x.disabled || x.move === volatiles["Locked Move"]!.move)) {
-              delete volatiles["Locked Move"]
+            if (!moves.every((x) => x.disabled || x.move === volatiles["Move Locked"]!.move)) {
+              delete volatiles["Move Locked"]
             }
           }
         }
@@ -764,7 +745,7 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
-        const { ability } = parseEffect(from)
+        const { ability } = parseEntity(from)
 
         if (ability) this.setAbility(user, ability)
 
@@ -795,7 +776,7 @@ export class Observer {
         const user = this.user(this.label(p.args[0]))
         const { pov } = user
 
-        let { ability, item, move, stripped } = parseEffect(p.args[1])
+        let { ability, item, move, stripped } = parseEntity(p.args[1])
 
         if (stripped === "Orichalcum Pulse") ability = stripped
 
@@ -822,13 +803,8 @@ export class Observer {
             }
           }
         } else if (ability) {
-          if (ability === "Battle Bond") {
-            user.flags[ability] = true
-          }
-
-          if (ability === "Dancer") {
-            next.isDancer = true
-          }
+          if (ability === "Battle Bond") user.flags[ability] = true
+          if (ability === "Dancer") currLine.dancer = true
 
           this.setAbility(user, ability)
         } else {
@@ -875,7 +851,7 @@ export class Observer {
       case "-end": {
         p = piped(line, p.i, 2)
         const user = this.user(this.label(p.args[0]))
-        let { stripped: name } = parseEffect(p.args[1])
+        let { stripped: name } = parseEntity(p.args[1])
 
         const { volatiles } = user
 
@@ -887,7 +863,7 @@ export class Observer {
       case "-singleturn": {
         p = piped(line, p.i, 2)
         const user = this.user(this.label(p.args[0]))
-        const { stripped: name } = parseEffect(p.args[1])
+        const { stripped: name } = parseEntity(p.args[1])
 
         user.volatiles[name] = { singleTurn: true }
         break
@@ -895,7 +871,7 @@ export class Observer {
       case "-singlemove": {
         p = piped(line, p.i, 2)
         const user = this.user(this.label(p.args[0]))
-        const { stripped: name } = parseEffect(p.args[1])
+        const { stripped: name } = parseEntity(p.args[1])
 
         user.volatiles[name] = { singleMove: true }
         break
@@ -904,7 +880,7 @@ export class Observer {
       case "-sidestart": {
         p = piped(line, p.i, 2)
         const { pov } = this.label(p.args[0])
-        const { stripped: name } = parseEffect(p.args[1])
+        const { stripped: name } = parseEntity(p.args[1])
 
         const { fields } = this[pov]
         if (HAZARDS.includes(name)) (fields[name] ?? { layers: 0 }).layers!++
@@ -915,7 +891,7 @@ export class Observer {
       case "-sideend": {
         p = piped(line, p.i, 2)
         const { pov } = this.label(p.args[0])
-        const { stripped: name } = parseEffect(p.args[1])
+        const { stripped: name } = parseEntity(p.args[1])
 
         const { fields: conditions } = this[pov]
         delete conditions[name]
@@ -968,7 +944,8 @@ export class Observer {
         break
       }
     }
-    this.prev = next
+
+    this.prevLine = currLine
     return null
   }
 }
