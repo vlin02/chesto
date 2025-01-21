@@ -405,14 +405,13 @@ export class Observer {
           slot.used +=
             this[OPP[pov]].active.volatiles["Pressure"] &&
             this[OPP[pov]].active.hp[0] !== 0 &&
-            move !== "Curse" &&
-            isPressured(this.gen, move)
+            (move === "Curse" ? user.types.includes("Ghost") : isPressured(this.gen, move))
               ? 2
               : 1
         }
 
         if (from === "lockedmove") {
-          const n = (volatiles["Move Locked"] ?? { attempt: 0 }).attempt++
+          const n = volatiles["Move Locked"]!.attempt++
           if (n === 2) delete volatiles["Move Locked"]
           deductFrom = null
         }

@@ -86,6 +86,7 @@ export type FormeChange = {
 
 export class AllyUser {
   pov: "ally"
+  gen: Generation
   revealed: boolean
   lvl: number
   hp: [number, number]
@@ -134,20 +135,32 @@ export class AllyUser {
       forme,
       moveSet: Object.fromEntries(
         moves.map((id) => {
-          const move = gen.moves.get(id)!
-          return [move.name, { used: 0, max: getMaxPP(move) }]
+          const { name } = gen.moves.get(id)!
+          return [name, { used: 0, max: getMaxPP(gen, name) }]
         })
       ),
       gender,
       ability: gen.abilities.get(baseAbility)!.name
     }
-
+    this.gen = gen
     this.item = item ? gen.items.get(item)!.name : "Leftovers"
     this.stats = stats
     this.hp = parseHp(condition)!
     this.volatiles = {}
     this.boosts = {}
     this.tera = false
+  }
+
+  get types() {
+    const {
+      teraType,
+      tera,
+      volatiles: { "Type Change": typeChange }
+    } = this
+
+    const types = new Set([...(typeChange ?? this.gen.species.get(this.forme)!).types])
+    if (tera) types.add(teraType)
+    return [...types]
   }
 
   get moveSet() {
@@ -181,6 +194,7 @@ export class FoeUser {
   status?: Status
   flags: Flags
   species: string
+  gen: Generation
   base: {
     forme: string
     moveSet: MoveSet
@@ -196,6 +210,7 @@ export class FoeUser {
   boosts: Boosts
   clone: () => FoeUser
   tera: boolean
+  teraType?: TypeName
 
   constructor(gen: Generation, species: string, traits: Traits) {
     this.clone = () => {
@@ -212,11 +227,25 @@ export class FoeUser {
     this.boosts = {}
     this.flags = {}
     this.tera = false
+    this.gen = gen
     this.base = {
       forme,
       moveSet: {},
       gender
     }
+  }
+
+  get types() {
+    const {
+      teraType,
+      tera,
+      volatiles: { "Type Change": typeChange }
+    } = this
+
+    const types = new Set([...(typeChange ?? this.gen.species.get(this.forme)!).types])
+    if (tera) types.add(teraType!)
+
+    return [...types]
   }
 
   get moveSet() {
