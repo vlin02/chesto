@@ -1,5 +1,5 @@
 import { TypeName } from "@pkmn/data"
-import { Gender, StatId } from "./species.js"
+import { Gender, StatId, StatusId } from "./species.js"
 
 export type Side = "p1" | "p2"
 
@@ -86,10 +86,16 @@ export function parseTags(strs: string[]) {
   return tags
 }
 
-export function parseHp(s: string): [number, number] | null {
-  if (s.slice(-3) === "fnt") return null
-  const [a, b] = s.split(" ")[0].split("/")
-  return [Number(a), Number(b)]
+export function parseCondition(
+  s: string
+): { hp: null } | { hp: [number, number]; status?: StatusId } {
+  if (s.slice(-3) === "fnt") return { hp: [0, 0] }
+  let [frac, status] = s.split(" ")
+
+  return {
+    hp: frac.split("/").map(Number) as [number, number],
+    status: status as undefined | StatusId
+  }
 }
 
 export function parseEntity(s: string | undefined) {

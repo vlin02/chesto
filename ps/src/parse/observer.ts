@@ -1,8 +1,8 @@
-import { Generation } from "@pkmn/data"
+import { Generation, TypeName } from "@pkmn/data"
 import {
   ChoiceRequest,
   parseEntity,
-  parseHp,
+  parseCondition,
   parseLabel,
   parseTags,
   parseTraits,
@@ -206,7 +206,7 @@ export class Observer {
           if (ability === "Illusion" && !revealed) {
             const target = [...this.request.side.pokemon]
               .reverse()
-              .find((x) => parseHp(x.condition) !== null && !x.active)
+              .find((x) => parseCondition(x.condition) !== null && !x.active)
             if (target) {
               const to = this.ally.team[this.label(target.ident).species]
               this.illusion = { from: user, to }
@@ -438,11 +438,12 @@ export class Observer {
       case "-sethp": {
         p = piped(line, p.i, 2)
         const user = this.user(this.label(p.args[0]))
-
-        user.hp = parseHp(p.args[1])!
+        const { hp } = parseCondition(p.args[1])
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
+
+        user.hp = hp!
 
         const { ability, item, move } = parseEntity(from)
         if (ability) this.setAbility(user, ability)
@@ -461,7 +462,7 @@ export class Observer {
         p = piped(line, p.i, 2)
 
         const user = this.user(this.label(p.args[0]))
-        const hp = parseHp(p.args[1])
+        const { hp } = parseCondition(p.args[1])
 
         if (hp) user.hp = hp
         else user.hp[0] = 0
@@ -710,23 +711,21 @@ export class Observer {
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
 
-        if (fatigue !== null && volatiles["Move Locked"]) {
-          if (pov === "ally" && this.request.active) {
-            const [{ moves }] = this.request.active!
-            if (!moves.every((x) => x.disabled || x.move === volatiles["Move Locked"]!.move)) {
-              delete volatiles["Move Locked"]
-            }
-          }
+        if (fatigue !== null) {
+          const { move } = volatiles["Move Locked"]!
+          if (pov === "foe" || checkLocked(this.request, move)) delete volatiles["Move Locked"]
         }
         break
       }
       case "-terastallize": {
         p = piped(line, p.i, 2)
         const user = this.user(this.label(p.args[0]))
+        const teraType = p.args[1] as TypeName
         const { pov } = user
 
-        this[pov].teraUsed = false
+        this[pov].teraUsed = true
         user.tera = true
+        user.teraType = teraType
         break
       }
       case "-formechange": {

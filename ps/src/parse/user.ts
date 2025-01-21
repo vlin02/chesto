@@ -1,6 +1,6 @@
 import { Generation, TypeName } from "@pkmn/data"
 import { StatusId, Gender, BoostId, StatId } from "./species.js"
-import { Member, parseHp, parseLabel, parseTraits, Traits } from "./protocol.js"
+import { Member, parseCondition, parseLabel, parseTraits, Traits } from "./protocol.js"
 import { getMaxPP } from "./move.js"
 
 export type Boosts = {
@@ -119,6 +119,7 @@ export class AllyUser {
   ) {
     const { species } = parseLabel(ident)
     const { gender, lvl, forme } = parseTraits(details)
+    const { hp } = parseCondition(condition)
 
     if (species === "Ditto") {
       moves = ["transform"]
@@ -145,7 +146,7 @@ export class AllyUser {
     this.gen = gen
     this.item = item ? gen.items.get(item)!.name : "Leftovers"
     this.stats = stats
-    this.hp = parseHp(condition)!
+    this.hp = hp!
     this.volatiles = {}
     this.boosts = {}
     this.tera = false
