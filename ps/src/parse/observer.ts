@@ -23,6 +23,7 @@ type Label = {
 }
 
 type Line = {
+  move?: boolean
   dancer?: boolean
   sleepTalk?: boolean
   stealEat?: boolean
@@ -365,6 +366,8 @@ export class Observer {
         const user = this.user(this.label(p.args[0]))
         const move = p.args[1]
 
+        currLine.move = true
+
         const { pov, volatiles, status } = user
 
         p = piped(line, p.i, -1)
@@ -443,7 +446,7 @@ export class Observer {
         p = piped(line, p.i)
         const { pov, moveSet } = this.user(this.label(p.args[0]))
 
-        if (msgType === "-fail") this[pov].turnMoves--
+        if (msgType === "-fail" && this.prevLine?.move) this[pov].turnMoves--
         if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
       }
