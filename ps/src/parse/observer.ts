@@ -477,7 +477,6 @@ export class Observer {
 
         // berries already include an -enditem
         if (item === "Leftovers") this.setItem(user, item)
-
         break
       }
       case "-damage": {
