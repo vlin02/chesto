@@ -25,7 +25,7 @@ type Label = {
 type Line = {
   dancer?: boolean
   sleepTalk?: boolean
-  stealeat?: boolean
+  stealEat?: boolean
 }
 
 function resolveSwaps(a: string[], b: string[]) {
@@ -517,7 +517,7 @@ export class Observer {
         const { item } = parseEntity(from)
 
         // boosts from item consume it
-        if (item && !this.prevLine?.stealeat) {
+        if (item && !this.prevLine?.stealEat) {
           this.setItem(user, item)
           this.setItem(user, null)
         }
@@ -585,7 +585,7 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from, eat, of } = parseTags(p.args)
 
-        if (from === "stealeat") currLine.stealeat = true
+        if (from === "stealeat") currLine.stealEat = true
 
         this.setItem(user, item)
         this.setItem(user, null)
@@ -715,6 +715,20 @@ export class Observer {
               }
               break
             }
+            case "Taunt":
+            case "Yawn":
+            case "Confusion":
+            case "Throat Chop":
+            case "Heal Block":
+            case "Slow Start":
+            case "Magnet Rise": {
+              volatiles[name] = { turn: 0 }
+              break
+            }
+            case "Leech Seed":
+            case "Charge":
+            case "Attract":
+            case "No Retreat":
             case "Salt Cure":
             case "Flash Fire":
             case "Leech Seed":
@@ -722,9 +736,8 @@ export class Observer {
               volatiles[name] = {}
               break
             }
-            default: {
-              volatiles[name] = { turn: 0 }
-            }
+            default:
+              throw Error(name)
           }
         }
 
