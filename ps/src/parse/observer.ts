@@ -24,7 +24,6 @@ type Label = {
 
 type Line = {
   moveBy?: User
-  dancer?: boolean
   sleepTalk?: boolean
   stealEat?: boolean
 }
@@ -848,7 +847,6 @@ export class Observer {
           }
         } else if (ability) {
           if (ability === "Battle Bond") user.flags.battleBond = true
-          if (ability === "Dancer") currLine.dancer = true
 
           this.setAbility(user, ability)
         } else {
