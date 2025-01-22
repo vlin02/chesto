@@ -20,8 +20,8 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
   } = active
 
   if (recharge) return ["Recharge"]
-  const { moveSet } = active
 
+  const { moveSet } = active
   const available = []
 
   for (const move in moveSet) {
@@ -45,26 +45,14 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
     }
 
     if (choiceLocked && choiceLocked.move in moveSet && choiceLocked.move !== move) continue
-
     if (lockedMove && lockedMove.move !== move) continue
 
     if (disable?.move === move && !lockedMove) continue
-
-    if (encore && move !== encore.move) {
-      continue
-    }
-    if (taunt && category === "Status") {
-      continue
-    }
-    if (healBlock && heal) {
-      continue
-    }
-    if (throatChop && sound) {
-      continue
-    }
-    if (item === "Assault Vest" && category === "Status") {
-      continue
-    }
+    if (encore && move !== encore.move) continue
+    if (taunt && category === "Status") continue
+    if (healBlock && heal) continue
+    if (throatChop && sound) continue
+    if (item === "Assault Vest" && category === "Status") continue
 
     available.push(move)
   }
