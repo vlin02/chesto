@@ -23,7 +23,7 @@ type Label = {
 }
 
 type Line = {
-  move?: boolean
+  moveBy?: User
   dancer?: boolean
   sleepTalk?: boolean
   stealEat?: boolean
@@ -366,13 +366,13 @@ export class Observer {
         const user = this.user(this.label(p.args[0]))
         const move = p.args[1]
 
-        currLine.move = true
-
         const { pov, volatiles, status } = user
 
         p = piped(line, p.i, -1)
         const { from, notarget, miss } = parseTags(p.args)
         const cause = parseEntity(from)
+
+        currLine.moveBy = user
 
         for (const name in volatiles) {
           if (volatiles[name].singleMove) delete volatiles[name]
@@ -444,9 +444,10 @@ export class Observer {
       case "cant":
       case "-fail": {
         p = piped(line, p.i)
-        const { pov, moveSet } = this.user(this.label(p.args[0]))
+        const user = this.user(this.label(p.args[0]))
+        const { pov, moveSet } = user
 
-        if (msgType === "-fail" && this.prevLine?.move) this[pov].turnMoves--
+        if (msgType === "-fail" && this.prevLine?.moveBy === user) this[pov].turnMoves--
         if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
       }
