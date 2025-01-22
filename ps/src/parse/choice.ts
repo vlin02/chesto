@@ -9,7 +9,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
       "Encore": encore,
       "Taunt": taunt,
       "Heal Block": healBlock,
-      "Locked Move": moveLocked,
+      "Locked Move": lockedMove,
       "Disable": disable,
       "Throat Chop": throatChop,
       "Recharge": recharge,
@@ -20,38 +20,37 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
   } = active
 
   if (recharge) return ["Recharge"]
-  if (moveLocked) return [moveLocked.move]
-
   const { moveSet } = active
 
   const available = []
 
-  for (const name in moveSet) {
+  for (const move in moveSet) {
     const {
       category,
       flags: { heal, sound }
-    } = gen.moves.get(name)!
+    } = gen.moves.get(move)!
 
-    const { used, max } = moveSet[name]
+    const { used, max } = moveSet[move]
     if (used >= max) continue
 
-    switch (name) {
+    switch (move) {
       case "Stuff Cheeks": {
         if (!item?.endsWith("Berry")) continue
         break
       }
       case "Gigaton Hammer":
       case "Blood Moon": {
-        if (lastMove === name) continue
+        if (lastMove === move) continue
       }
     }
 
-    if (choiceLocked && name !== choiceLocked.move) continue
+    if (choiceLocked && choiceLocked.move in moveSet && choiceLocked.move !== move) continue
 
-    if (disable?.move === name) {
-      continue
-    }
-    if (encore && name !== encore.move) {
+    if (lockedMove && lockedMove.move !== move) continue
+
+    if (disable?.move === move && !lockedMove) continue
+
+    if (encore && move !== encore.move) {
       continue
     }
     if (taunt && category === "Status") {
@@ -67,7 +66,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
       continue
     }
 
-    available.push(name)
+    available.push(move)
   }
 
   if (!available.length) return ["Struggle"]

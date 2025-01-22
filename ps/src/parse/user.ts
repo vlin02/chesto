@@ -48,7 +48,7 @@ export type Volatiles = {
   }
   "Locked Move"?: {
     move: string
-    attempt: number
+    turn: number
   }
   "Protosynthesis"?: {
     statId: StatId
@@ -68,9 +68,9 @@ export type Volatiles = {
 }
 
 export type Flags = {
-  "Battle Bond"?: boolean
-  "Intrepid Sword"?: boolean
-  "Illusion revealed"?: boolean
+  battleBond?: boolean
+  intrepidSword?: boolean
+  illusionRevealed?: boolean
 }
 
 export type Status = {
@@ -144,7 +144,7 @@ export class AllyUser {
       ability: gen.abilities.get(baseAbility)!.name
     }
     this.gen = gen
-    this.item = item ? gen.items.get(item)!.name : "Leftovers"
+    this.item = item ? gen.items.get(item)!.name : null
     this.stats = stats
     this.hp = hp!
     this.volatiles = {}

@@ -1,4 +1,4 @@
-import { Generation, Move } from "@pkmn/data"
+import { Generation } from "@pkmn/data"
 
 export function getMaxPP(gen: Generation, move: string) {
   const { noPPBoosts, pp } = gen.moves.get(move)!
@@ -31,6 +31,6 @@ export function isLocking(gen: Generation, move: string) {
     self,
     flags: { charge }
   } = gen.moves.get(move)!
-  
+
   return self?.volatileStatus === "lockedmove" || charge
 }

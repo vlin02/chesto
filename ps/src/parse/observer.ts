@@ -25,6 +25,23 @@ type Label = {
 type Line = {
   dancer?: boolean
   sleepTalk?: boolean
+  stealeat?: boolean
+}
+
+function resolveSwaps(a: string[], b: string[]) {
+  let i = 0
+
+  const switches = []
+  while (a[i] != b[0]) {
+    i = b.findIndex((v) => v === a[i])!
+    switches.push(a[i])
+  }
+
+  return switches
+}
+
+function getSlots(request: ChoiceRequest) {
+  return request.side.pokemon.map((x) => parseLabel(x.ident).species)
 }
 
 export class Observer {
@@ -34,6 +51,7 @@ export class Observer {
   foe!: Foe
   request!: ChoiceRequest
   outrageActive: boolean
+  swaps: string[]
 
   illusion?: {
     from: AllyUser
@@ -53,6 +71,7 @@ export class Observer {
     this.fields = {}
     this.turn = 0
     this.outrageActive = false
+    this.swaps = []
   }
 
   label(s: string): Label {
@@ -63,8 +82,7 @@ export class Observer {
   user({ pov, species }: Label) {
     const { illusion } = this
     const user = this[pov].team[species]
-
-    if (illusion?.to === user) return illusion.from
+    if (illusion?.from === user) return illusion.to
     return user
   }
 
@@ -121,7 +139,11 @@ export class Observer {
 
     switch (msgType) {
       case "request": {
+        const prev = this.request
         this.request = JSON.parse(line.slice(p.i + 1))
+
+        const slots = getSlots(this.request)
+        this.swaps.push(...(prev ? resolveSwaps(getSlots(prev), slots) : [slots[0]]))
 
         const {
           side: { id, name, pokemon: members }
@@ -136,9 +158,8 @@ export class Observer {
           for (const member of members) {
             const user = new AllyUser(this.gen, member)
             if (member.active) this.ally.active = user
-            const { species } = user
 
-            this.ally.team[species] = user
+            this.ally.team[user.species] = user
           }
         }
 
@@ -160,7 +181,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
         const cause = parseEntity(from)
 
-        if (ability === "Intrepid Sword") user.flags[ability] = true
+        if (ability === "Intrepid Sword") user.flags.intrepidSword = true
         if (ability === "Pressure") user.volatiles["Pressure"] = {}
 
         if (cause.ability === "Trace") {
@@ -191,28 +212,12 @@ export class Observer {
         let label = this.label(p.args[0])
         const { pov, species } = label
 
-        if (pov === "ally") {
-          const { ident } = this.request.side.pokemon.find((x) => x.active)!
-          const { species } = this.label(ident)
+        if (pov === "ally" && this.swaps.length) {
+          const { team } = this.ally
+          const to = team[this.swaps.shift()!]
 
-          const from = this.ally.team[species]
-
-          const {
-            ability,
-            flags: { "Illusion revealed": revealed }
-          } = from
-
-          if (ability === "Illusion" && !revealed) {
-            const target = [...this.request.side.pokemon]
-              .reverse()
-              .find((x) => parseCondition(x.condition).hp && !x.active)
-            if (target) {
-              const to = this.ally.team[this.label(target.ident).species]
-              this.illusion = { from, to }
-            }
-          } else {
-            delete this.illusion
-          }
+          if (to.species !== species) this.illusion = { from: team[species], to }
+          else delete this.illusion
         }
 
         const traits = parseTraits(p.args[1])
@@ -370,70 +375,75 @@ export class Observer {
         if (cause.ability) this.setAbility(user, cause.ability)
         if (notarget != null || miss != null) this.disrupt(user)
 
-        let deductFrom: string | null = move
-        let choiceLockable = true
+        let selected: string | null = move
+        let deductPP = true
+        let lockChoice = true
 
         switch (move) {
           case "Sleep Talk":
             currLine.sleepTalk = true
-            deductFrom = null
+            selected = null
             break
           case "Wish":
             this[pov].wish = 0
             break
           case "Struggle":
-            deductFrom = null
+            deductPP = false
+            lockChoice = false
             break
         }
 
-        if (cause.move === "Sleep Talk") deductFrom = "Sleep Talk"
-        if (cause.ability === "Magic Bounce") {
-          deductFrom = null
-          choiceLockable = false
-        }
-        if (this.prevLine?.dancer) deductFrom = null
+        if (cause.move === "Sleep Talk") selected = "Sleep Talk"
+        if (cause.ability === "Magic Bounce") selected = null
+        if (cause.ability === "Dancer") deductPP = false
+        if (volatiles["Choice Locked"] && this[pov].movedThisTurn) selected = null
 
         if (from === "lockedmove") {
-          deductFrom = null
+          deductPP = false
+
           const { "Locked Move": lockedMove } = volatiles
-
-          if (lockedMove) {
-            const n = lockedMove.attempt++
-            if (n === 2) delete volatiles["Locked Move"]
-          }
+          if (lockedMove?.turn === 2) delete volatiles["Locked Move"]
         }
 
-        if (choiceLockable && user.item && CHOICE_ITEMS.includes(user.item)) {
-          const locked = volatiles["Choice Locked"]?.move
-          if (locked && locked !== move) deductFrom = null
-          else volatiles["Choice Locked"] = { move }
+        if (!selected) break
+        this[pov].movedThisTurn = true
+        user.lastMove = selected
+
+        if (lockChoice && CHOICE_ITEMS.includes(user.item ?? "")) {
+          volatiles["Choice Locked"] = { move: selected }
         }
 
-        if (deductFrom) {
-          const slot = this.allocateSlot(user.moveSet, deductFrom)
+        if (deductPP) {
+          const slot = this.allocateSlot(user.moveSet, selected)
+          const { active: opp } = this[OPP[pov]]
 
           slot.used +=
-            this[OPP[pov]].active.volatiles["Pressure"] &&
-            this[OPP[pov]].active.hp[0] !== 0 &&
+            opp.volatiles["Pressure"] &&
+            opp.hp[0] !== 0 &&
             (move === "Curse" ? user.types.includes("Ghost") : isPressured(this.gen, move))
               ? 2
               : 1
-
-          user.lastMove = deductFrom
         }
 
-        if (isLocking(this.gen, move) && (pov === "foe" || checkLocked(this.request, move))) {
-          volatiles["Locked Move"] = { attempt: 0, move: move }
+        if (
+          isLocking(this.gen, selected) &&
+          (pov === "foe" || checkLocked(this.request, selected) !== false)
+        ) {
+          volatiles["Locked Move"] = { turn: 0, move: selected }
         }
 
         break
       }
       case "cant":
-      case "-fail":
+      case "-fail": {
         p = piped(line, p.i)
-        const { moveSet } = this.user(this.label(p.args[0]))
+        const { pov, moveSet } = this.user(this.label(p.args[0]))
+        
+        if (msgType === "-fail")
+        this[pov].movedThisTurn = false
         if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
+      }
       case "-immune":
         p = piped(line, p.i)
         const { pov } = this.user(this.label(p.args[0]))
@@ -505,7 +515,7 @@ export class Observer {
         const { item } = parseEntity(from)
 
         // boosts from item consume it
-        if (item) {
+        if (item && !this.prevLine?.stealeat) {
           this.setItem(user, item)
           this.setItem(user, null)
         }
@@ -571,13 +581,18 @@ export class Observer {
         const item = p.args[1]
 
         p = piped(line, p.i, -1)
-        const { eat } = parseTags(p.args)
+        const { from, eat, of } = parseTags(p.args)
+
+        if (from === "stealeat") currLine.stealeat = true
 
         this.setItem(user, item)
         this.setItem(user, null)
 
-        if (eat != null) {
-          user.lastBerry = {
+        let eater = eat != null && user
+        if (from === "stealeat") eater = this.user(this.label(of))
+
+        if (eater) {
+          eater.lastBerry = {
             name: item,
             turn: 0
           }
@@ -721,9 +736,10 @@ export class Observer {
         if (item) this.setItem(src, item)
 
         const { "Locked Move": lockedMove } = volatiles
+
         if (fatigue != null && lockedMove) {
           const { move } = lockedMove
-          if (pov === "foe" || checkLocked(this.request, move) === false)
+          if (pov === "foe" || checkLocked(this.request, move) !== true)
             delete volatiles["Locked Move"]
         }
         break
@@ -812,7 +828,7 @@ export class Observer {
             }
           }
         } else if (ability) {
-          if (ability === "Battle Bond") user.flags[ability] = true
+          if (ability === "Battle Bond") user.flags.battleBond = true
           if (ability === "Dancer") currLine.dancer = true
 
           this.setAbility(user, ability)
@@ -920,6 +936,8 @@ export class Observer {
         for (const pov of POVS) {
           const side = this[pov]
           const { fields: conditions } = side
+
+          delete side.movedThisTurn
 
           const {
             active: { lastBerry, volatiles, status }
