@@ -50,7 +50,6 @@ export class Observer {
   ally!: Ally
   foe!: Foe
   request!: ChoiceRequest
-  outrageActive: boolean
   swaps: string[]
 
   illusion?: {
@@ -70,7 +69,6 @@ export class Observer {
     this.gen = gen
     this.fields = {}
     this.turn = 0
-    this.outrageActive = false
     this.swaps = []
   }
 
@@ -240,7 +238,13 @@ export class Observer {
           }
 
           if (!this.foe) {
-            this.foe = { fields: {}, team: { [species]: user }, active: user, teraUsed: true }
+            this.foe = {
+              fields: {},
+              team: { [species]: user },
+              active: user,
+              teraUsed: true,
+              turnMoves: 0
+            }
           }
         }
 
@@ -396,7 +400,7 @@ export class Observer {
         if (cause.move === "Sleep Talk") selected = "Sleep Talk"
         if (cause.ability === "Magic Bounce") selected = null
         if (cause.ability === "Dancer") deductPP = false
-        if (volatiles["Choice Locked"] && this[pov].movedThisTurn) selected = null
+        if (volatiles["Choice Locked"] && this[pov].turnMoves) selected = null
 
         if (from === "lockedmove") {
           deductPP = false
@@ -406,7 +410,7 @@ export class Observer {
         }
 
         if (!selected) break
-        this[pov].movedThisTurn = true
+        this[pov].turnMoves++
         user.lastMove = selected
 
         if (lockChoice && CHOICE_ITEMS.includes(user.item ?? "")) {
@@ -438,9 +442,8 @@ export class Observer {
       case "-fail": {
         p = piped(line, p.i)
         const { pov, moveSet } = this.user(this.label(p.args[0]))
-        
-        if (msgType === "-fail")
-        this[pov].movedThisTurn = false
+
+        if (msgType === "-fail") this[pov].turnMoves--
         if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
       }
@@ -937,7 +940,7 @@ export class Observer {
           const side = this[pov]
           const { fields: conditions } = side
 
-          delete side.movedThisTurn
+          side.turnMoves = 0
 
           const {
             active: { lastBerry, volatiles, status }

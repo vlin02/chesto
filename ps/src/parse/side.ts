@@ -13,8 +13,8 @@ export type Fields = {
 }
 
 export type Ally = {
+  turnMoves: number
   teraUsed: boolean
-  movedThisTurn?: boolean
   tera?: AllyUser
   fields: Fields
   active: AllyUser
@@ -23,8 +23,8 @@ export type Ally = {
 }
 
 export type Foe = {
+  turnMoves: number
   teraUsed: boolean
-  movedThisTurn?: boolean
   tera?: FoeUser
   fields: Fields
   active: FoeUser
