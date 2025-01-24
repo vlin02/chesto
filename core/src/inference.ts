@@ -64,7 +64,7 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
   return available
 }
 
-export function satisfiesUser(preset: Preset, user: FoeUser) {
+export function matchesUser(preset: Preset, user: FoeUser) {
   const {
     base: { ability, moveSet },
     teraType

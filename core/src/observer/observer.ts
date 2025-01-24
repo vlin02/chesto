@@ -24,6 +24,7 @@ type Label = {
 
 type Line = {
   moveBy?: User
+  dancer?: boolean
   sleepTalk?: boolean
   stealEat?: boolean
 }
@@ -402,7 +403,7 @@ export class Observer {
 
         if (cause.move === "Sleep Talk") selected = "Sleep Talk"
         if (cause.ability === "Magic Bounce") selected = null
-        if (cause.ability === "Dancer") deductPP = false
+        if (cause.ability === "Dancer" || this.prevLine?.dancer) deductPP = false
         if (volatiles["Choice Locked"] && this[pov].turnMoves) selected = null
 
         if (from === "lockedmove") {
@@ -852,6 +853,7 @@ export class Observer {
           }
         } else if (ability) {
           if (ability === "Battle Bond") user.flags.battleBond = true
+          if (ability === "Dancer") currLine.dancer = true
 
           this.setAbility(user, ability)
         } else {

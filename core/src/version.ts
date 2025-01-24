@@ -5,10 +5,13 @@ export type Preset = {
   abilities: string[]
   movepool: string[]
   teraTypes?: TypeName[]
+  derived: {
+    moves: string[]
+  }
 }
 
 export type Version = {
-  commit: string
+  hash: string
   timestamp: number
   patch: {
     [k: string]: {
