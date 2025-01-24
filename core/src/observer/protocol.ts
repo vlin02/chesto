@@ -1,5 +1,5 @@
 import { TypeName } from "@pkmn/data"
-import { Gender, StatId, StatusId } from "./species.js"
+import { StatId, Gender, StatusId } from "../battle.js"
 
 export type Side = "p1" | "p2"
 

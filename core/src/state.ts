@@ -1,7 +1,8 @@
 import { Generation, Generations, Specie, Stats } from "@pkmn/data"
-import { AllyMember, Observer } from "./parse/observer.js"
-import { StatId, StatusId, TERRAIN_NAMES } from "./parse/protocol.js"
 import { Dex } from "@pkmn/dex"
+import { AllyUser } from "./observer/user.js"
+import { StatId, StatusId, TERRAIN_NAMES } from "./battle.js"
+import { Observer } from "./observer/observer.js"
 
 function scale(n: number, lo: number, hi: number) {
   return (n - lo) / (hi - lo)
@@ -62,11 +63,9 @@ export function extract(obs: Observer) {
 
   {
     let team = []
-    const active = ally.active!
-
     for (const speciesName in ally.team) {
-      const _member = ally.team[speciesName] as AllyMember
-      const isActive = _member === active.member
+      const _user = ally.team[speciesName] as AllyUser
+      const isActive = ally.active === _user
 
       const {
         revealed,
@@ -78,10 +77,10 @@ export function extract(obs: Observer) {
         item,
         stats: _stats,
         status: _status,
-        moveset: _moveset,
+        moveSet: _moveset,
         teraType,
-        once: { "Battle Bond": battleBond, "Intrepid Sword": intrepidSword }
-      } = _member
+        flags: { battleBond, intrepidSword }
+      } = _user
 
       const status: {
         id: StatusId | null
@@ -94,11 +93,12 @@ export function extract(obs: Observer) {
       }
 
       if (_status) {
-        const { id, move, turn } = _status
+        const { id, turn, attempt } = _status
         status.id = id
         if (isActive) {
           if (id === "tox") status.toxicTurns = turn!
-          if (id === "slp") status.sleepMovesLeft = [Math.min(1 - move!, 1), Math.min(3 - move!, 1)]
+          if (id === "slp")
+            status.sleepMovesLeft = [Math.min(1 - attempt!, 1), Math.min(3 - attempt!, 1)]
         }
       }
 
@@ -122,7 +122,7 @@ export function extract(obs: Observer) {
 
       const transitionaryForme = toTransitionaryForme(forme)
 
-      const member = {
+      const user = {
         revealed,
         lvl,
         gender,
@@ -139,7 +139,7 @@ export function extract(obs: Observer) {
         transitionaryForme
       }
 
-      team.push(member)
+      team.push(user)
     }
   }
 

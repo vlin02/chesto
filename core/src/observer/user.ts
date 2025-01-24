@@ -1,7 +1,7 @@
 import { Generation, TypeName } from "@pkmn/data"
-import { StatusId, Gender, BoostId, StatId } from "./species.js"
 import { Member, parseCondition, parseLabel, parseTraits, Traits } from "./protocol.js"
 import { getMaxPP } from "./move.js"
+import { BoostId, Gender, StatId, StatusId } from "../battle.js"
 
 export type Boosts = {
   [k in BoostId]?: number
@@ -190,13 +190,13 @@ export class FoeUser {
   lvl: number
   hp: [number, number]
   item?: string | null
-  firstItem?: string | null
   formeChange?: FormeChange
   status?: Status
   flags: Flags
   species: string
   gen: Generation
   base: {
+    item?: string | null
     forme: string
     moveSet: MoveSet
     gender: Gender

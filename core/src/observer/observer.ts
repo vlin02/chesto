@@ -11,11 +11,11 @@ import {
   Side
 } from "./protocol.js"
 import { WeatherName } from "@pkmn/client"
-import { StatusId, StatId, BoostId, CHOICE_ITEMS } from "./species.js"
 import { Ally, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
 import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
 import { getMaxPP, isLocking, isPressured } from "./move.js"
 import { checkLocked } from "./request.js"
+import { StatusId, CHOICE_ITEMS, BoostId, StatId } from "../battle.js"
 
 type Label = {
   species: string
@@ -112,7 +112,8 @@ export class Observer {
 
     if (user.pov === "ally") return
 
-    user.firstItem = user.firstItem ?? item ?? undefined
+    const { base } = user
+    base.item = base.item ?? item ?? undefined
   }
 
   disrupt(user: User) {
@@ -619,8 +620,12 @@ export class Observer {
 
         if (pov === "ally") {
           const {
+            active,
             side: { pokemon: members }
           } = this.request
+
+          // ditto can be immediately switched out
+          if (!active) break
 
           const member = members.find((x) => this.label(x.ident).species === from.species)!
           ability = this.gen.abilities.get(member.ability)!.name

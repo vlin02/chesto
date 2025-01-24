@@ -1,5 +1,7 @@
 import { Generation } from "@pkmn/data"
-import { Observer } from "./observer.js"
+import { Observer } from "./observer/observer.js"
+import { Preset } from "./version.js"
+import { FoeUser } from "./observer/user.js"
 
 export function availableMoves(gen: Generation, obs: Observer): string[] {
   const { active } = obs.ally
@@ -61,3 +63,43 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
 
   return available
 }
+
+export function satisfiesUser(preset: Preset, user: FoeUser) {
+  const {
+    base: { ability, moveSet },
+    teraType
+  } = user
+
+  const { movepool, teraTypes, abilities } = preset
+  if (teraTypes && teraType && !teraTypes.includes(teraType)) return false
+  if (abilities && ability && !abilities.includes(ability)) return false
+  // if (item && !items.includes(item)) return false
+  if (!Object.keys(moveSet).every((move) => movepool.includes(move))) return false
+
+  return true
+}
+
+export function getSetForme(gen: Generation, forme: string) {
+  gen.species
+}
+
+// 1703173141 17b7ef1b1 {
+//   role: 'Fast Support',
+//   movepool: [ 'Transform' ],
+//   teraTypes: [ 'Stellar' ]
+// }
+
+// 1703437168
+
+// 1703722666
+
+// 1703958831 58aa9c3a4 {
+//   role: 'Fast Support',
+//   movepool: [ 'Transform' ],
+//   teraTypes: [ 'Stellar' ]
+// }
+// 1703960706 c144d28c8 {
+//   role: 'Fast Support',
+//   movepool: [ 'Transform' ],
+//   teraTypes: [ 'Stellar' ]
+// }

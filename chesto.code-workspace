@@ -1,8 +1,12 @@
 {
   "folders": [
     {
-      "name": "ps",
-      "path": "ps"
+      "name": "core",
+      "path": "core"
+    },
+    {
+      "name": "sim",
+      "path": "sim"
     },
     {
       "name": "model",

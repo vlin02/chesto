@@ -1,11 +1,34 @@
-import { ID, PRNGSeed, toID } from "@pkmn/sim"
-import { AnyBattle } from "./version.js"
-import { FOE, piped, Side, SIDES } from "./parse/protocol.js"
+import { ObjectId } from "mongodb"
+import { Log } from "./log.js"
+import { Sample } from "./random.js"
+import { ID, toID } from "@pkmn/data"
+import { PRNGSeed } from "@pkmn/sim"
+import { Side, FOE } from "./observer/protocol.js"
 
-export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
+type Player = {
+  name: string
+  team: Sample[]
+}
 
-type Header = {
+export type Replay = {
+  _id: ObjectId
+  id: string
+  uploadtime: number
+  players: [string, string]
+  rating: number
+  private: number
+  password: string | null
+  inputs: string[]
+  outputsV2: Log[][]
+  teams: [Sample[], Sample[]]
+  p1: Player
+  p2: Player
+}
+
+export type Header = {
   formatId: ID
+  version: string
+  versionOrigin?: string
   rated: boolean
   seed: {
     battle: PRNGSeed
@@ -15,7 +38,7 @@ type Header = {
 }
 
 export function seekToStart(lines: string[], i: number) {
-  let mark = { start: false, p1: false, p2: false }
+  let mark = { start: false, p1: false, p2: false, version: false }
   let header: any = { seed: {} }
 
   for (; i < lines.length; i++) {
@@ -31,6 +54,13 @@ export function seekToStart(lines: string[], i: number) {
         mark.start = true
         break
       }
+      case ">version-origin":
+        header.versionOrigin = line.slice(j + 1)
+        break
+      case ">version":
+        header.version = line.slice(j + 1)
+        mark.version = true
+        break
       case ">player": {
         let k = line.indexOf(" ", j + 1)
         const side = line.slice(j + 1, k) as Side
@@ -51,7 +81,13 @@ export function seekToStart(lines: string[], i: number) {
   throw Error()
 }
 
-export function apply(battle: AnyBattle, input: string) {
+export interface BattleLike {
+  choose(type: string, input: string): void
+  win(side: Side | null): void
+  sendUpdates(): void
+}
+
+export function apply(battle: BattleLike, input: string) {
   let j = input.indexOf(" ")
   const type = input.slice(1, j === -1 ? undefined : j)
 
@@ -72,55 +108,4 @@ export function apply(battle: AnyBattle, input: string) {
     default:
       throw Error(type)
   }
-}
-
-export function split(log: Log) {
-  let p
-
-  const chs: { p1: string[]; p2: string[] } = { p1: [], p2: [] }
-
-  const [type] = log
-
-  switch (type) {
-    case "update": {
-      const [, lines] = log
-
-      let i = 0
-      while (i < lines.length) {
-        const line = lines[i]
-
-        p = piped(line, 0)
-
-        if (p.args[0] === "split") {
-          p = piped(line, p.i)
-          const side = p.args[0] as Side
-
-          chs[side].push(lines[i + 1])
-          chs[FOE[side]].push(lines[i + 2])
-
-          i += 3
-        } else {
-          for (const side of SIDES) chs[side].push(line)
-          i += 1
-        }
-      }
-      break
-    }
-    case "sideupdate": {
-      const [, line] = log
-      const side = line.slice(0, 2) as Side
-      const msg = line.slice(3)
-
-      chs[side].push(msg)
-      break
-    }
-    case "end": {
-      const [, line] = log
-      const msg = `|end|${line}`
-      for (const side of SIDES) chs[side].push(msg)
-      break
-    }
-  }
-
-  return chs
 }
