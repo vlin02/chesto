@@ -1,23 +1,31 @@
-import { TypeName } from "@pkmn/data"
+import { Stats, TypeName } from "./battle.js"
 
 export type Preset = {
   role: string
-  abilities: string[]
   movepool: string[]
+  abilities?: string[]
   teraTypes?: TypeName[]
-  derived: {
+  agg: {
+    teraTypes: TypeName[]
+    evs: Stats[]
+    ivs: Stats[]
+    formes: string[]
+    genders: string[]
+    items: string[]
+    abilities: string[]
     moves: string[]
+  }
+}
+export type Patch = {
+  [k: string]: {
+    name: string
+    level: number
+    presets: Preset[]
   }
 }
 
 export type Version = {
   hash: string
   timestamp: number
-  patch: {
-    [k: string]: {
-      name: string
-      level: number
-      presets: Preset[]
-    }
-  }
+  patch: Patch
 }

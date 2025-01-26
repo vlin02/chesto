@@ -21,3 +21,12 @@ export function partition<T>(arr: T[], size: number) {
   }
   return bins
 }
+
+export function randSubset<T>(arr: T[], size: number): T[] {
+  const shuffled = arr.slice(0)
+  for (let i = arr.length - 1; i > 0; i--) {
+    const index = Math.floor((i + 1) * Math.random())
+    ;[shuffled[index], shuffled[i]] = [shuffled[i], shuffled[index]]
+  }
+  return shuffled.slice(0, size)
+}

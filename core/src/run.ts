@@ -1,9 +1,15 @@
 import { Generation } from "@pkmn/data"
-import { Observer } from "./observer/observer.js"
-import { Preset } from "./version.js"
-import { FoeUser } from "./observer/user.js"
+import { Observer } from "./client/observer.js"
+import { Patch, Preset } from "./version.js"
+import { FoeUser } from "./client/user.js"
 
-export function availableMoves(gen: Generation, obs: Observer): string[] {
+export type Run = {
+  gen: Generation
+  patch: Patch
+  obs: Observer
+}
+
+export function availableMoves({ gen, obs }: Run, matchProtocol = false): string[] {
   const { active } = obs.ally
 
   let {
@@ -25,6 +31,10 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
 
   const { moveSet } = active
   const available = []
+
+  if (!matchProtocol && choiceLocked && !(choiceLocked.move in moveSet)) {
+    return []
+  }
 
   for (const move in moveSet) {
     const {
@@ -64,42 +74,35 @@ export function availableMoves(gen: Generation, obs: Observer): string[] {
   return available
 }
 
-export function matchesUser(preset: Preset, user: FoeUser) {
+export function matchesPreset(preset: Preset, user: FoeUser) {
   const {
-    base: { ability, moveSet },
+    base: { ability, item, moveSet },
     teraType
   } = user
 
-  const { movepool, teraTypes, abilities } = preset
+  const {
+    movepool,
+    agg: { moves, teraTypes, abilities, items }
+  } = preset
+
   if (teraTypes && teraType && !teraTypes.includes(teraType)) return false
   if (abilities && ability && !abilities.includes(ability)) return false
-  // if (item && !items.includes(item)) return false
-  if (!Object.keys(moveSet).every((move) => movepool.includes(move))) return false
+  if (item && !items.includes(item)) return false
+  if (!Object.keys(moveSet).every((move) => moves.includes(move) || movepool.includes(move)))
+    return false
 
   return true
 }
 
-export function getSetForme(gen: Generation, forme: string) {
-  gen.species
+export function getPotentialPresets({ gen, patch }: Run, user: FoeUser) {
+  const {
+    base: { forme }
+  } = user
+
+  let baseForme = forme in patch ? forme : gen.species.get(forme)!.baseSpecies
+  const presets = [...patch[baseForme].presets]
+
+  if (baseForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
+
+  return presets
 }
-
-// 1703173141 17b7ef1b1 {
-//   role: 'Fast Support',
-//   movepool: [ 'Transform' ],
-//   teraTypes: [ 'Stellar' ]
-// }
-
-// 1703437168
-
-// 1703722666
-
-// 1703958831 58aa9c3a4 {
-//   role: 'Fast Support',
-//   movepool: [ 'Transform' ],
-//   teraTypes: [ 'Stellar' ]
-// }
-// 1703960706 c144d28c8 {
-//   role: 'Fast Support',
-//   movepool: [ 'Transform' ],
-//   teraTypes: [ 'Stellar' ]
-// }

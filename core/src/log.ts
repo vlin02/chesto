@@ -1,4 +1,4 @@
-import { FOE, piped, Side, SIDES } from "./observer/protocol.js"
+import { FOE, piped, Side, SIDES } from "./client/protocol.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 

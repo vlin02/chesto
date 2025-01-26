@@ -1,27 +1,25 @@
 import { ObjectId } from "mongodb"
 import { Log } from "./log.js"
-import { Sample } from "./random.js"
+import { Member } from "./random.js"
 import { ID, toID } from "@pkmn/data"
 import { PRNGSeed } from "@pkmn/sim"
-import { Side, FOE } from "./observer/protocol.js"
+import { Side, FOE } from "./client/protocol.js"
 
-type Player = {
+export type Player = {
   name: string
-  team: Sample[]
+  team: Member[]
 }
 
 export type Replay = {
   _id: ObjectId
-  version: string
   id: string
+  version: string
   uploadtime: number
-  players: [string, string]
   rating: number
   private: number
   password: string | null
   inputs: string[]
-  outputsV2: Log[][]
-  teams: [Sample[], Sample[]]
+  outputs: Log[][]
   p1: Player
   p2: Player
 }

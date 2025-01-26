@@ -20,10 +20,5 @@
     "emitDecoratorMetadata": true,
     "target": "ES2022",
     "allowSyntheticDefaultImports": true
-  },
-  "references": [
-    {
-      "path": "../sim"
-    }
-  ]
+  }
 }

@@ -1,7 +1,8 @@
 import { Generation, TypeName } from "@pkmn/data"
-import { Member, parseCondition, parseLabel, parseTraits, Traits } from "./protocol.js"
+import { parseHealth, parseReference, parseLabel, Label } from "./protocol.js"
 import { getMaxPP } from "./move.js"
 import { BoostId, Gender, StatId, StatusId } from "../battle.js"
+import { Member } from "./request.js"
 
 export type Boosts = {
   [k in BoostId]?: number
@@ -81,7 +82,8 @@ export type Status = {
 
 export type FormeChange = {
   forme: string
-  reverts: boolean
+  whileActiveOnly: boolean
+  ability?: string
 }
 
 export class AllyUser {
@@ -92,7 +94,6 @@ export class AllyUser {
   hp: [number, number]
   formeChange?: FormeChange
   item: string | null
-  firstItem?: string | null
   species: string
   base: {
     forme: string
@@ -115,11 +116,18 @@ export class AllyUser {
 
   constructor(
     gen: Generation,
-    { ident, details, condition, stats, item, moves, baseAbility, teraType }: Member
+    {
+      health,
+      species,
+      label: { forme, gender, lvl },
+      stats,
+      baseAbility,
+      item,
+      moves,
+      teraType
+    }: Member
   ) {
-    const { species } = parseLabel(ident)
-    const { gender, lvl, forme } = parseTraits(details)
-    const { hp } = parseCondition(condition)
+    const { hp } = health!
 
     if (species === "Ditto") {
       moves = ["transform"]
@@ -175,8 +183,12 @@ export class AllyUser {
   }
 
   get ability() {
-    const { volatiles, base } = this
-    return (volatiles["Trace"] ?? volatiles["Transform"] ?? base).ability
+    const { volatiles, base, formeChange } = this
+    return (
+      (volatiles["Trace"] ?? volatiles["Transform"])?.ability ??
+      formeChange?.ability ??
+      base.ability
+    )
   }
 
   get gender() {
@@ -197,10 +209,10 @@ export class FoeUser {
   gen: Generation
   base: {
     item?: string | null
+    ability?: string | null
     forme: string
     moveSet: MoveSet
     gender: Gender
-    ability?: string
   }
   lastMove?: string
   lastBerry?: {
@@ -213,7 +225,7 @@ export class FoeUser {
   tera: boolean
   teraType?: TypeName
 
-  constructor(gen: Generation, species: string, traits: Traits) {
+  constructor(gen: Generation, species: string, traits: Label) {
     this.clone = () => {
       return new FoeUser(gen, species, traits)
     }
@@ -260,8 +272,12 @@ export class FoeUser {
   }
 
   get ability() {
-    const { volatiles, base } = this
-    return (volatiles["Trace"] ?? volatiles["Transform"] ?? base).ability
+    const { volatiles, base, formeChange } = this
+    return (
+      (volatiles["Trace"] ?? volatiles["Transform"])?.ability ??
+      formeChange?.ability ??
+      base.ability
+    )
   }
 
   get gender() {

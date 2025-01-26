@@ -1,42 +1,10 @@
 import { TypeName } from "@pkmn/data"
-import { StatId, Gender, StatusId } from "../battle.js"
+import { Gender, StatusId } from "../battle.js"
 
 export type Side = "p1" | "p2"
 
 export const SIDES = ["p1", "p2"] as const
 export const FOE = { p1: "p2", p2: "p1" } as const
-
-export type Member = {
-  ident: string
-  details: string
-  condition: string
-  active: boolean
-  stats: { [k in StatId]: number }
-  baseAbility: string
-  item: string
-  ability: string
-  moves: string[]
-  teraType?: TypeName
-  terastallized?: boolean
-}
-
-export type ChoiceRequest = {
-  side: {
-    id: Side
-    name: string
-    pokemon: Member[]
-  }
-} & {
-  active?: [
-    {
-      moves: [{ move: string; disabled: boolean; pp: number; maxpp: number }]
-      trapped?: boolean
-      canTerastallize?: boolean
-    }
-  ]
-  forceswitch?: boolean[]
-  wait?: true
-}
 
 export function piped(s: string, i: number, n = 1) {
   const args = []
@@ -50,27 +18,27 @@ export function piped(s: string, i: number, n = 1) {
   return { args, i }
 }
 
-export type Traits = {
+export type Label = {
   forme: string
   lvl: number
   gender: Gender
 }
 
-export function parseTraits(s: string) {
+export function parseLabel(s: string) {
   const parts = s.split(", ")
-  const traits: Traits = { forme: parts[0], lvl: 100, gender: null }
+  const label: Label = { forme: parts[0], lvl: 100, gender: null }
 
   for (let i = 1; i < parts.length; i++) {
     const part = parts[i]
 
     if (part === "M" || part === "F") {
-      traits.gender = part
+      label.gender = part
     } else if (part[0] === "L") {
-      traits.lvl = Number(part.slice(1))
+      label.lvl = Number(part.slice(1))
     }
   }
 
-  return traits
+  return label
 }
 
 export function parseTags(strs: string[]) {
@@ -86,10 +54,10 @@ export function parseTags(strs: string[]) {
   return tags
 }
 
-export function parseCondition(
-  s: string
-): { hp: null; status: undefined } | { hp: [number, number]; status?: StatusId } {
-  if (s.slice(-3) === "fnt") return { hp: null, status: undefined }
+export type Health = { hp: [number, number]; status?: StatusId }
+
+export function parseHealth(s: string): Health | null {
+  if (s.slice(-3) === "fnt") return null
   let [frac, status] = s.split(" ")
 
   return {
@@ -129,7 +97,7 @@ export function parseTypes(s: string) {
   return s.split("/") as TypeName[]
 }
 
-export function parseLabel(s: string) {
+export function parseReference(s: string) {
   const i = s.indexOf(": ")
   const side = s.slice(0, 2) as Side
   const species = s.slice(i + 2)

@@ -28,7 +28,7 @@ export type Role =
   | "Berry Sweeper"
   | "Thief user"
 
-export type Sample = {
+export type Member = {
   name: string
   species: string
   gender: string | boolean
