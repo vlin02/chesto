@@ -1,4 +1,4 @@
-import { AllyUser, FoeUser } from "./user.js"
+import { AllyUser, FoeUser, User } from "./user.js"
 
 export type POV = "ally" | "foe"
 
@@ -12,7 +12,17 @@ export type Fields = {
   }
 }
 
+export const DELAYED_MOVES = ["Future Sight", "Doom Desire"]
+export type DelayedMove = (typeof DELAYED_MOVES)[number]
+
+export type DelayedAttack = {
+  move: DelayedMove
+  turn: number
+  user: User
+}
+
 export type Ally = {
+  delayedAttack?: DelayedAttack
   turnMoves: number
   teraUsed: boolean
   fields: Fields
@@ -22,6 +32,7 @@ export type Ally = {
 }
 
 export type Foe = {
+  delayedAttack?: DelayedAttack
   turnMoves: number
   teraUsed: boolean
   fields: Fields

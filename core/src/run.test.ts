@@ -1,25 +1,15 @@
-import { Generation } from "@pkmn/data"
-import { split } from "../log.js"
-import { Observer } from "./observer.js"
-import { availableMoves, getPotentialPresets, matchesPreset, Run } from "../run.js"
-import { Patch } from "../version.js"
-import { FOE, Side } from "./protocol.js"
-import { Replay } from "../replay.js"
+import { split } from "./log.js"
+import { Observer } from "./client/observer.js"
+import { availableMoves, Format, getPotentialPresets, matchesPreset } from "./run.js"
+import { FOE, Side } from "./client/protocol.js"
+import { Replay } from "./replay.js"
+import { STAT_IDS } from "./battle.js"
 
-export type Env = {
-  gen: Generation
-  patches: Map<string, Patch>
-}
+export function testSide(format: Format, replay: Replay, side: Side) {
+  const { gen } = format
 
-export function testSide({ gen, patches }: Env, replay: Replay, side: Side) {
   const { version, outputs } = replay
   const obs = new Observer(gen)
-
-  const run: Run = {
-    obs,
-    gen,
-    patch: patches.get(version)!
-  }
 
   const opp = replay[FOE[side]]
 
@@ -41,7 +31,7 @@ export function testSide({ gen, patches }: Env, replay: Replay, side: Side) {
         const user = team[species]
 
         const build = opp.team.find((x) => x.name === species)!
-        const presets = getPotentialPresets(run, user)
+        const presets = getPotentialPresets(format, user)
 
         if (
           !presets.some((preset) => {
@@ -59,7 +49,7 @@ export function testSide({ gen, patches }: Env, replay: Replay, side: Side) {
       if (request.type === "move") {
         const [{ moveSlots }] = request.choices
 
-        const moves = availableMoves(run, true)
+        const moves = availableMoves(format, obs, true)
         const expectedMoves = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
@@ -91,9 +81,16 @@ export function testSide({ gen, patches }: Env, replay: Replay, side: Side) {
         terastallized,
         species,
         health,
+        stats,
         label: { gender, lvl }
       } of request.team) {
         const user = ally.team[species]
+
+        for (const id of STAT_IDS) {
+          if (user.stats[id] !== stats[id]) {
+            throw Error()
+          }
+        }
 
         if ((user === ally.active) !== active) {
           throw Error()

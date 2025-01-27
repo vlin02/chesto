@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb"
 import { Log } from "./log.js"
-import { Build } from "./preset.js"
+import { Build } from "./build.js"
 import { ID, toID } from "@pkmn/data"
 import { PRNGSeed } from "@pkmn/sim"
 import { Side, FOE } from "./client/protocol.js"

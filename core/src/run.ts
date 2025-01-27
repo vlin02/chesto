@@ -1,15 +1,14 @@
 import { Generation } from "@pkmn/data"
-import { Observer } from "./client/observer.js"
 import { Patch, Preset } from "./version.js"
 import { FoeUser } from "./client/user.js"
+import { Observer } from "./client/observer.js"
 
-export type Run = {
+export type Format = {
   gen: Generation
   patch: Patch
-  obs: Observer
 }
 
-export function availableMoves({ gen, obs }: Run, matchProtocol = false): string[] {
+export function availableMoves({ gen }: Format, obs: Observer, matchProtocol = false): string[] {
   const { active } = obs.ally
 
   let {
@@ -74,6 +73,25 @@ export function availableMoves({ gen, obs }: Run, matchProtocol = false): string
   return available
 }
 
+export function getBaseForme({ gen, patch }: Format, forme: string) {
+  return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
+}
+
+export function getPotentialPresets(format: Format, user: FoeUser) {
+  const { patch } = format
+
+  const {
+    base: { forme }
+  } = user
+
+  const baseForme = getBaseForme(format, forme)
+  const presets = [...patch[baseForme].presets]
+
+  if (baseForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
+
+  return presets
+}
+
 export function matchesPreset(preset: Preset, user: FoeUser) {
   const {
     base: { ability, item, moveSet },
@@ -92,17 +110,4 @@ export function matchesPreset(preset: Preset, user: FoeUser) {
     return false
 
   return true
-}
-
-export function getPotentialPresets({ gen, patch }: Run, user: FoeUser) {
-  const {
-    base: { forme }
-  } = user
-
-  let baseForme = forme in patch ? forme : gen.species.get(forme)!.baseSpecies
-  const presets = [...patch[baseForme].presets]
-
-  if (baseForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
-
-  return presets
 }

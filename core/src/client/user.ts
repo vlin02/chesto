@@ -1,12 +1,8 @@
 import { Generation, TypeName } from "@pkmn/data"
-import { parseHealth, parseReference, parseLabel, Label } from "./protocol.js"
+import { Label } from "./protocol.js"
 import { getMaxPP } from "./move.js"
-import { BoostId, Gender, StatId, StatusId } from "../battle.js"
+import { Boosts, Gender, StatId, StatusId } from "../battle.js"
 import { Member } from "./request.js"
-
-export type Boosts = {
-  [k in BoostId]?: number
-}
 
 export type MoveSlot = {
   used: number
@@ -15,17 +11,34 @@ export type MoveSlot = {
 
 export type MoveSet = { [k: string]: MoveSlot }
 
-export type DelayedAttack = {
+export type LastBerry = {
+  name: string
   turn: number
-  user: User
 }
 
 export type Volatiles = {
   [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean }
 } & {
-  "Recharge"?: { turn: number }
-  "Yawn"?: {}
-  "Taunt"?: {}
+  [k in
+    | "Taunt"
+    | "Yawn"
+    | "Confusion"
+    | "Throat Chop"
+    | "Heal Block"
+    | "Slow Start"
+    | "Magnet Rise"]?: { turn: number }
+} & {
+  [k in
+    | "Leech Seed"
+    | "Charge"
+    | "Attract"
+    | "No Retreat"
+    | "Salt Cure"
+    | "Flash Fire"
+    | "Leech Seed"
+    | "Substitute"
+    | "Pressure"]?: {}
+} & {
   "Type Change"?: {
     types: TypeName[]
   }
@@ -43,7 +56,6 @@ export type Volatiles = {
     gender: Gender
     forme: string
   }
-  "Pressure"?: {}
   "Choice Locked"?: {
     move: string
   }
@@ -64,8 +76,6 @@ export type Volatiles = {
     turn: number
     move: string
   }
-  "Future Sight"?: DelayedAttack
-  "Doom Desire"?: DelayedAttack
 }
 
 export type Flags = {
@@ -215,10 +225,7 @@ export class FoeUser {
     gender: Gender
   }
   lastMove?: string
-  lastBerry?: {
-    name: string
-    turn: number
-  }
+  lastBerry?: LastBerry
   volatiles: Volatiles
   boosts: Boosts
   clone: () => FoeUser
@@ -246,6 +253,20 @@ export class FoeUser {
       moveSet: {},
       gender
     }
+  }
+
+  clear() {
+    const { volatiles, boosts, lastBerry, lastMove, formeChange } = this
+    const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
+
+    this.volatiles = {}
+    this.boosts = {}
+    delete this.lastBerry
+    delete this.lastMove
+
+    if (formeChange?.whileActiveOnly) delete this.formeChange
+
+    return recover
   }
 
   get types() {
@@ -287,3 +308,33 @@ export class FoeUser {
 }
 
 export type User = AllyUser | FoeUser
+
+type Temp = {
+  volatiles: Volatiles
+  boosts: Boosts
+  lastBerry: undefined
+  lastMove: string | undefined
+  formeChange: FormeChange | undefined
+}
+
+export function clear(user: User) {
+  const { volatiles, boosts, lastBerry, lastMove, formeChange } = user
+  const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
+
+  user.volatiles = {}
+  user.boosts = {}
+  delete user.lastBerry
+  delete user.lastMove
+
+  if (formeChange?.whileActiveOnly) delete user.formeChange
+
+  return recover
+}
+
+export function recover(user: User, { volatiles, boosts, lastBerry, lastMove, formeChange }: Temp) {
+  user.volatiles = volatiles
+  user.boosts = boosts
+  user.lastBerry = lastBerry
+  user.lastMove = lastMove
+  user.formeChange = formeChange
+}

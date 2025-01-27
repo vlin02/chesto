@@ -11,8 +11,8 @@ import {
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { WeatherName } from "@pkmn/client"
-import { Ally, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
-import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
+import { Ally, DELAYED_MOVES, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
+import { AllyUser, clear, FoeUser, MoveSet, User } from "./user.js"
 import { getMaxPP, isLocking, isPressured } from "./move.js"
 import { StatusId, CHOICE_ITEMS, BoostId, StatId } from "../battle.js"
 
@@ -89,13 +89,6 @@ export class Observer {
     const user = this[pov].team[species]
     if (illusion?.from === user) return illusion.to
     return user
-  }
-
-  clear(user: User) {
-    user.volatiles = {}
-    user.boosts = {}
-    delete user.lastBerry
-    delete user.lastMove
   }
 
   setAbility(user: User, ability: string) {
@@ -182,6 +175,10 @@ export class Observer {
           }
         }
 
+        for (const { species, stats } of team) {
+          this.ally.team[species].stats = stats
+        }
+
         const { volatiles } = this.ally.active
         const { "Locked Move": lockedMove } = volatiles
 
@@ -224,7 +221,7 @@ export class Observer {
         user.hp[0] = 0
         user.status = undefined
 
-        this.clear(user)
+        clear(user)
         break
       }
       case "switch":
@@ -289,7 +286,7 @@ export class Observer {
           user.volatiles["Substitute"] = prev.volatiles["Substitute"]
         }
 
-        this.clear(prev)
+        clear(prev)
 
         this[pov].active = user
         break
@@ -731,7 +728,8 @@ export class Observer {
             }
             case "Future Sight":
             case "Doom Desire": {
-              this[opp].active.volatiles[name] = {
+              this[opp].delayedAttack = {
+                move: name,
                 turn: 0,
                 user
               }
@@ -926,10 +924,15 @@ export class Observer {
       case "-end": {
         p = piped(line, p.i, 2)
         const user = this.user(this.ref(p.args[0]))
+        const { pov } = user
         let { stripped: name } = parseEntity(p.args[1])
 
-        const { volatiles } = user
+        if (DELAYED_MOVES.includes(name)) {
+          delete this[pov].delayedAttack
+          break
+        }
 
+        const { volatiles } = user
         if (name.startsWith("fallen")) name = "Fallen"
 
         delete volatiles[name]
