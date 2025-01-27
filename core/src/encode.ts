@@ -89,7 +89,13 @@ export function encode(format: Format, obs: Observer) {
         case "Pressure":
         case "Transform":
         case "Trace":
-          encoded[name] = {}
+        case "Destiny Bond":
+        case "Roost":
+        case "Roost":
+        case "Protect":
+        case "Beak Blast":
+        case "Focus Punch":
+          encoded[name] = true
           break
         case "Taunt":
         case "Yawn":
@@ -103,9 +109,7 @@ export function encode(format: Format, obs: Observer) {
             "Throat Chop": 2,
             "Heal Block": 5,
             "Slow Start": 5,
-            "Magnet Rise": 5,
-            "Future Sight": 2,
-            "Doom Desire": 2
+            "Magnet Rise": 5
           }[name]
           const { turn } = volatiles[name]!
 
