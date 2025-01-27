@@ -11,7 +11,7 @@ import {
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { WeatherName } from "@pkmn/client"
-import { Ally, DELAYED_MOVES, Foe, HAZARDS, OPP, POV, POVS } from "./side.js"
+import { Ally, DELAYED_MOVES, Foe, Hazard, HAZARDS, OPP, POV, POVS, Screen } from "./side.js"
 import { AllyUser, clear, FoeUser, MoveSet, User } from "./user.js"
 import { getMaxPP, isLocking, isPressured } from "./move.js"
 import { StatusId, CHOICE_ITEMS, BoostId, StatId } from "../battle.js"
@@ -165,7 +165,7 @@ export class Observer {
           this.side = side
           this.name = name
 
-          this.ally = { hazards: {}, team: {}, teraUsed: false } as Ally
+          this.ally = { effects: {}, team: {}, teraUsed: false } as Ally
 
           for (const member of team) {
             const user = new AllyUser(this.gen, member)
@@ -259,7 +259,7 @@ export class Observer {
 
           if (!this.foe) {
             this.foe = {
-              hazards: {},
+              effects: {},
               team: { [species]: user },
               active: user,
               teraUsed: true,
@@ -894,7 +894,7 @@ export class Observer {
       }
       case "-swapsideconditions": {
         const { ally, foe } = this
-        ;[ally.hazards, foe.hazards] = [foe.hazards, ally.hazards]
+        ;[ally.effects, foe.effects] = [foe.effects, ally.effects]
         break
       }
       case "replace": {
@@ -960,9 +960,16 @@ export class Observer {
         const { pov } = this.ref(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
 
-        const { hazards: fields } = this[pov]
-        if (HAZARDS.includes(name)) (fields[name] ?? { layers: 0 }).layers!++
-        else fields[name] = { turn: 0 }
+        const { effects } = this[pov]
+        if (HAZARDS.includes(name as Hazard)) {
+          const hazard = effects[name as Hazard] ?? { layers: 0 }
+          hazard.layers = Math.min(
+            hazard.layers! + 1,
+            { "Sticky Web": 1, "Toxic Spikes": 2, "Stealth Rock": 1, "Spikes": 3 }[name as Hazard]
+          )
+        } else {
+          effects[name as Screen] = { turn: 0 }
+        }
 
         break
       }
@@ -971,8 +978,8 @@ export class Observer {
         const { pov } = this.ref(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
 
-        const { hazards: conditions } = this[pov]
-        delete conditions[name]
+        const { effects } = this[pov]
+        delete effects[name]
 
         break
       }
@@ -990,7 +997,7 @@ export class Observer {
 
         for (const pov of POVS) {
           const side = this[pov]
-          const { hazards: conditions } = side
+          const { effects: conditions } = side
 
           side.turnMoves = 0
 
