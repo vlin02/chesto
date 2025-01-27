@@ -1,9 +1,10 @@
-import { Stats as StatCalc } from "@pkmn/data"
+import { Stats as Calc, Generation, StatID } from "@pkmn/data"
 import { Observer } from "./client/observer.js"
-import { Stats, TERRAIN_NAMES } from "./battle.js"
-import { Format, getBaseForme } from "./run.js"
-import { MoveSet, Status, Volatiles } from "./client/user.js"
-import { DelayedAttack, HAZARDS, SideEffects } from "./client/side.js"
+import { STAT_IDS, Stats, TERRAIN_NAMES } from "./battle.js"
+import { Format, getBaseForme, getPotentialPresets, matchesPreset } from "./run.js"
+import { FoeUser, MoveSet, Status, Volatiles } from "./client/user.js"
+import { DelayedAttack, Hazard, HAZARDS, SideEffects } from "./client/side.js"
+import { Dex } from "@pkmn/dex"
 
 function scale(n: number, lo: number, hi: number, neg = false) {
   if (neg) {
@@ -34,7 +35,7 @@ function encodeStatus({ id, turn, attempt }: Status) {
 function encodeStats(stats: Stats): Stats {
   const encoded: any = {}
   for (const id in stats) {
-    encoded[id] = scale(stats[id], 0, 200)
+    encoded[id] = scale(stats[id as StatID], 0, 200)
   }
   return encoded
 }
@@ -145,48 +146,70 @@ function encodeDelayedAttack({ move, turn }: DelayedAttack) {
   }
 }
 
+function encodeWish(wish?: number) {
+  return wish ? 2 - wish : 0
+}
+
 function encodeSideEffects(effects: SideEffects) {
-  const encoded = {}
+  const encoded: any = {}
   for (const name in effects) {
-    if (HAZARDS.includes(name)) {
+    if (HAZARDS.includes(name as Hazard)) {
+      encoded[name] = effects[name]
+    } else {
+      const { turn } = effects[name]
       encoded[name] = {
-        layers: 
+        turnsLeft: (name === "Tailwind" ? 4 : 5) - turn!
       }
     }
   }
 }
 
+function inferStats(gen: Generation, { forme, lvl }: FoeUser) {
+  const calc = new Calc(Dex)
+  const { baseStats } = gen.species.get(forme)!
+
+  const stats: any = {}
+  for (const id of STAT_IDS) {
+    stats[id] = calc.calc(id, baseStats[id], 31, 85, lvl)
+  }
+
+  return stats
+}
+
 export function encode(format: Format, obs: Observer) {
   const { gen } = format
-  const statCalc = new StatCalc(gen.dex)
 
-  let weather = null
-  let terrain = null
-  const fields: { [k: string]: number } = {}
+  const { ally, foe, fields, weather, request } = obs
 
-  if (obs.weather) {
-    const { name, turn } = obs.weather
-    weather = { name, turnsLeft: scale(5 - turn, 0, 5) }
+  let encodedWeather = null
+  let encodedTerrain = null
+  let trickRoom = null
+
+  if (weather) {
+    const { name, turn } = weather
+    encodedWeather = { name, turnsLeft: 5 - turn }
   }
 
-  for (const name in obs.fields) {
-    const turn = obs.fields[name]
-    const turnsLeft = scale(5 - turn, 0, 5)
+  for (const name in fields) {
+    const turn = fields[name]
+    const turnsLeft = 5 - turn
 
-    if (TERRAIN_NAMES.includes(name)) terrain = { name, turnsLeft }
-    else fields[name] = turnsLeft
+    if (TERRAIN_NAMES.includes(name)) encodedTerrain = { name, turnsLeft }
+    else if (name === "Trick Room") {
+      trickRoom = { turnsLeft }
+    } else {
+      throw Error()
+    }
   }
-
-  const { ally } = obs
 
   let encodedAlly
 
   {
-    const { team, delayedAttack, teraUsed } = ally
+    const { team, delayedAttack, effects, active, teraUsed, wish } = ally
 
     let encodedTeam: any = {}
-    for (const species in ally.team) {
-      const user = ally.team[species]
+    for (const species in team) {
+      const user = team[species]
 
       const {
         revealed,
@@ -230,16 +253,88 @@ export function encode(format: Format, obs: Observer) {
       team: encodedTeam,
       delayedAttack: delayedAttack ? encodeDelayedAttack(delayedAttack) : null,
       teraUsed,
-      hazards: 
+      effects: encodeSideEffects(effects),
+      active: active.species,
+      wish: encodeWish(wish)
     }
   }
 
+  let encodedFoe
   {
+    const { team, delayedAttack, effects, active, teraUsed, wish } = foe
+
+    let encodedTeam: any = {}
+    for (const species in team) {
+      const user = team[species]
+      const {
+        item,
+        ability,
+        moveSet,
+        status,
+        teraType,
+        flags,
+        lastBerry,
+        lastMove,
+        boosts,
+        forme,
+        volatiles
+      } = user
+
+      let presets = getPotentialPresets(format, user)
+      presets = presets.filter((x) => matchesPreset(x, user))
+
+      const validItems = new Set<string>()
+      const validAbilities = new Set<string>()
+      const validMoves = new Set<string>()
+      const validTeraTypes = new Set<string>()
+
+      for (const {
+        agg: { items, abilities, moves, teraTypes }
+      } of presets) {
+        for (const item of items) validItems.add(item)
+        for (const ability of abilities) validAbilities.add(ability)
+        for (const type of teraTypes) validTeraTypes.add(type)
+        for (const move of moves) validMoves.add(move)
+      }
+
+      const stats = inferStats(gen, user)
+      const { hp } = stats
+
+      encodedTeam[species] = {
+        stats: encodeStats(stats),
+        hpLeft: hp[0] / hp[1],
+        moveSet: encodeMoveSet(moveSet),
+        remainingMoves: [...validMoves].filter((move) => !(move in moveSet)),
+        ability,
+        items: item ? [item] : [...validItems],
+        abilities: ability ? [ability] : [...validAbilities],
+        status: status ? encodeStatus(status) : null,
+        teraType,
+        flags,
+        baseForme: getBaseForme(format, forme),
+        lastBerry,
+        lastMove,
+        volatiles: encodeVolatiles(volatiles),
+        boosts
+      }
+    }
+
+    encodedFoe = {
+      team: encodedTeam,
+      delayedAttack: delayedAttack ? encodeDelayedAttack(delayedAttack) : null,
+      teraUsed,
+      effects: encodeSideEffects(effects),
+      active: active.species,
+      wish: encodeWish(wish)
+    }
   }
 
   return {
-    weather,
-    terrain,
-    fields
+    weather: encodedWeather,
+    terrain: encodedTerrain,
+    fields,
+    ally: encodedAlly,
+    foe: encodedFoe,
+    forceSwitch: request.type === "switch"
   }
 }

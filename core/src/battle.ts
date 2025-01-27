@@ -43,7 +43,7 @@ export type Boosts = {
   [k in BoostId]?: number
 }
 
-export const STAT_IDS = ["hp", "atk", "def", "spa", "spd", "spe"]
+export const STAT_IDS = ["hp", "atk", "def", "spa", "spd", "spe"] as const
 export type StatId = (typeof STAT_IDS)[number]
 
 export type Stats = { [k in StatId]: number }
