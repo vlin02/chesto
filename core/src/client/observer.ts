@@ -165,7 +165,7 @@ export class Observer {
           this.side = side
           this.name = name
 
-          this.ally = { fields: {}, team: {}, teraUsed: false } as Ally
+          this.ally = { hazards: {}, team: {}, teraUsed: false } as Ally
 
           for (const member of team) {
             const user = new AllyUser(this.gen, member)
@@ -259,7 +259,7 @@ export class Observer {
 
           if (!this.foe) {
             this.foe = {
-              fields: {},
+              hazards: {},
               team: { [species]: user },
               active: user,
               teraUsed: true,
@@ -894,7 +894,7 @@ export class Observer {
       }
       case "-swapsideconditions": {
         const { ally, foe } = this
-        ;[ally.fields, foe.fields] = [foe.fields, ally.fields]
+        ;[ally.hazards, foe.hazards] = [foe.hazards, ally.hazards]
         break
       }
       case "replace": {
@@ -960,7 +960,7 @@ export class Observer {
         const { pov } = this.ref(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
 
-        const { fields } = this[pov]
+        const { hazards: fields } = this[pov]
         if (HAZARDS.includes(name)) (fields[name] ?? { layers: 0 }).layers!++
         else fields[name] = { turn: 0 }
 
@@ -971,7 +971,7 @@ export class Observer {
         const { pov } = this.ref(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
 
-        const { fields: conditions } = this[pov]
+        const { hazards: conditions } = this[pov]
         delete conditions[name]
 
         break
@@ -990,7 +990,7 @@ export class Observer {
 
         for (const pov of POVS) {
           const side = this[pov]
-          const { fields: conditions } = side
+          const { hazards: conditions } = side
 
           side.turnMoves = 0
 

@@ -14,7 +14,7 @@ function scale(n: number, lo: number, hi: number, neg = false) {
 
 export function encode(format: Format, obs: Observer) {
   const { gen } = format
-  const statCalculator = new StatCalculator(gen.dex)
+  const statCalc = new StatCalculator(gen.dex)
 
   let weather = null
   let terrain = null
@@ -96,7 +96,7 @@ export function encode(format: Format, obs: Observer) {
         case "Throat Chop":
         case "Heal Block":
         case "Slow Start":
-        case "Magnet Rise":
+        case "Magnet Rise": {
           const duration = {
             "Taunt": 3,
             "Yawn": 2,
@@ -110,12 +110,20 @@ export function encode(format: Format, obs: Observer) {
           const { turn } = volatiles[name]!
 
           encoded[name] = {
-            left: Math.max(duration - turn, 1)
+            turnsLeft: Math.max(duration - turn, 1)
           }
           break
-
+        }
         case "Confusion":
+          const { turn } = volatiles[name]!
 
+          encoded[name] = {
+            turnsLeft: {
+              min: Math.max(2 - turn, 1),
+              max: Math.max(5 - turn)
+            }
+          }
+          break
         case "Encore":
         case "Type Change":
         case "Choice Locked":
@@ -124,6 +132,25 @@ export function encode(format: Format, obs: Observer) {
         case "Fallen":
           encoded[name] = volatiles[name]
           break
+        case "Disable": {
+          const { turn, move } = volatiles[name]!
+          encoded[name] = {
+            turnsLeft: 4 - turn,
+            move
+          }
+          break
+        }
+        case "Locked Move": {
+          const { turn, move } = volatiles[name]!
+          encoded[name] = {
+            turnsLeft: {
+              min: Math.max(2 - turn, 1),
+              max: Math.max(3 - turn)
+            },
+            move
+          }
+          break
+        }
       }
     }
   }

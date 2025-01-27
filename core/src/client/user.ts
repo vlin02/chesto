@@ -17,8 +17,6 @@ export type LastBerry = {
 }
 
 export type Volatiles = {
-  [k: string]: { turn?: number; singleMove?: boolean; singleTurn?: boolean }
-} & {
   [k in
     | "Taunt"
     | "Yawn"
@@ -38,7 +36,10 @@ export type Volatiles = {
     | "Leech Seed"
     | "Substitute"
     | "Pressure"]?: {}
-} & {
+}  & {
+  [k in ]
+}  {
+
   "Type Change"?: {
     types: TypeName[]
   }

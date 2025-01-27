@@ -5,7 +5,7 @@ export type POV = "ally" | "foe"
 export const POVS = ["ally", "foe"] as const
 export const OPP = { ally: "foe", foe: "ally" } as const
 
-export type Fields = {
+export type Hazards = {
   [k: string]: {
     turn?: number
     layers?: number
@@ -25,7 +25,7 @@ export type Ally = {
   delayedAttack?: DelayedAttack
   turnMoves: number
   teraUsed: boolean
-  fields: Fields
+  hazards: Hazards
   active: AllyUser
   team: { [k: string]: AllyUser }
   wish?: number
@@ -35,7 +35,7 @@ export type Foe = {
   delayedAttack?: DelayedAttack
   turnMoves: number
   teraUsed: boolean
-  fields: Fields
+  hazards: Hazards
   active: FoeUser
   team: { [k: string]: FoeUser }
   wish?: number
