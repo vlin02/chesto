@@ -1,13 +1,13 @@
 import { ObjectId } from "mongodb"
 import { Log } from "./log.js"
-import { Member } from "./random.js"
+import { Build } from "./preset.js"
 import { ID, toID } from "@pkmn/data"
 import { PRNGSeed } from "@pkmn/sim"
 import { Side, FOE } from "./client/protocol.js"
 
 export type Player = {
   name: string
-  team: Member[]
+  team: Build[]
 }
 
 export type Replay = {
