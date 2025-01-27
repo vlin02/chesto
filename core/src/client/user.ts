@@ -41,7 +41,7 @@ export type Volatiles = {
 } & {
   [k in "Destiny Bond" | "GlaiveRush"]?: { singleMove: true }
 } & {
-  [k in "Roost" | "Protect"]?: { singleTurn: true }
+  [k in "Roost" | "Protect" | "Beak Blast"]?: { singleTurn: true }
 } & {
   "Type Change"?: {
     types: TypeName[]
