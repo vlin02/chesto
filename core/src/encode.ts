@@ -15,15 +15,11 @@ function scale(n: number, lo: number, hi: number, neg = false) {
 }
 
 function encodeStatus({ id, turn, attempt }: Status) {
-  let sleepAttemptsLeft = { min: 0, max: 0 }
+  let sleepAttemptsLeft = [0, 0]
   let toxicTurns = 0
 
   if (id === "tox") toxicTurns = turn!
-  if (id === "slp")
-    sleepAttemptsLeft = {
-      min: Math.max(1 - attempt!, 1),
-      max: 3 - attempt!
-    }
+  if (id === "slp") sleepAttemptsLeft = [Math.max(1 - attempt!, 1), 3 - attempt!]
 
   return {
     id,
@@ -109,14 +105,14 @@ type EncodedVolaties =
       "Quark Drive"?: { statId: StatID }
       "Fallen"?: { count: number }
       "Confusion"?: {
-        turnsLeft: { min: number; max: number }
+        turnsLeft: [number, number]
       }
       "Disable"?: {
         turnsLeft: number
         move: string
       }
       "Locked Move"?: {
-        turnsLeft: { min: number; max: number }
+        turnsLeft: [number, number]
         move: string
       }
     }
@@ -169,10 +165,7 @@ function encodeVolatiles(volatiles: Volatiles) {
         const { turn } = volatiles[name]!
 
         encoded[name] = {
-          turnsLeft: {
-            min: Math.max(2 - turn, 1),
-            max: Math.max(5 - turn)
-          }
+          turnsLeft: [Math.max(2 - turn, 1), Math.max(5 - turn)]
         }
         break
       case "Encore":
@@ -197,10 +190,7 @@ function encodeVolatiles(volatiles: Volatiles) {
       case "Locked Move": {
         const { turn, move } = volatiles[name]!
         encoded[name] = {
-          turnsLeft: {
-            min: Math.max(2 - turn, 1),
-            max: Math.max(3 - turn)
-          },
+          turnsLeft: [Math.max(2 - turn, 1), Math.max(3 - turn)],
           move
         }
         break
@@ -209,6 +199,8 @@ function encodeVolatiles(volatiles: Volatiles) {
         throw Error(name)
     }
   }
+
+  return encoded
 }
 
 function encodeDelayedAttack({ move, turn }: DelayedAttack) {
@@ -219,7 +211,7 @@ function encodeDelayedAttack({ move, turn }: DelayedAttack) {
 }
 
 function encodeWish(wish?: number) {
-  return wish ? 2 - wish : 0
+  return { turnsLeft: wish ? 2 - wish : 0 }
 }
 
 function encodeSideEffects(effects: SideEffects) {
