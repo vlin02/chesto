@@ -37,7 +37,9 @@ export type Member = {
   species: string
   label: Label
   health: Health | null
-  stats: { [k in StatId]: number }
+  stats: {
+    [k in "atk" | "def" | "spa" | "spd" | "spe"]: number
+  }
   active: boolean
   baseAbility: string
   ability: string | null
@@ -52,7 +54,7 @@ export type Request = (
       type: "move"
       choices: [
         {
-          moveSlots: {name: string; disabled: boolean; pp: number; maxpp: number }[]
+          moveSlots: { name: string; disabled: boolean; pp: number; maxpp: number }[]
           trapped?: boolean
           canTerastallize?: boolean
         }

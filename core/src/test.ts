@@ -86,7 +86,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
       } of request.team) {
         const user = ally.team[species]
 
-        for (const id of STAT_IDS) {
+        for (const id of ["atk", "def", "spa", "spd", "spe"] as const) {
           if (user.stats[id] !== stats[id]) {
             throw Error()
           }

@@ -228,7 +228,7 @@ function encodeSideEffects(effects: SideEffects) {
   }
 }
 
-function inferStats(gen: Generation, { forme, lvl }: FoeUser) {
+function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
   const calc = new Calc(Dex)
   const { baseStats } = gen.species.get(forme)!
 
@@ -296,11 +296,8 @@ export function encode(format: Format, obs: Observer) {
 
       encodedTeam[species] = {
         revealed,
-        stats: encodeStats(stats),
-        hp: {
-          left: hp[0] / hp[1],
-          max: scale(hp[1], 100, 300)
-        },
+        stats: encodeStats({ ...stats, hp: hp[1] }),
+        hpLeft: hp[0] / hp[1],
         moveSet: encodeMoveSet(moveSet),
         ability,
         item,
@@ -334,6 +331,7 @@ export function encode(format: Format, obs: Observer) {
     for (const species in team) {
       const user = team[species]
       const {
+        hp,
         item,
         ability,
         moveSet,
@@ -365,7 +363,6 @@ export function encode(format: Format, obs: Observer) {
       }
 
       const stats = inferStats(gen, user)
-      const { hp } = stats
 
       encodedTeam[species] = {
         stats: encodeStats(stats),

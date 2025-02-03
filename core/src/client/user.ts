@@ -115,7 +115,9 @@ export class AllyUser {
     gender: Gender
     ability: string
   }
-  stats: { [k in StatId]: number }
+  stats: {
+    [k in "atk" | "def" | "spa" | "spd" | "spe"]: number
+  }
   status?: Status
   teraType: TypeName
   flags: Flags
