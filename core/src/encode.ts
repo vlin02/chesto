@@ -1,6 +1,6 @@
 import { Stats as Calc, Generation } from "@pkmn/data"
-import { Observer } from "./client/observer.js"
-import { BOOST_IDS, Boosts, STAT_IDS, Stats, STATUS_IDS, TERRAIN_NAMES } from "./battle.js"
+import { Fields, Observer, Weather } from "./client/observer.js"
+import { BOOST_IDS, Boosts, STAT_IDS, Stats, STATUS_IDS, TERRAIN_NAMES, WEATHER_NAMES } from "./battle.js"
 import { Format, getPresetForme, getPotentialPresets, matchesPreset } from "./run.js"
 import { Flags, FoeUser, MoveSet, Status, Volatiles } from "./client/user.js"
 import { DELAYED_MOVES, DelayedAttack, HAZARDS, SCREENS, SideEffects } from "./client/side.js"
@@ -29,18 +29,6 @@ const INTERIM_FORMES = [
   "Morpeko",
   "Morpeko-Hangry"
 ]
-
-function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
-  const calc = new Calc(Dex)
-  const { baseStats } = gen.species.get(forme)!
-
-  const stats: any = {}
-  for (const id of STAT_IDS) {
-    stats[id] = calc.calc(id, baseStats[id], 31, 85, lvl)
-  }
-
-  return stats
-}
 
 function encodeVolatiles(volatiles: Volatiles) {
   const encoded: number[] = []
@@ -143,11 +131,11 @@ function encodeVolatiles(volatiles: Volatiles) {
 }
 
 function encodeStats(stats: Stats) {
-  const encoded: number[] = []
+  const feats: number[] = []
   for (const statId of STAT_IDS) {
-    encoded.push(stats[statId])
+    feats.push(stats[statId])
   }
-  return encoded
+  return feats
 }
 
 function encodeStatus(status: Status | undefined) {
@@ -158,13 +146,13 @@ function encodeStatus(status: Status | undefined) {
   if (status?.id === "slp")
     sleepAttemptsLeft = [Math.max(1 - status.attempt!, 1), 3 - status.attempt!]
 
-  const encoded = []
+  const feats = []
   for (const id of STATUS_IDS) {
-    encoded.push(id === status?.id ? 1 : 0)
+    feats.push(id === status?.id ? 1 : 0)
   }
-  encoded.push(toxicTurns, ...sleepAttemptsLeft)
+  feats.push(toxicTurns, ...sleepAttemptsLeft)
 
-  return encoded
+  return feats
 }
 
 function encodeMoveSet(moveSet: MoveSet) {
@@ -178,7 +166,7 @@ function encodeMoveSet(moveSet: MoveSet) {
   }
 }
 
-function encodeUserFeatures({
+function encodeUser({
   revealed,
   hpLeft,
   stats,
@@ -219,6 +207,18 @@ function encodeUserFeatures({
   feats.push(...encodeVolatiles(volatiles))
 }
 
+function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
+  const calc = new Calc(Dex)
+  const { baseStats } = gen.species.get(forme)!
+
+  const stats: any = {}
+  for (const id of STAT_IDS) {
+    stats[id] = calc.calc(id, baseStats[id], 31, 85, lvl)
+  }
+
+  return stats
+}
+
 function encodeDelayedAttack(delayedAttack: DelayedAttack | undefined) {
   const encoded: number[] = []
 
@@ -243,25 +243,49 @@ function encodeSide({
   delayedAttack?: DelayedAttack
   teraUsed: boolean
 }) {
-  const encoded: number[] = []
+  const feats: number[] = []
 
-  encoded.push(teraUsed ? 1 : 0)
+  feats.push(teraUsed ? 1 : 0)
 
   for (const name of HAZARDS) {
-    encoded.push(effects[name]?.layers ?? 0)
+    feats.push(effects[name]?.layers ?? 0)
   }
   for (const name of SCREENS) {
-    encoded.push(effects[name]?.turn ?? 0)
+    feats.push(effects[name]?.turn ?? 0)
   }
 
-  encoded.push(...encodeDelayedAttack(delayedAttack))
+  feats.push(...encodeDelayedAttack(delayedAttack))
 
   {
     const turnsLeft = wish ? 2 - wish : 0
-    encoded.push(turnsLeft)
+    feats.push(turnsLeft)
   }
 
-  return encoded
+  return feats
+}
+
+function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
+  const feats: number[] =  []
+  for (const name of WEATHER_NAMES) {
+    feats.push(weather?.name === name ? (5 - weather.turn) : 0)
+  }
+  
+  let terrain: {name: string, turnsLeft: number} | null = null
+  let trickRoomTurnsLeft = 0
+
+  for (const name in fields) {
+    const turnsLeft = 5 - fields[name]
+    if (TERRAIN_NAMES.includes(name)) terrain = {name, turnsLeft}
+    if (name === "Trick Room") trickRoomTurnsLeft = turnsLeft
+  }
+
+  for (const name of TERRAIN_NAMES) {
+    feats.push(terrain?.name === name ? terrain.turnsLeft : 0)
+  }
+
+  feats.push(trickRoomTurnsLeft)
+
+  return feats
 }
 
 export function encodeObserver(format: Format, obs: Observer) {
@@ -319,10 +343,8 @@ export function encodeObserver(format: Format, obs: Observer) {
 
       const initialForme = getPresetForme(format, forme)
 
-      const encodedUser = []
-
       encodedTeam[species] = {
-        features: encodeUserFeatures({
+        features: encodeUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
           hpLeft: hp[0] / hp[1],
@@ -342,12 +364,15 @@ export function encodeObserver(format: Format, obs: Observer) {
     }
 
     encodedAlly = {
+      features: encodeSide({
+        delayedAttack,
+        teraUsed,
+        effects,
+        wish,
+
+      })
       team: encodedTeam,
-      delayedAttack: delayedAttack ? encodeDelayedAttack(delayedAttack) : null,
-      teraUsed,
-      effects: encodeSide(effects),
       active: active.species,
-      wish: encodeWish(wish)
     }
   }
 

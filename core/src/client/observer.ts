@@ -51,6 +51,9 @@ function resolveSwaps(a: string[], b: string[]) {
   return switches
 }
 
+export type Fields = { [k: string]: number }
+export type Weather = { name: WeatherName; turn: number }
+
 export class Observer {
   private swaps: string[]
 
@@ -68,8 +71,8 @@ export class Observer {
   ally!: Ally
   foe!: Foe
   turn: number
-  fields: { [k: string]: number }
-  weather?: { name: WeatherName; turn: number }
+  fields: Fields
+  weather?: Weather
   winner?: Side | null
 
   constructor(gen: Generation) {

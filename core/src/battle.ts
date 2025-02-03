@@ -1,4 +1,5 @@
-export type WeatherName = "Snow" | "SunnyDay" | "SandStorm" | "RainDance"
+export const WEATHER_NAMES = ["Snow", "SunnyDay", "SandStorm", "RainDance"] as const
+export type WeatherName = (typeof WEATHER_NAMES)[number]
 
 export const TERRAIN_NAMES = [
   "Electric Terrain",
