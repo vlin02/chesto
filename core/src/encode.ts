@@ -359,6 +359,7 @@ export function encode(format: Format, obs: Observer) {
   return {
     weather: encodedWeather,
     terrain: encodedTerrain,
+    trickRoom,
     fields,
     ally: encodedAlly,
     foe: encodedFoe,

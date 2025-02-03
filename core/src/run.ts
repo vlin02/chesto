@@ -8,7 +8,17 @@ export type Format = {
   patch: Patch
 }
 
-export function availableMoves({ gen }: Format, obs: Observer, matchProtocol = false): string[] {
+type MoveChoice =
+  | {
+      type: "struggle" | "recharge" | "stuck"
+      moves: undefined
+    }
+  | {
+      moves: string[]
+      locked?: boolean
+    }
+
+export function getMoveChoice({ gen }: Format, obs: Observer): MoveChoice {
   const { active } = obs.ally
 
   let {
@@ -16,7 +26,7 @@ export function availableMoves({ gen }: Format, obs: Observer, matchProtocol = f
       "Encore": encore,
       "Taunt": taunt,
       "Heal Block": healBlock,
-      "Locked Move": lockedMove,
+      "Locked Move": locked,
       "Disable": disable,
       "Throat Chop": throatChop,
       "Recharge": recharge,
@@ -26,13 +36,25 @@ export function availableMoves({ gen }: Format, obs: Observer, matchProtocol = f
     lastMove
   } = active
 
-  if (recharge) return ["Recharge"]
+  if (recharge)
+    return {
+      type: "recharge",
+      moves: undefined
+    }
 
   const { moveSet } = active
-  const available = []
+  const moves = []
 
-  if (!matchProtocol && choiceLocked && !(choiceLocked.move in moveSet)) {
-    return []
+  const lockedMove = locked?.move || choiceLocked?.move || encore?.move
+
+  if (lockedMove) {
+    if (!(lockedMove in moveSet))
+      return {
+        type: "stuck",
+        moves: undefined
+      }
+
+    return { moves: [lockedMove], locked: !!locked }
   }
 
   for (const move in moveSet) {
@@ -55,22 +77,22 @@ export function availableMoves({ gen }: Format, obs: Observer, matchProtocol = f
       }
     }
 
-    if (choiceLocked && choiceLocked.move in moveSet && choiceLocked.move !== move) continue
-    if (lockedMove && lockedMove.move !== move) continue
-
-    if (disable?.move === move && !lockedMove) continue
-    if (encore && move !== encore.move) continue
+    if (disable?.move === move) continue
     if (taunt && category === "Status") continue
     if (healBlock && heal) continue
     if (throatChop && sound) continue
     if (item === "Assault Vest" && category === "Status") continue
 
-    available.push(move)
+    moves.push(move)
   }
 
-  if (!available.length) return ["Struggle"]
+  if (!moves.length)
+    return {
+      type: "struggle",
+      moves: undefined
+    }
 
-  return available
+  return { moves }
 }
 
 export function getBaseForme({ gen, patch }: Format, forme: string) {

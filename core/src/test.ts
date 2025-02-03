@@ -1,6 +1,6 @@
 import { split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { availableMoves, Format, getPotentialPresets, matchesPreset } from "./run.js"
+import { getMoveChoice, Format, getPotentialPresets, matchesPreset } from "./run.js"
 import { FOE, Side } from "./client/protocol.js"
 import { Replay } from "./replay.js"
 import { STAT_IDS } from "./battle.js"
@@ -48,7 +48,10 @@ export function testSide(format: Format, replay: Replay, side: Side) {
       if (request.type === "move") {
         const [{ moveSlots }] = request.choices
 
-        const moves = availableMoves(format, obs, true)
+        const moves = getMoveChoice(format, obs)
+
+
+
         const expectedMoves = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
