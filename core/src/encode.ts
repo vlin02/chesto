@@ -1,7 +1,7 @@
 import { Stats as Calc, Generation, StatID } from "@pkmn/data"
 import { Observer } from "./client/observer.js"
 import { STAT_IDS, Stats, TERRAIN_NAMES } from "./battle.js"
-import { Format, getBaseForme, getPotentialPresets, matchesPreset } from "./run.js"
+import { Format, getPresetForme, getPotentialPresets, matchesPreset } from "./run.js"
 import { FoeUser, MoveSet, Status, Volatiles } from "./client/user.js"
 import { DelayedAttack, Hazard, HAZARDS, SideEffects } from "./client/side.js"
 import { Dex } from "@pkmn/dex"
@@ -77,8 +77,52 @@ const INTERIM_FORMES = [
   "Morpeko-Hangry"
 ]
 
+type EncodedVolaties =
+  // flags
+  | {
+      [K in
+        | "Charge"
+        | "Attract"
+        | "No Retreat"
+        | "Salt Cure"
+        | "Flash Fire"
+        | "Leech Seed"
+        | "Substitute"
+        | "Pressure"
+        | "Transform"
+        | "Trace"
+        | "Destiny Bond"
+        | "Glaive Rush"
+        | "Roost"
+        | "Protect"
+        | "Beak Blast"
+        | "Focus Punch"]?: boolean
+    } & {
+      // turns
+      [K in "Taunt" | "Yawn" | "Throat Chop" | "Heal Block" | "Slow Start" | "Magnet Rise"]?: {
+        turnsLeft: number
+      }
+    } & {
+      "Encore"?: { move: string }
+      "Choice Locked"?: { move: string }
+      "Protosynthesis"?: { statId: StatID }
+      "Quark Drive"?: { statId: StatID }
+      "Fallen"?: { count: number }
+      "Confusion"?: {
+        turnsLeft: { min: number; max: number }
+      }
+      "Disable"?: {
+        turnsLeft: number
+        move: string
+      }
+      "Locked Move"?: {
+        turnsLeft: { min: number; max: number }
+        move: string
+      }
+    }
+
 function encodeVolatiles(volatiles: Volatiles) {
-  const encoded: any = {}
+  const encoded: EncodedVolaties = {}
 
   for (const name in volatiles) {
     switch (name) {
@@ -88,13 +132,12 @@ function encodeVolatiles(volatiles: Volatiles) {
       case "No Retreat":
       case "Salt Cure":
       case "Flash Fire":
-      case "Leech Seed":
       case "Substitute":
       case "Pressure":
       case "Transform":
       case "Trace":
       case "Destiny Bond":
-      case "Roost":
+      case "Glaive Rush":
       case "Roost":
       case "Protect":
       case "Beak Blast":
@@ -133,12 +176,15 @@ function encodeVolatiles(volatiles: Volatiles) {
         }
         break
       case "Encore":
-      case "Type Change":
       case "Choice Locked":
+        encoded[name] = volatiles[name]
+        break
       case "Protosynthesis":
       case "Quark Drive":
-      case "Fallen":
         encoded[name] = volatiles[name]
+        break
+      case "Fallen":
+        encoded[name] = volatiles[name]!
         break
       case "Disable": {
         const { turn, move } = volatiles[name]!
@@ -159,6 +205,8 @@ function encodeVolatiles(volatiles: Volatiles) {
         }
         break
       }
+      default:
+        throw Error(name)
     }
   }
 }
@@ -252,7 +300,7 @@ export function encode(format: Format, obs: Observer) {
         volatiles
       } = user
 
-      const baseForme = getBaseForme(format, forme)
+      const baseForme = getPresetForme(format, forme)
 
       encodedTeam[species] = {
         revealed,
@@ -338,7 +386,7 @@ export function encode(format: Format, obs: Observer) {
         status: status ? encodeStatus(status) : null,
         teraType,
         flags,
-        baseForme: getBaseForme(format, forme),
+        baseForme: getPresetForme(format, forme),
         lastBerry,
         lastMove,
         volatiles: encodeVolatiles(volatiles),
