@@ -32,12 +32,13 @@ export type TypeName =
   | "???"
   | "Stellar"
 
-export type StatusId = "slp" | "psn" | "brn" | "frz" | "par" | "tox"
+export const STATUS_IDS = ["slp", "psn", "brn", "frz", "par", "tox"] as const
+export type StatusId = (typeof STATUS_IDS)[number]
 
 export const CHOICE_ITEMS = ["Choice Band", "Choice Specs", "Choice Scarf"]
 
-export const BOOST_IDs = ["atk", "def", "spa", "spd", "spe", "evasion", "accuracy"]
-export type BoostId = (typeof BOOST_IDs)[number]
+export const BOOST_IDS = ["atk", "def", "spa", "spd", "spe", "evasion", "accuracy"]
+export type BoostId = (typeof BOOST_IDS)[number]
 
 export type Boosts = {
   [k in BoostId]?: number

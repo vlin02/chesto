@@ -122,10 +122,7 @@ export class AllyUser {
   teraType: TypeName
   flags: Flags
   lastMove?: string
-  lastBerry?: {
-    name: string
-    turn: number
-  }
+  lastBerry?: LastBerry
   volatiles: Volatiles
   boosts: Boosts
   tera: boolean
