@@ -8,7 +8,7 @@ import { STAT_IDS } from "./battle.js"
 export function testSide(format: Format, replay: Replay, side: Side) {
   const { gen } = format
 
-  const { version, outputs } = replay
+  const { outputs } = replay
   const obs = new Observer(gen)
 
   const opp = replay[FOE[side]]
@@ -97,8 +97,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         }
 
         if (user.ability !== ability) {
-          console.log(user)
-          console.log(ability)
           throw Error()
         }
 

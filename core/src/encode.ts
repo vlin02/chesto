@@ -53,6 +53,30 @@ function encodeMoveSet(moveSet: MoveSet) {
   return encoded
 }
 
+const INTERIM_FORMES = [
+  "Minior",
+  "Minior-Meteor",
+  "Terapagos",
+  "Terapagos-Terastal",
+  "Shaymin-Sky",
+  "Ogerpon",
+  "Ogerpon-Cornerstone",
+  "Ogerpon-Hearthflame",
+  "Ogerpon-Wellspring",
+  "Palafin",
+  "Eiscue",
+  "Eiscue-Noice",
+  "Cramorant",
+  "Cramorant-Gulping",
+  "Cramorant-Gorging",
+  "Mimikyu",
+  "Mimikyu-Busted",
+  "Meloetta",
+  "Meloetta-Pirouette",
+  "Morpeko",
+  "Morpeko-Hangry"
+]
+
 function encodeVolatiles(volatiles: Volatiles) {
   const encoded: any = {}
 
@@ -228,6 +252,8 @@ export function encode(format: Format, obs: Observer) {
         volatiles
       } = user
 
+      const baseForme = getBaseForme(format, forme)
+
       encodedTeam[species] = {
         revealed,
         stats: encodeStats(stats),
@@ -241,7 +267,8 @@ export function encode(format: Format, obs: Observer) {
         status: status ? encodeStatus(status) : null,
         teraType,
         flags,
-        baseForme: getBaseForme(format, forme),
+        baseForme,
+        isInterim: INTERIM_FORMES.includes(baseForme),
         lastBerry,
         lastMove,
         volatiles: encodeVolatiles(volatiles),
