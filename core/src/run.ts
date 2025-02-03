@@ -8,17 +8,17 @@ export type Format = {
   patch: Patch
 }
 
-type MoveChoice =
+type Choice =
   | {
-      type: "struggle" | "recharge" | "stuck"
-      moves: undefined
+      type: "struggle" | "recharge"
     }
   | {
+      type: "default"
       moves: string[]
-      locked?: boolean
+      stuck?: boolean
     }
 
-export function getMoveChoice({ gen }: Format, obs: Observer): MoveChoice {
+export function getChoice({ gen }: Format, obs: Observer): Choice {
   const { active } = obs.ally
 
   let {
@@ -38,24 +38,15 @@ export function getMoveChoice({ gen }: Format, obs: Observer): MoveChoice {
 
   if (recharge)
     return {
-      type: "recharge",
-      moves: undefined
+      type: "recharge"
     }
 
   const { moveSet } = active
   const moves = []
 
-  const lockedMove = locked?.move || choiceLocked?.move || encore?.move
+  if (locked?.move) return { type: "default", moves: [locked.move] }
 
-  if (lockedMove) {
-    if (!(lockedMove in moveSet))
-      return {
-        type: "stuck",
-        moves: undefined
-      }
-
-    return { moves: [lockedMove], locked: !!locked }
-  }
+  let stuck = [choiceLocked?.move, encore?.move].some((x) => x && !(x in moveSet))
 
   for (const move in moveSet) {
     const {
@@ -77,6 +68,8 @@ export function getMoveChoice({ gen }: Format, obs: Observer): MoveChoice {
       }
     }
 
+    if (!stuck && choiceLocked && choiceLocked.move !== move) continue
+    if (!stuck && encore && encore.move !== move) continue
     if (disable?.move === move) continue
     if (taunt && category === "Status") continue
     if (healBlock && heal) continue
@@ -88,11 +81,22 @@ export function getMoveChoice({ gen }: Format, obs: Observer): MoveChoice {
 
   if (!moves.length)
     return {
-      type: "struggle",
-      moves: undefined
+      type: "struggle"
     }
 
-  return { moves }
+  return { type: "default", moves, stuck }
+}
+
+export function toMoves(choice: Choice) {
+  switch (choice.type) {
+    case "struggle":
+      return ["Struggle"]
+    case "recharge":
+      return ["Recharge"]
+    case "default":
+      const { moves } = choice
+      return moves
+  }
 }
 
 export function getBaseForme({ gen, patch }: Format, forme: string) {
