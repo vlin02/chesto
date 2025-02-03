@@ -19,7 +19,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     let newRequest = false
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      // console.log(msg)
       const event = obs.read(msg)
       newRequest ||= event === "request"
     }
