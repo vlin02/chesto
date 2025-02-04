@@ -1,6 +1,14 @@
 import { Stats as Calc, Generation } from "@pkmn/data"
 import { Fields, Observer, Weather } from "./client/observer.js"
-import { BOOST_IDS, Boosts, STAT_IDS, Stats, STATUS_IDS, TERRAIN_NAMES, WEATHER_NAMES } from "./battle.js"
+import {
+  BOOST_IDS,
+  Boosts,
+  STAT_IDS,
+  Stats,
+  STATUS_IDS,
+  TERRAIN_NAMES,
+  WEATHER_NAMES
+} from "./battle.js"
 import { Format, getPresetForme, getPotentialPresets, matchesPreset } from "./run.js"
 import { Flags, FoeUser, MoveSet, Status, Volatiles } from "./client/user.js"
 import { DELAYED_MOVES, DelayedAttack, HAZARDS, SCREENS, SideEffects } from "./client/side.js"
@@ -52,6 +60,9 @@ function encodeVolatiles(volatiles: Volatiles) {
     "Focus Punch",
     "Type Change",
     "Taunt",
+    "Disable",
+    "Encore",
+    "Locked Move",
     "Yawn",
     "Throat Chop",
     "Heal Block",
@@ -87,29 +98,41 @@ function encodeVolatiles(volatiles: Volatiles) {
       case "Throat Chop":
       case "Heal Block":
       case "Slow Start":
+      case "Disable":
+      case "Encore":
       case "Magnet Rise": {
+        const duration = {
+          "Taunt": 3,
+          "Yawn": 2,
+          "Throat Chop": 2,
+          "Heal Block": 5,
+          "Slow Start": 5,
+          "Magnet Rise": 5,
+          "Disable": 4,
+          "Encore": 3
+        }[name]
         if (name in volatiles) {
-          const duration = {
-            "Taunt": 3,
-            "Yawn": 2,
-            "Throat Chop": 2,
-            "Heal Block": 5,
-            "Slow Start": 5,
-            "Magnet Rise": 5
-          }[name]!
           const { turn } = volatiles[name]!
-          const turnsLeft = Math.max(duration - turn!, 1)
-
+          const turnsLeft = Math.max(duration! - turn!, 1)
           encoded.push(turnsLeft)
         } else {
           encoded.push(0)
         }
         break
       }
+      case "Locked Move":
       case "Confusion":
+        const duration = {
+          "Locked Move": [2, 3],
+          "Confusion": [2, 5]
+        }[name]
+
         if (name in volatiles) {
           const { turn } = volatiles[name]!
-          encoded.push(...[Math.max(2 - turn!, 1), Math.max(5 - turn!)])
+          const [lo, hi] = duration!
+          encoded.push(...[Math.max(lo - turn!, 1), hi - turn!])
+        } else {
+          encoded.push(...[0, 0])
         }
         break
       case "Protosynthesis":
@@ -264,18 +287,29 @@ function encodeSide({
   return feats
 }
 
-function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
-  const feats: number[] =  []
+function encodeBattle({
+  fields,
+  weather,
+  forceSwitch
+}: {
+  fields: Fields
+  weather?: Weather
+  forceSwitch: boolean
+}) {
+  const feats: number[] = []
+
+  feats.push(forceSwitch ? 1 : 0)
+
   for (const name of WEATHER_NAMES) {
-    feats.push(weather?.name === name ? (5 - weather.turn) : 0)
+    feats.push(weather?.name === name ? 5 - weather.turn : 0)
   }
-  
-  let terrain: {name: string, turnsLeft: number} | null = null
+
+  let terrain: { name: string; turnsLeft: number } | null = null
   let trickRoomTurnsLeft = 0
 
   for (const name in fields) {
     const turnsLeft = 5 - fields[name]
-    if (TERRAIN_NAMES.includes(name)) terrain = {name, turnsLeft}
+    if (TERRAIN_NAMES.includes(name)) terrain = { name, turnsLeft }
     if (name === "Trick Room") trickRoomTurnsLeft = turnsLeft
   }
 
@@ -292,27 +326,6 @@ export function encodeObserver(format: Format, obs: Observer) {
   const { gen } = format
 
   const { ally, foe, fields, weather, request } = obs
-
-  let encodedWeather: number[] = []
-  let encodedTerrain = null
-  let trickRoom = null
-
-  if (weather) {
-    const { name, turn } = weather
-    encodedWeather = { name, turnsLeft: 5 - turn }
-  }
-
-  for (const name in fields) {
-    const turn = fields[name]
-    const turnsLeft = 5 - turn
-
-    if (TERRAIN_NAMES.includes(name)) encodedTerrain = { name, turnsLeft }
-    else if (name === "Trick Room") {
-      trickRoom = { turnsLeft }
-    } else {
-      throw Error()
-    }
-  }
 
   let encodedAlly
 
@@ -358,7 +371,14 @@ export function encodeObserver(format: Format, obs: Observer) {
         types,
         teraType,
         initialForme,
-        lastBerry,
+        move: {
+          disabled: volatiles["Disable"]?.move,
+          choiceLocked: volatiles["Choice Locked"]?.move,
+          encore: volatiles["Encore"]?.move,
+          locked: volatiles["Locked Move"]?.move,
+          last: lastMove
+        },
+        lastBerry: lastBerry?.name,
         moveSet: encodeMoveSet(moveSet)
       }
     }
@@ -368,11 +388,10 @@ export function encodeObserver(format: Format, obs: Observer) {
         delayedAttack,
         teraUsed,
         effects,
-        wish,
-
-      })
+        wish
+      }),
       team: encodedTeam,
-      active: active.species,
+      active: active.species
     }
   }
 
@@ -419,41 +438,53 @@ export function encodeObserver(format: Format, obs: Observer) {
       const initialForme = getPresetForme(format, forme)
 
       encodedTeam[species] = {
-        stats: inferStats(gen, user),
-        hpLeft: hp[0] / hp[1],
-        types,
+        features: encodeUser({
+          revealed: true,
+          stats: inferStats(gen, user),
+          hpLeft: hp[0] / hp[1],
+          flags,
+          volatiles,
+          boosts,
+          status
+        }),
         moveSet: encodeMoveSet(moveSet),
+        types,
         unusedMoves: [...validMoves].filter((move) => !(move in moveSet)),
         items: item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
         status: status ? encodeStatus(status) : null,
-        teraType,
+        teraType: teraType ? [teraType] : [...validTeraTypes],
         flags,
         initialForme,
         isInterim: INTERIM_FORMES.includes(initialForme),
         lastBerry,
-        lastMove,
+        move: {
+          disabled: volatiles["Disable"]?.move,
+          choiceLocked: volatiles["Choice Locked"]?.move,
+          encore: volatiles["Encore"]?.move,
+          locked: volatiles["Locked Move"]?.move,
+          last: lastMove
+        },
         volatiles: encodeVolatiles(volatiles),
         boosts
       }
     }
 
     encodedFoe = {
+      features: encodeSide({
+        delayedAttack,
+        teraUsed,
+        effects,
+        wish
+      }),
       team: encodedTeam,
-      delayedAttack: delayedAttack ? encodeDelayedAttack(delayedAttack) : null,
-      teraUsed,
-      effects: encodeSide(effects),
-      active: active.species,
-      wish: encodeWish(wish)
+      active: active.species
     }
   }
 
   return {
-    weather: encodedWeather,
-    terrain: encodedTerrain,
-    trickRoom,
+    features: encodeBattle({ fields, weather, forceSwitch: request.type === "switch" }),
     ally: encodedAlly,
-    foe: encodedFoe,
-    forceSwitch: request.type === "switch"
+    foe: encodedFoe
   }
 }
