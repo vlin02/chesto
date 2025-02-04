@@ -12,7 +12,6 @@ import {
 import { Format, getPresetForme, getPotentialPresets, matchesPreset } from "./run.js"
 import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "./client/user.js"
 import { DELAYED_MOVES, DelayedAttack, HAZARDS, SCREENS, SideEffects } from "./client/side.js"
-import { Dex } from "@pkmn/dex"
 
 const STAT_RANGES = {
   hp: [191, 566],
@@ -174,7 +173,7 @@ function encodeStats(stats: Stats) {
   const feats: number[] = []
   for (const statId of STAT_IDS) {
     const [lo, hi] = STAT_RANGES[statId]
-    feats.push(stats[statId], lo, hi)
+    feats.push(scale(stats[statId], lo, hi))
   }
   return feats
 }
@@ -246,10 +245,12 @@ function encodeUser({
   }
 
   feats.push(...encodeVolatiles(volatiles))
+
+  return feats
 }
 
 function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
-  const calc = new Calc(Dex)
+  const calc = new Calc(gen.dex)
   const { baseStats } = gen.species.get(forme)!
 
   const stats: any = {}
@@ -313,17 +314,17 @@ function encodeMoveRefs({ volatiles, lastMove, moveSet }: User) {
     volatiles["Locked Move"]?.move,
     lastMove
   ].map((m) => {
-    if (!m) return undefined
+    if (!m) return null
     if (!(m in moveSet)) {
       console.warn(m, moveSet)
-      return undefined
+      return null
     }
     return m
   })
 }
 
 function encodeItemRefs({ lastBerry }: User) {
-  return [lastBerry?.name]
+  return [lastBerry?.name ?? null]
 }
 
 function encodeBattle({
@@ -371,7 +372,21 @@ export function encodeObserver(format: Format, obs: Observer) {
   {
     const { team, delayedAttack, effects, active, teraUsed, wish } = ally
 
-    let encodedTeam: any = {}
+    let encodedTeam: {
+      [k: string]: {
+        features: number[]
+        moveRefs: (string | null)[]
+        itemRefs: (string | null)[]
+        moveSet: {
+          [k: string]: number[]
+        }
+        item: string | null
+        ability: string | null
+        types: string[]
+        teraType: string
+        initialForme: string
+      }
+    } = {}
     for (const species in team) {
       const user = team[species]
 
@@ -430,7 +445,22 @@ export function encodeObserver(format: Format, obs: Observer) {
   {
     const { team, delayedAttack, effects, active, teraUsed, wish } = foe
 
-    let encodedTeam: any = {}
+    let encodedTeam: {
+      [k: string]: {
+        features: number[]
+        moveRefs: (string | null)[]
+        itemRefs: (string | null)[]
+        moveSet: {
+          [k: string]: number[]
+        }
+        unusedMoves: string[]
+        abilities: string[]
+        items: string[]
+        types: string[]
+        teraTypes: string[]
+        initialForme: string
+      }
+    } = {}
     for (const species in team) {
       const user = team[species]
       const {
