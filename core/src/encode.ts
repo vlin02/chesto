@@ -14,6 +14,23 @@ import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "./client/user.
 import { DELAYED_MOVES, DelayedAttack, HAZARDS, SCREENS, SideEffects } from "./client/side.js"
 import { Dex } from "@pkmn/dex"
 
+const STAT_RANGES = {
+  hp: [191, 566],
+  atk: [13, 348],
+  def: [57, 393],
+  spa: [85, 318],
+  spd: [71, 402],
+  spe: [57, 357]
+} as const
+
+function scale(n: number, lo: number, hi: number, neg = false) {
+  if (neg) {
+    const mid = (hi + lo) / 2
+    return scale(n, mid, hi)
+  }
+  return (n - lo) / (hi - lo)
+}
+
 const INTERIM_FORMES = [
   "Minior",
   "Minior-Meteor",
@@ -156,7 +173,8 @@ function encodeVolatiles(volatiles: Volatiles) {
 function encodeStats(stats: Stats) {
   const feats: number[] = []
   for (const statId of STAT_IDS) {
-    feats.push(stats[statId])
+    const [lo, hi] = STAT_RANGES[statId]
+    feats.push(stats[statId], lo, hi)
   }
   return feats
 }
@@ -183,7 +201,7 @@ function encodeMoveSet(moveSet: MoveSet) {
   for (const name in moveSet) {
     const { max, used } = moveSet[name]
     const left = Math.max(0, max - used) / max
-    feats[name] = [left, max]
+    feats[name] = [left, scale(max, 0, 64)]
   }
 
   return feats
@@ -370,7 +388,6 @@ export function encodeObserver(format: Format, obs: Observer) {
         teraType,
         boosts,
         flags,
-        lastBerry,
         volatiles
       } = user
 
@@ -393,7 +410,7 @@ export function encodeObserver(format: Format, obs: Observer) {
         ability,
         types,
         teraType,
-        initialForme,
+        initialForme
       }
     }
 
@@ -425,8 +442,6 @@ export function encodeObserver(format: Format, obs: Observer) {
         status,
         teraType,
         flags,
-        lastBerry,
-        lastMove,
         boosts,
         forme,
         volatiles
