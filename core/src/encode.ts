@@ -11,7 +11,14 @@ import {
 } from "./battle.js"
 import { Format, getPresetForme, getPotentialPresets, matchesPreset } from "./run.js"
 import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "./client/user.js"
-import { DELAYED_MOVES, DelayedAttack, HAZARDS, SCREENS, SideEffects } from "./client/side.js"
+import {
+  DELAYED_MOVES,
+  DelayedAttack,
+  HAZARDS,
+  Party,
+  SCREENS,
+  SideEffects
+} from "./client/side.js"
 
 const STAT_RANGES = {
   hp: [191, 566],
@@ -306,6 +313,10 @@ function encodeSide({
   return feats
 }
 
+function encodeMemberRefs({ active, team }: Party) {
+  return [active.species, Object.keys(team).find((k) => team[k].tera)]
+}
+
 function encodeMoveRefs({ volatiles, lastMove, moveSet }: User) {
   return [
     volatiles["Disable"]?.move,
@@ -370,7 +381,7 @@ export function encodeObserver(format: Format, obs: Observer) {
   let encodedAlly
 
   {
-    const { team, delayedAttack, effects, active, teraUsed, wish } = ally
+    const { team, delayedAttack, effects, teraUsed, wish } = ally
 
     let encodedTeam: {
       [k: string]: {
@@ -436,8 +447,8 @@ export function encodeObserver(format: Format, obs: Observer) {
         effects,
         wish
       }),
-      team: encodedTeam,
-      active: active.species
+      memberRefs: encodeMemberRefs(ally),
+      team: encodedTeam
     }
   }
 
@@ -525,8 +536,8 @@ export function encodeObserver(format: Format, obs: Observer) {
         effects,
         wish
       }),
-      team: encodedTeam,
-      active: active.species
+      memberRefs: encodeMemberRefs(foe),
+      team: encodedTeam
     }
   }
 
