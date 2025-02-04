@@ -179,14 +179,14 @@ function encodeStatus(status: Status | undefined) {
 }
 
 function encodeMoveSet(moveSet: MoveSet) {
+  const feats: { [k: string]: number[] } = {}
   for (const name in moveSet) {
     const { max, used } = moveSet[name]
     const left = Math.max(0, max - used) / max
-    return {
-      name,
-      slot: [left, max]
-    }
+    feats[name] = [left, max]
   }
+
+  return feats
 }
 
 function encodeUser({
@@ -368,18 +368,18 @@ export function encodeObserver(format: Format, obs: Observer) {
         }),
         ability,
         item,
+        moveSet: encodeMoveSet(moveSet),
         types,
         teraType,
         initialForme,
+        lastBerry: lastBerry?.name,
         move: {
           disabled: volatiles["Disable"]?.move,
           choiceLocked: volatiles["Choice Locked"]?.move,
           encore: volatiles["Encore"]?.move,
           locked: volatiles["Locked Move"]?.move,
           last: lastMove
-        },
-        lastBerry: lastBerry?.name,
-        moveSet: encodeMoveSet(moveSet)
+        }
       }
     }
 
@@ -447,16 +447,13 @@ export function encodeObserver(format: Format, obs: Observer) {
           boosts,
           status
         }),
-        moveSet: encodeMoveSet(moveSet),
-        types,
-        unusedMoves: [...validMoves].filter((move) => !(move in moveSet)),
-        items: item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
-        status: status ? encodeStatus(status) : null,
-        teraType: teraType ? [teraType] : [...validTeraTypes],
-        flags,
+        items: item ? [item] : [...validItems],
+        moveSet: encodeMoveSet(moveSet),
+        unusedMoves: [...validMoves].filter((move) => !(move in moveSet)),
+        types,
+        teraTypes: teraType ? [teraType] : [...validTeraTypes],
         initialForme,
-        isInterim: INTERIM_FORMES.includes(initialForme),
         lastBerry,
         move: {
           disabled: volatiles["Disable"]?.move,
@@ -464,9 +461,7 @@ export function encodeObserver(format: Format, obs: Observer) {
           encore: volatiles["Encore"]?.move,
           locked: volatiles["Locked Move"]?.move,
           last: lastMove
-        },
-        volatiles: encodeVolatiles(volatiles),
-        boosts
+        }
       }
     }
 
