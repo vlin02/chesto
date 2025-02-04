@@ -10,7 +10,7 @@ import {
   WEATHER_NAMES
 } from "./battle.js"
 import { Format, getPresetForme, getPotentialPresets, matchesPreset } from "./run.js"
-import { Flags, FoeUser, MoveSet, Status, Volatiles } from "./client/user.js"
+import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "./client/user.js"
 import { DELAYED_MOVES, DelayedAttack, HAZARDS, SCREENS, SideEffects } from "./client/side.js"
 import { Dex } from "@pkmn/dex"
 
@@ -287,6 +287,27 @@ function encodeSide({
   return feats
 }
 
+function encodeMoveRefs({ volatiles, lastMove, moveSet }: User) {
+  return [
+    volatiles["Disable"]?.move,
+    volatiles["Choice Locked"]?.move,
+    volatiles["Encore"]?.move,
+    volatiles["Locked Move"]?.move,
+    lastMove
+  ].map((m) => {
+    if (!m) return undefined
+    if (!(m in moveSet)) {
+      console.warn(m, moveSet)
+      return undefined
+    }
+    return m
+  })
+}
+
+function encodeItemRefs({ lastBerry }: User) {
+  return [lastBerry?.name]
+}
+
 function encodeBattle({
   fields,
   weather,
@@ -348,7 +369,6 @@ export function encodeObserver(format: Format, obs: Observer) {
         moveSet,
         teraType,
         boosts,
-        lastMove,
         flags,
         lastBerry,
         volatiles
@@ -366,20 +386,14 @@ export function encodeObserver(format: Format, obs: Observer) {
           boosts,
           status
         }),
-        ability,
-        item,
+        moveRefs: encodeMoveRefs(user),
+        itemRefs: encodeItemRefs(user),
         moveSet: encodeMoveSet(moveSet),
+        item,
+        ability,
         types,
         teraType,
         initialForme,
-        lastBerry: lastBerry?.name,
-        move: {
-          disabled: volatiles["Disable"]?.move,
-          choiceLocked: volatiles["Choice Locked"]?.move,
-          encore: volatiles["Encore"]?.move,
-          locked: volatiles["Locked Move"]?.move,
-          last: lastMove
-        }
       }
     }
 
@@ -447,21 +461,15 @@ export function encodeObserver(format: Format, obs: Observer) {
           boosts,
           status
         }),
-        abilities: ability ? [ability] : [...validAbilities],
-        items: item ? [item] : [...validItems],
+        moveRefs: encodeMoveRefs(user),
+        itemRefs: encodeItemRefs(user),
         moveSet: encodeMoveSet(moveSet),
         unusedMoves: [...validMoves].filter((move) => !(move in moveSet)),
+        items: item ? [item] : [...validItems],
+        abilities: ability ? [ability] : [...validAbilities],
         types,
         teraTypes: teraType ? [teraType] : [...validTeraTypes],
-        initialForme,
-        lastBerry,
-        move: {
-          disabled: volatiles["Disable"]?.move,
-          choiceLocked: volatiles["Choice Locked"]?.move,
-          encore: volatiles["Encore"]?.move,
-          locked: volatiles["Locked Move"]?.move,
-          last: lastMove
-        }
+        initialForme
       }
     }
 
