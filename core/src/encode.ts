@@ -62,7 +62,7 @@ const INTERIM_FORMES = [
 ]
 
 function encodeVolatiles(volatiles: Volatiles) {
-  const encoded: number[] = []
+  const feats: number[] = []
 
   for (const name in [
     "Leech Seed",
@@ -114,7 +114,7 @@ function encodeVolatiles(volatiles: Volatiles) {
       case "Beak Blast":
       case "Focus Punch":
       case "Type Change":
-        encoded.push(name in volatiles ? 1 : 0)
+        feats.push(name in volatiles ? 1 : 0)
         break
       case "Taunt":
       case "Yawn":
@@ -137,9 +137,9 @@ function encodeVolatiles(volatiles: Volatiles) {
         if (name in volatiles) {
           const { turn } = volatiles[name]!
           const turnsLeft = Math.max(duration! - turn!, 1)
-          encoded.push(turnsLeft)
+          feats.push(turnsLeft)
         } else {
-          encoded.push(0)
+          feats.push(0)
         }
         break
       }
@@ -153,19 +153,19 @@ function encodeVolatiles(volatiles: Volatiles) {
         if (name in volatiles) {
           const { turn } = volatiles[name]!
           const [lo, hi] = duration!
-          encoded.push(...[Math.max(lo - turn!, 1), hi - turn!])
+          feats.push(...[Math.max(lo - turn!, 1), hi - turn!])
         } else {
-          encoded.push(...[0, 0])
+          feats.push(...[0, 0])
         }
         break
       case "Protosynthesis":
       case "Quark Drive":
         for (const k of ["atk", "def", "spa", "spd", "spe"] as const) {
-          encoded.push(volatiles[name as "Protosynthesis" | "Quark Drive"]?.statId === k ? 1 : 0)
+          feats.push(volatiles[name as "Protosynthesis" | "Quark Drive"]?.statId === k ? 1 : 0)
         }
         break
       case "Fallen":
-        encoded.push(volatiles[name as "Fallen"]?.count ?? 0)
+        feats.push(volatiles[name as "Fallen"]?.count ?? 0)
         break
 
       default:
@@ -173,7 +173,7 @@ function encodeVolatiles(volatiles: Volatiles) {
     }
   }
 
-  return encoded
+  return feats
 }
 
 function encodeStats(stats: Stats) {
