@@ -27,7 +27,10 @@ export type Volatiles = {
     | "Heal Block"
     | "Slow Start"
     | "Recharge"
-    | "Magnet Rise"]?: { turn: number }
+    | "Magnet Rise"
+    | "Magma Storm"
+    | "Infestation"
+    | "Whirlpool"]?: { turn: number }
 } & {
   [k in
     | "Leech Seed"

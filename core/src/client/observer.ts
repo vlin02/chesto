@@ -22,7 +22,8 @@ import {
   DELAYED_MOVES,
   Hazard,
   HAZARDS,
-  Screen
+  Screen,
+  PARTIALLY_TRAPPED_MOVES
 } from "../battle.js"
 
 type Ref = {
@@ -105,7 +106,9 @@ export class Observer {
       const { volatiles } = this[OPP[pov]].active
 
       delete volatiles["Trapped"]
-      delete volatiles["Partially Trapped"]
+      for (const move of PARTIALLY_TRAPPED_MOVES) {
+        delete volatiles[move]
+      }
     }
 
     user.volatiles = {}
@@ -917,7 +920,7 @@ export class Observer {
             case "Magma Storm":
             case "Infestation":
             case "Whirlpool": {
-              user.volatiles["Partially Trapped"] = { move, turn: 0 }
+              user.volatiles[move] = { turn: 0 }
               break
             }
           }
