@@ -45,7 +45,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     }
 
     if (newRequest) {
-      const { ally, request } = obs
+      const { ally, req: request } = obs
 
       if (request.type === "move") {
         const { active } = ally

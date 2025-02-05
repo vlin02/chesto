@@ -29,6 +29,7 @@ export type Ally = {
   active: AllyUser
   team: { [k: string]: AllyUser }
   wish?: number
+  slots: AllyUser[]
 }
 
 export type Foe = {

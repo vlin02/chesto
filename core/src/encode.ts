@@ -373,7 +373,7 @@ function encodeBattle({
 export function encodeObserver(format: Format, obs: Observer) {
   const { gen } = format
 
-  const { ally, foe, fields, weather, request } = obs
+  const { ally, foe, fields, weather, req: request } = obs
 
   let encodedAlly
 

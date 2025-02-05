@@ -76,7 +76,7 @@ export class Observer {
   private gen: Generation
   private prevLine?: Line
 
-  request!: Request
+  req!: Request
   side!: Side
   name!: string
   ally!: Ally
@@ -180,7 +180,7 @@ export class Observer {
       case "request": {
         event = "request"
 
-        const prev = this.request
+        const prev = this.req
         const next = parseRequest(this.gen, JSON.parse(line.slice(p.i + 1)) as RawRequest)
 
         if (prev) {
@@ -194,32 +194,42 @@ export class Observer {
           this.swaps.push(next.team.find((x) => x.active)!.species)
         }
 
-        this.request = next
-
-        const { side, name, team } = this.request
+        this.req = next
 
         if (!this.ally) {
-          this.side = side
-          this.name = name
+          this.side = this.req.side
+          this.name = this.req.name
 
-          this.ally = { effects: {}, team: {}, teraUsed: false } as Ally
+          let active: AllyUser | undefined = undefined
+          let team: { [k: string]: AllyUser } = {}
+          let slots: AllyUser[] = []
 
-          for (const member of team) {
+          for (const member of this.req.team) {
             const user = new AllyUser(this.gen, member)
-            if (member.active) this.ally.active = user
+            if (member.active) active = user
 
-            this.ally.team[user.species] = user
+            team[user.species] = user
+            slots.push(user)
+          }
+
+          this.ally = {
+            active: active!,
+            effects: {},
+            team: {},
+            teraUsed: false,
+            slots: [],
+            turnMoves: 0
           }
         }
 
-        for (const { species, stats } of team) {
+        for (const { species, stats } of this.req.team) {
           this.ally.team[species].stats = stats
         }
 
         const { volatiles } = this.ally.active
         const { "Locked Move": lockedMove } = volatiles
 
-        if (lockedMove && isLocked(this.request, lockedMove.move) === false) {
+        if (lockedMove && isLocked(this.req, lockedMove.move) === false) {
           delete volatiles["Locked Move"]
         }
 
@@ -268,8 +278,14 @@ export class Observer {
         const { pov, species } = ref
 
         if (pov === "ally" && this.swaps.length) {
-          const { team } = this.ally
+          const { team, slots } = this.ally
           const to = team[this.swaps.shift()!]
+
+          {
+            const i = slots.findIndex((x) => x === to)!
+            slots.splice(i, 1)
+            slots.unshift(to)
+          }
 
           if (to.species !== species) this.illusion = { from: team[species], to }
           else delete this.illusion
@@ -500,7 +516,7 @@ export class Observer {
 
         if (
           isLockingMove(this.gen, selected) &&
-          (pov === "foe" || isLocked(this.request, selected) !== false)
+          (pov === "foe" || isLocked(this.req, selected) !== false)
         ) {
           volatiles["Locked Move"] = { turn: 0, move: selected }
         }
@@ -689,7 +705,7 @@ export class Observer {
         let moves: string[] = []
 
         if (pov === "ally") {
-          const { type, team } = this.request
+          const { type, team } = this.req
 
           const user = team.find((x) => x.species === from.species)!
 
@@ -835,8 +851,7 @@ export class Observer {
 
         if (fatigue != null && lockedMove) {
           const { move } = lockedMove
-          if (pov === "foe" || isLocked(this.request, move) !== true)
-            delete volatiles["Locked Move"]
+          if (pov === "foe" || isLocked(this.req, move) !== true) delete volatiles["Locked Move"]
         }
         break
       }
