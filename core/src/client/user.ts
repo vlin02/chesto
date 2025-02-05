@@ -116,7 +116,7 @@ function getTypes({ tera, teraType, volatiles: { "Type Change": typeChange }, ge
     off[teraType!] = (off[teraType!] ?? 0) + 1
   }
 
-  return { off, def }
+  return { base: types, off, def }
 }
 
 export class AllyUser {

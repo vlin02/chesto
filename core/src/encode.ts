@@ -431,7 +431,7 @@ export function encodeObserver(format: Format, obs: Observer) {
         moveSet: encodeMoveSet(moveSet),
         item,
         ability,
-        types,
+        types: types.base,
         teraType,
         initialForme
       }
@@ -520,7 +520,7 @@ export function encodeObserver(format: Format, obs: Observer) {
         unusedMoves: [...validMoves].filter((move) => !(move in moveSet)),
         items: item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
-        types,
+        types: types.base,
         teraTypes: teraType ? [teraType] : [...validTeraTypes],
         initialForme
       }
