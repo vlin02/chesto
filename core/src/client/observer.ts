@@ -10,11 +10,10 @@ import {
   Side
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
-import { WeatherName } from "@pkmn/client"
 import { Ally, DELAYED_MOVES, Foe, Hazard, HAZARDS, OPP, POV, POVS, Screen } from "./side.js"
 import { AllyUser, clear, FoeUser, MoveSet, User } from "./user.js"
 import { getMaxPP, isLocking, isPressured } from "./move.js"
-import { StatusId, CHOICE_ITEMS, BoostId, StatId } from "../battle.js"
+import { StatusId, CHOICE_ITEMS, BoostId, StatId, WeatherName } from "../battle.js"
 
 type Ref = {
   species: string
@@ -329,6 +328,10 @@ export class Observer {
       case "-prepare": {
         p = piped(line, p.i, 2)
         const user = this.user(this.ref(p.args[0]))
+
+        const move = p.args[1]
+        if (move === "Solar Beam" && this.weather?.name === "SunnyDay") break
+
         user.volatiles["Prepare"] = { move: p.args[1] }
         break
       }
@@ -911,12 +914,11 @@ export class Observer {
         const { pov, species } = this.ref(p.args[0])
 
         if (pov === "foe") {
-          const { forme, lvl, gender } = parseLabel(p.args[1])
-
           const { team, active: from } = this.foe
-          const { base } = from
-
           team[from.species] = from.clone()
+
+          const { forme, lvl, gender } = parseLabel(p.args[1])
+          const { base } = from
 
           from.lvl = lvl
           from.species = species
@@ -927,6 +929,8 @@ export class Observer {
         } else {
           delete this.illusion
         }
+
+        this[pov].active.flags.illusionRevealed = true
 
         break
       }

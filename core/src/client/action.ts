@@ -91,7 +91,7 @@ export function toMoves(choice: MoveOptions) {
 }
 
 export function isTrapped({ volatiles }: User) {
-  return (
+  return !!(
     volatiles["Trapped"] ||
     volatiles["Prepare"] ||
     volatiles["Partially Trapped"] ||

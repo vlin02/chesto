@@ -1,6 +1,6 @@
 import { split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOptions, toMoves } from "./client/actions.js"
+import { getMoveOptions, isTrapped, toMoves } from "./client/action.js"
 import { FOE, Side } from "./client/protocol.js"
 import { Replay } from "./replay.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
@@ -20,6 +20,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     let newRequest = false
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
+      // console.log(msg)
       const event = obs.read(msg)
       newRequest ||= event === "request"
     }
@@ -47,9 +48,14 @@ export function testSide(format: Format, replay: Replay, side: Side) {
       const { ally, request } = obs
 
       if (request.type === "move") {
-        const [{ moveSlots }] = request.choices
+        const { active } = ally
+        const [{ moveSlots, trapped }] = request.choices
 
-        const moves = toMoves(getMoveOptions(format, obs.ally.active))
+        if (!!trapped !== isTrapped(active)) {
+          throw Error()
+        }
+
+        const moves = toMoves(getMoveOptions(format, active))
 
         const expectedMoves = moveSlots
           .filter((x) => !x.disabled)
@@ -63,7 +69,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         }
 
         for (const { name, pp, maxpp } of moveSlots) {
-          const slot = ally.active.moveSet[name]
+          const slot = active.moveSet[name]
 
           if (
             (pp !== undefined && Math.max(0, slot.max - slot.used) !== pp) ||
