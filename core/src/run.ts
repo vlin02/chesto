@@ -14,8 +14,8 @@ type Choice =
     }
   | {
       type: "default"
-      moves: string[]
       stuck?: boolean
+      moves: string[]
     }
 
 export function getChoice({ gen }: Format, obs: Observer): Choice {

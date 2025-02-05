@@ -454,7 +454,7 @@ export function encodeObserver(format: Format, obs: Observer) {
 
   let encodedFoe
   {
-    const { team, delayedAttack, effects, active, teraUsed, wish } = foe
+    const { team, delayedAttack, effects, teraUsed, wish } = foe
 
     let encodedTeam: {
       [k: string]: {

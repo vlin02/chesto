@@ -26,6 +26,8 @@ export type Volatiles = {
     | "Throat Chop"
     | "Heal Block"
     | "Slow Start"
+    | "Partially Trapped"
+    | "Recharge"
     | "Magnet Rise"]?: { turn: number }
 } & {
   [k in
@@ -37,6 +39,7 @@ export type Volatiles = {
     | "Flash Fire"
     | "Leech Seed"
     | "Substitute"
+    | "Trapped"
     | "Pressure"]?: {}
 } & {
   [k in "Destiny Bond" | "GlaiveRush"]?: { singleMove: true }
