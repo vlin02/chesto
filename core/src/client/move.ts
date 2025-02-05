@@ -5,7 +5,7 @@ export function getMaxPP(gen: Generation, move: string) {
   return noPPBoosts ? pp : Math.floor(pp * 1.6)
 }
 
-export function isPressured(gen: Generation, move: string) {
+export function isPressuredMove(gen: Generation, move: string) {
   const {
     target,
     flags: { mustpressure }
@@ -26,7 +26,7 @@ export function isPressured(gen: Generation, move: string) {
   )
 }
 
-export function isLocking(gen: Generation, move: string) {
+export function isLockingMove(gen: Generation, move: string) {
   const {
     self,
     flags: { charge }

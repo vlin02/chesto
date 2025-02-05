@@ -12,7 +12,7 @@ import {
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
 import { AllyUser, clear, FoeUser, MoveSet, User } from "./user.js"
-import { getMaxPP, isLocking, isPressured } from "./move.js"
+import { getMaxPP, isLockingMove, isPressuredMove } from "./move.js"
 import {
   StatusId,
   CHOICE_ITEMS,
@@ -37,15 +37,16 @@ type Line = {
   stealEat?: boolean
 }
 
-export function checkLocked(req: Request, move: string) {
+export function isLocked(req: Request, move: string) {
   if (req.type !== "move") return undefined
   const {
     choices: [{ moveSlots }]
   } = req
 
-  return moveSlots.every((x) => {
-    return x.disabled || x.name === move
-  })
+  if (moveSlots.length !== 1) return false
+
+  const [{ name }] = moveSlots
+  return name === move
 }
 
 function resolveSwaps(a: string[], b: string[]) {
@@ -194,7 +195,7 @@ export class Observer {
         const { volatiles } = this.ally.active
         const { "Locked Move": lockedMove } = volatiles
 
-        if (lockedMove && checkLocked(this.request, lockedMove.move) === false) {
+        if (lockedMove && isLocked(this.request, lockedMove.move) === false) {
           delete volatiles["Locked Move"]
         }
 
@@ -468,14 +469,14 @@ export class Observer {
           slot.used +=
             opp.volatiles["Pressure"] &&
             opp.hp[0] !== 0 &&
-            (move === "Curse" ? user.types.includes("Ghost") : isPressured(this.gen, move))
+            (move === "Curse" ? user.types.includes("Ghost") : isPressuredMove(this.gen, move))
               ? 2
               : 1
         }
 
         if (
-          isLocking(this.gen, selected) &&
-          (pov === "foe" || checkLocked(this.request, selected) !== false)
+          isLockingMove(this.gen, selected) &&
+          (pov === "foe" || isLocked(this.request, selected) !== false)
         ) {
           volatiles["Locked Move"] = { turn: 0, move: selected }
         }
@@ -808,7 +809,7 @@ export class Observer {
 
         if (fatigue != null && lockedMove) {
           const { move } = lockedMove
-          if (pov === "foe" || checkLocked(this.request, move) !== true)
+          if (pov === "foe" || isLocked(this.request, move) !== true)
             delete volatiles["Locked Move"]
         }
         break
