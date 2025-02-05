@@ -49,3 +49,14 @@ export const STAT_IDS = ["hp", "atk", "def", "spa", "spd", "spe"] as const
 export type StatId = (typeof STAT_IDS)[number]
 
 export type Stats = { [k in StatId]: number }
+
+export const HAZARDS = ["Sticky Web", "Toxic Spikes", "Stealth Rock", "Spikes"] as const
+export type Hazard = (typeof HAZARDS)[number]
+
+export const SCREENS = ["Aurora Veil", "Light Screen", "Tailwind", "Reflect"] as const
+export type Screen = (typeof SCREENS)[number]
+
+export const DELAYED_MOVES = ["Future Sight", "Doom Desire"]
+export type DelayedMove = (typeof DELAYED_MOVES)[number]
+
+export const PARTIALLY_TRAPPED_MOVES = ["Magma Storm", "Infestation", "Whirlpool"]

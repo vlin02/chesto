@@ -10,10 +10,20 @@ import {
   Side
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
-import { Ally, DELAYED_MOVES, Foe, Hazard, HAZARDS, OPP, POV, POVS, Screen } from "./side.js"
+import { Ally, Foe, OPP, POV, POVS } from "./side.js"
 import { AllyUser, clear, FoeUser, MoveSet, User } from "./user.js"
 import { getMaxPP, isLocking, isPressured } from "./move.js"
-import { StatusId, CHOICE_ITEMS, BoostId, StatId, WeatherName } from "../battle.js"
+import {
+  StatusId,
+  CHOICE_ITEMS,
+  BoostId,
+  StatId,
+  WeatherName,
+  DELAYED_MOVES,
+  Hazard,
+  HAZARDS,
+  Screen
+} from "../battle.js"
 
 type Ref = {
   species: string
@@ -883,7 +893,7 @@ export class Observer {
             case "Magma Storm":
             case "Infestation":
             case "Whirlpool": {
-              user.volatiles["Partially Trapped"] = { turn: 0 }
+              user.volatiles[move] = { turn: 0 }
               break
             }
           }
@@ -947,7 +957,6 @@ export class Observer {
 
         const { volatiles } = user
         if (name.startsWith("fallen")) name = "Fallen"
-
         delete volatiles[name]
         break
       }

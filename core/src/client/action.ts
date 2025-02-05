@@ -1,5 +1,6 @@
 import { User } from "./user.js"
 import { Format } from "../format.js"
+import { PARTIALLY_TRAPPED_MOVES } from "../battle.js"
 
 type MoveOptions =
   | {
@@ -94,9 +95,9 @@ export function isTrapped({ volatiles }: User) {
   return !!(
     volatiles["Trapped"] ||
     volatiles["Prepare"] ||
-    volatiles["Partially Trapped"] ||
     volatiles["No Retreat"] ||
     volatiles["Locked Move"] ||
-    volatiles["Recharge"]
+    volatiles["Recharge"] ||
+    PARTIALLY_TRAPPED_MOVES.some(k => volatiles[k])
   )
 }

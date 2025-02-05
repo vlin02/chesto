@@ -1,15 +1,10 @@
+import { Hazard, Screen, DelayedMove } from "../battle.js"
 import { AllyUser, FoeUser, User } from "./user.js"
 
 export type POV = "ally" | "foe"
 
 export const POVS = ["ally", "foe"] as const
 export const OPP = { ally: "foe", foe: "ally" } as const
-
-export const HAZARDS = ["Sticky Web", "Toxic Spikes", "Stealth Rock", "Spikes"] as const
-export type Hazard = (typeof HAZARDS)[number]
-
-export const SCREENS = ["Aurora Veil", "Light Screen", "Tailwind", "Reflect"] as const
-export type Screen = (typeof SCREENS)[number]
 
 export type SideEffects = {
   [k in string]: {
@@ -19,9 +14,6 @@ export type SideEffects = {
 }
 
 export type SideEffect = Hazard | Screen
-
-export const DELAYED_MOVES = ["Future Sight", "Doom Desire"]
-export type DelayedMove = (typeof DELAYED_MOVES)[number]
 
 export type DelayedAttack = {
   move: DelayedMove

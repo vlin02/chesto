@@ -3,6 +3,9 @@ import { Fields, Observer, Weather } from "./client/observer.js"
 import {
   BOOST_IDS,
   Boosts,
+  DELAYED_MOVES,
+  HAZARDS,
+  SCREENS,
   STAT_IDS,
   Stats,
   STATUS_IDS,
@@ -10,14 +13,7 @@ import {
   WEATHER_NAMES
 } from "./battle.js"
 import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "./client/user.js"
-import {
-  DELAYED_MOVES,
-  DelayedAttack,
-  HAZARDS,
-  Party,
-  SCREENS,
-  SideEffects
-} from "./client/side.js"
+import { DelayedAttack, Party, SideEffects } from "./client/side.js"
 import { getPresetForme, getPotentialPresets, matchesPreset } from "./version.js"
 import { Format } from "./format.js"
 
