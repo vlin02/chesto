@@ -20,7 +20,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     let newRequest = false
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      console.log(msg)
+      // console.log(msg)
       const event = obs.read(msg)
       newRequest ||= event === "request"
     }
@@ -53,7 +53,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
         const moves = toMoves(getMoveOptions(format, active))
         if (request.team.filter((x) => !!x.health).length > 1 && !!trapped !== isTrapped(active)) {
-          console.log(moves)
           console.log(!!trapped, isTrapped(active), active)
           throw Error()
         }

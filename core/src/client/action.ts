@@ -91,13 +91,18 @@ export function toMoves(choice: MoveOptions) {
   }
 }
 
-export function isTrapped({ volatiles }: User) {
-  return !!(
+export function isTrapped({ volatiles, types }: User) {
+  if (volatiles["Recharge"] || volatiles["Prepare"]) return true
+
+  if (types.def.includes("Ghost")) return false
+
+  if (
     volatiles["Trapped"] ||
-    volatiles["Prepare"] ||
     volatiles["No Retreat"] ||
     volatiles["Locked Move"] ||
-    volatiles["Recharge"] ||
-    PARTIALLY_TRAPPED_MOVES.some(k => volatiles[k])
+    PARTIALLY_TRAPPED_MOVES.some((k) => volatiles[k])
   )
+    return true
+
+  return false
 }

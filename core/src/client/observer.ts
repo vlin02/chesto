@@ -11,7 +11,7 @@ import {
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
-import { AllyUser, clear, FoeUser, MoveSet, User } from "./user.js"
+import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
 import { getMaxPP, isLockingMove, isPressuredMove } from "./move.js"
 import {
   StatusId,
@@ -95,6 +95,22 @@ export class Observer {
   ref(s: string): Ref {
     const { side, species } = parseReference(s)
     return { pov: side === this.side ? "ally" : "foe", species }
+  }
+
+  clear(user: User) {
+    const { volatiles, boosts, lastBerry, lastMove, formeChange, pov } = user
+    const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
+
+    delete this[OPP[pov]].active.volatiles["Trapped"]
+
+    user.volatiles = {}
+    user.boosts = {}
+    delete user.lastBerry
+    delete user.lastMove
+
+    if (formeChange?.whileActiveOnly) delete user.formeChange
+
+    return recover
   }
 
   user({ pov, species }: Ref) {
@@ -234,7 +250,7 @@ export class Observer {
         user.hp[0] = 0
         user.status = undefined
 
-        clear(user)
+        this.clear(user)
         break
       }
       case "switch":
@@ -299,7 +315,7 @@ export class Observer {
           user.volatiles["Substitute"] = prev.volatiles["Substitute"]
         }
 
-        clear(prev)
+        this.clear(prev)
 
         this[pov].active = user
         break
@@ -343,7 +359,7 @@ export class Observer {
         const move = p.args[1]
         if (move === "Solar Beam" && this.weather?.name === "SunnyDay") break
 
-        user.volatiles["Prepare"] = { move: p.args[1] }
+        user.volatiles["Prepare"] = { move: p.args[1], turn: 0 }
         break
       }
       case "-fieldstart": {
@@ -632,6 +648,8 @@ export class Observer {
 
         p = piped(line, p.i, -1)
         const { from, eat, of } = parseTags(p.args)
+
+        delete user.volatiles["Prepare"]
 
         if (from === "stealeat") currLine.stealEat = true
 
@@ -1042,6 +1060,7 @@ export class Observer {
           }
 
           if (volatiles["Recharge"]?.turn === 2) delete volatiles["Recharge"]
+          if (volatiles["Prepare"]?.turn === 2) delete volatiles["Prepare"]
           if (side.wish === 2) delete side.wish
         }
 

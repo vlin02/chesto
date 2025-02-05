@@ -48,6 +48,7 @@ export type Volatiles = {
 } & {
   "Prepare"?: {
     move: string
+    turn: number
   }
   "Type Change"?: {
     types: TypeName[]
@@ -269,20 +270,6 @@ export class FoeUser {
     }
   }
 
-  clear() {
-    const { volatiles, boosts, lastBerry, lastMove, formeChange } = this
-    const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
-
-    this.volatiles = {}
-    this.boosts = {}
-    delete this.lastBerry
-    delete this.lastMove
-
-    if (formeChange?.whileActiveOnly) delete this.formeChange
-
-    return recover
-  }
-
   get types() {
     return getTypes(this)
   }
@@ -320,20 +307,6 @@ type Temp = {
   lastBerry: undefined
   lastMove: string | undefined
   formeChange: FormeChange | undefined
-}
-
-export function clear(user: User) {
-  const { volatiles, boosts, lastBerry, lastMove, formeChange } = user
-  const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
-
-  user.volatiles = {}
-  user.boosts = {}
-  delete user.lastBerry
-  delete user.lastMove
-
-  if (formeChange?.whileActiveOnly) delete user.formeChange
-
-  return recover
 }
 
 export function recover(user: User, { volatiles, boosts, lastBerry, lastMove, formeChange }: Temp) {
