@@ -1,11 +1,5 @@
-import { Generation } from "@pkmn/data"
-import { Patch } from "../version.js"
 import { User } from "./user.js"
-
-export type Format = {
-  gen: Generation
-  patch: Patch
-}
+import { Format } from "../format.js"
 
 type MoveOptions =
   | {

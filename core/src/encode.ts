@@ -9,7 +9,6 @@ import {
   TERRAIN_NAMES,
   WEATHER_NAMES
 } from "./battle.js"
-import { Format } from "./client/actions.js"
 import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "./client/user.js"
 import {
   DELAYED_MOVES,
@@ -19,7 +18,8 @@ import {
   SCREENS,
   SideEffects
 } from "./client/side.js"
-import { getPresetForme, getPotentialPresets, matchesPreset } from "./preset.js"
+import { getPresetForme, getPotentialPresets, matchesPreset } from "./version.js"
+import { Format } from "./format.js"
 
 const STAT_RANGES = {
   hp: [191, 566],
