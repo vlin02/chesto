@@ -26,7 +26,6 @@ export type Volatiles = {
     | "Throat Chop"
     | "Heal Block"
     | "Slow Start"
-    | "Partially Trapped"
     | "Recharge"
     | "Magnet Rise"]?: { turn: number }
 } & {
@@ -46,6 +45,10 @@ export type Volatiles = {
 } & {
   [k in "Roost" | "Protect" | "Beak Blast" | "Focus Punch"]?: { singleTurn: true }
 } & {
+  "Partially Trapped"?: {
+    move: "Magma Storm" | "Whirlpool" | "Infestation"
+    turn: number
+  }
   "Prepare"?: {
     move: string
     turn: number

@@ -101,7 +101,12 @@ export class Observer {
     const { volatiles, boosts, lastBerry, lastMove, formeChange, pov } = user
     const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
 
-    delete this[OPP[pov]].active.volatiles["Trapped"]
+    {
+      const { volatiles } = this[OPP[pov]].active
+
+      delete volatiles["Trapped"]
+      delete volatiles["Partially Trapped"]
+    }
 
     user.volatiles = {}
     user.boosts = {}
@@ -912,7 +917,7 @@ export class Observer {
             case "Magma Storm":
             case "Infestation":
             case "Whirlpool": {
-              user.volatiles[move] = { turn: 0 }
+              user.volatiles["Partially Trapped"] = { move, turn: 0 }
               break
             }
           }
