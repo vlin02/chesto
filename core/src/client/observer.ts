@@ -180,21 +180,18 @@ export class Observer {
       case "request": {
         event = "request"
 
-        const prev = this.req
-        const next = parseRequest(this.gen, JSON.parse(line.slice(p.i + 1)) as RawRequest)
+        this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i + 1)) as RawRequest)
 
-        if (prev) {
+        if (this.ally) {
           this.swaps.push(
             ...resolveSwaps(
-              prev.team.map((x) => x.species),
-              next.team.map((x) => x.species)
+              this.ally.slots.map((x) => x.species),
+              this.req.team.map((x) => x.species)
             )
           )
         } else {
-          this.swaps.push(next.team.find((x) => x.active)!.species)
+          this.swaps.push(this.req.team.find((x) => x.active)!.species)
         }
-
-        this.req = next
 
         if (!this.ally) {
           this.side = this.req.side
@@ -215,9 +212,9 @@ export class Observer {
           this.ally = {
             active: active!,
             effects: {},
-            team: {},
+            team,
             teraUsed: false,
-            slots: [],
+            slots,
             turnMoves: 0
           }
         }
@@ -283,8 +280,7 @@ export class Observer {
 
           {
             const i = slots.findIndex((x) => x === to)!
-            slots.splice(i, 1)
-            slots.unshift(to)
+            ;[slots[i], slots[0]] = [slots[0], slots[i]]
           }
 
           if (to.species !== species) this.illusion = { from: team[species], to }

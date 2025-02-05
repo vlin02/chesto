@@ -80,6 +80,12 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         }
       }
 
+      for (let i = 0; i < 6; i++) {
+        if (obs.ally.slots[i].species !== request.team[i].species) {
+          throw Error()
+        }
+      }
+
       for (const {
         item,
         active,
