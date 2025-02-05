@@ -1,14 +1,13 @@
 import { Generation } from "@pkmn/data"
-import { Patch, Preset } from "./version.js"
-import { FoeUser } from "./client/user.js"
-import { Observer } from "./client/observer.js"
+import { Patch } from "../version.js"
+import { User } from "./user.js"
 
 export type Format = {
   gen: Generation
   patch: Patch
 }
 
-type Choice =
+type MoveOptions =
   | {
       type: "struggle" | "recharge"
     }
@@ -18,9 +17,7 @@ type Choice =
       moves: string[]
     }
 
-export function getChoice({ gen }: Format, obs: Observer): Choice {
-  const { active } = obs.ally
-
+export function getMoveOptions({ gen }: Format, user: User): MoveOptions {
   let {
     volatiles: {
       "Encore": encore,
@@ -34,14 +31,14 @@ export function getChoice({ gen }: Format, obs: Observer): Choice {
     },
     item,
     lastMove
-  } = active
+  } = user
 
   if (recharge)
     return {
       type: "recharge"
     }
 
-  const { moveSet } = active
+  const { moveSet } = user
   const moves = []
 
   if (locked?.move) return { type: "default", moves: [locked.move] }
@@ -87,7 +84,7 @@ export function getChoice({ gen }: Format, obs: Observer): Choice {
   return { type: "default", moves, stuck }
 }
 
-export function toMoves(choice: Choice) {
+export function toMoves(choice: MoveOptions) {
   switch (choice.type) {
     case "struggle":
       return ["Struggle"]
@@ -99,41 +96,13 @@ export function toMoves(choice: Choice) {
   }
 }
 
-export function getPresetForme({ gen, patch }: Format, forme: string) {
-  return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
-}
-
-export function getPotentialPresets(format: Format, user: FoeUser) {
-  const { patch } = format
-
-  const {
-    base: { forme }
-  } = user
-
-  const baseForme = getPresetForme(format, forme)
-  const presets = [...patch[baseForme].presets]
-
-  if (baseForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
-
-  return presets
-}
-
-export function matchesPreset(preset: Preset, user: FoeUser) {
-  const {
-    base: { ability, item, moveSet },
-    teraType
-  } = user
-
-  const {
-    movepool,
-    agg: { moves, teraTypes, abilities, items }
-  } = preset
-
-  if (teraTypes && teraType && !teraTypes.includes(teraType)) return false
-  if (abilities && ability && !abilities.includes(ability)) return false
-  if (item && !items.includes(item)) return false
-  if (!Object.keys(moveSet).every((move) => moves.includes(move) || movepool.includes(move)))
-    return false
-
-  return true
+export function isTrapped({ volatiles }: User) {
+  return (
+    volatiles["Trapped"] ||
+    volatiles["Prepare"] ||
+    volatiles["Partially Trapped"] ||
+    volatiles["No Retreat"] ||
+    volatiles["Locked Move"] ||
+    volatiles["Recharge"]
+  )
 }
