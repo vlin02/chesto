@@ -106,6 +106,19 @@ export type FormeChange = {
   ability?: string
 }
 
+function getTypes({ tera, teraType, volatiles: { "Type Change": typeChange }, gen, forme }: User) {
+  const { types } = typeChange ?? gen.species.get(forme)!
+
+  let off: { [k in TypeName]?: number } = Object.fromEntries(types.map((t) => [t, 1]))
+  let def: TypeName[] = tera ? [teraType!] : types
+
+  if (tera) {
+    off[teraType!] = (off[teraType!] ?? 0) + 1
+  }
+
+  return { off, def }
+}
+
 export class AllyUser {
   pov: "ally"
   gen: Generation
@@ -180,15 +193,7 @@ export class AllyUser {
   }
 
   get types() {
-    const {
-      teraType,
-      tera,
-      volatiles: { "Type Change": typeChange }
-    } = this
-
-    const types = new Set([...(typeChange ?? this.gen.species.get(this.forme)!).types])
-    if (tera) types.add(teraType)
-    return [...types]
+    return getTypes(this)
   }
 
   get moveSet() {
@@ -279,16 +284,7 @@ export class FoeUser {
   }
 
   get types() {
-    const {
-      teraType,
-      tera,
-      volatiles: { "Type Change": typeChange }
-    } = this
-
-    const types = new Set([...(typeChange ?? this.gen.species.get(this.forme)!).types])
-    if (tera) types.add(teraType!)
-
-    return [...types]
+    return getTypes(this)
   }
 
   get moveSet() {

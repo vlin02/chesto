@@ -1,6 +1,6 @@
 import { split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOptions, toMoves } from "./client/action.js"
+import { getMoveOptions, isTrapped, toMoves } from "./client/action.js"
 import { FOE, Side } from "./client/protocol.js"
 import { Replay } from "./replay.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
@@ -52,11 +52,11 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const [{ moveSlots, trapped }] = request.choices
 
         const moves = toMoves(getMoveOptions(format, active))
-        // if (request.team.filter((x) => !!x.health).length > 1 && !!trapped !== isTrapped(active)) {
-        //   console.log(moves)
-        //   console.log(!!trapped, isTrapped(active), active)
-        //   throw Error()
-        // }
+        if (request.team.filter((x) => !!x.health).length > 1 && !!trapped !== isTrapped(active)) {
+          console.log(moves)
+          console.log(!!trapped, isTrapped(active), active)
+          throw Error()
+        }
 
         const expectedMoves = moveSlots
           .filter((x) => !x.disabled)

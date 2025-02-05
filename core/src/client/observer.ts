@@ -469,7 +469,7 @@ export class Observer {
           slot.used +=
             opp.volatiles["Pressure"] &&
             opp.hp[0] !== 0 &&
-            (move === "Curse" ? user.types.includes("Ghost") : isPressuredMove(this.gen, move))
+            (move === "Curse" ? "Ghost" in user.types.off : isPressuredMove(this.gen, move))
               ? 2
               : 1
         }
