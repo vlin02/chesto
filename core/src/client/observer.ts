@@ -326,6 +326,12 @@ export class Observer {
 
         break
       }
+      case "-prepare": {
+        p = piped(line, p.i, 2)
+        const user = this.user(this.ref(p.args[0]))
+        user.volatiles["Prepare"] = { move: p.args[1] }
+        break
+      }
       case "-fieldstart": {
         p = piped(line, p.i)
         const { move: name } = parseEntity(p.args[0])

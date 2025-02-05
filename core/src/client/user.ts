@@ -46,6 +46,9 @@ export type Volatiles = {
 } & {
   [k in "Roost" | "Protect" | "Beak Blast" | "Focus Punch"]?: { singleTurn: true }
 } & {
+  "Prepare"?: {
+    move: string
+  }
   "Type Change"?: {
     types: TypeName[]
   }
