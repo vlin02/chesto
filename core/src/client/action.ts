@@ -1,6 +1,7 @@
 import { User } from "./user.js"
 import { Format } from "../format.js"
 import { PARTIALLY_TRAPPED_MOVES } from "../battle.js"
+import { Observer } from "./observer.js"
 
 type MoveOptions =
   | {
@@ -105,4 +106,16 @@ export function isTrapped({ volatiles, types }: User) {
     return true
 
   return false
+}
+
+export function getSwitchOptions({ ally: { team, active } }: Observer) {
+  const opts: string[] = []
+
+  for (const species in team) {
+    const member = team[species]
+    if (member === active || member.hp[0] === 0) continue
+    opts.push(species)
+  }
+
+  return opts
 }

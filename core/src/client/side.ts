@@ -24,22 +24,24 @@ export type DelayedAttack = {
 export type Ally = {
   delayedAttack?: DelayedAttack
   turnMoves: number
-  teraUsed: boolean
   effects: SideEffects
   active: AllyUser
   team: { [k: string]: AllyUser }
   wish?: number
   slots: AllyUser[]
+  teraUsed?: boolean
+  isReviving?: boolean
 }
 
 export type Foe = {
   delayedAttack?: DelayedAttack
   turnMoves: number
-  teraUsed: boolean
   effects: SideEffects
   active: FoeUser
   team: { [k: string]: FoeUser }
   wish?: number
+  teraUsed?: boolean
+  isReviving?: boolean
 }
 
 export type Party = Ally | Foe

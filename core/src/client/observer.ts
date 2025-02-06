@@ -213,6 +213,7 @@ export class Observer {
             active: active!,
             effects: {},
             team,
+            isReviving: false,
             teraUsed: false,
             slots,
             turnMoves: 0
@@ -311,7 +312,6 @@ export class Observer {
               effects: {},
               team: { [species]: user },
               active: user,
-              teraUsed: true,
               turnMoves: 0
             }
           }
@@ -458,7 +458,18 @@ export class Observer {
 
         if (status?.attempt) status.attempt++
         if (cause.ability) this.setAbility(user, cause.ability)
-        if (notarget != null || miss != null) this.disrupt(user)
+
+        const failed = notarget != null || miss != null
+        if (failed) this.disrupt(user)
+
+        if (!failed) {
+          switch (move) {
+            case "Revival Blessing": {
+              this[pov].isReviving = true
+              break
+            }
+          }
+        }
 
         let selected: string | null = move
         let deductPP = true
@@ -491,6 +502,7 @@ export class Observer {
         }
 
         if (!selected) break
+
         this[pov].turnMoves++
         user.lastMove = selected
 
