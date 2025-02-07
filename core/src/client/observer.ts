@@ -93,6 +93,14 @@ export class Observer {
     this.swaps = []
   }
 
+  ppCost(move: string, src: User, dest: User) {
+    return dest.volatiles["Pressure"] &&
+      dest.hp[0] !== 0 &&
+      (move === "Curse" ? "Ghost" in src.types.off : isPressuredMove(this.gen, move))
+      ? 2
+      : 1
+  }
+
   ref(s: string): Ref {
     const { side, species } = parseReference(s)
     return { pov: side === this.side ? "ally" : "foe", species }
@@ -445,6 +453,7 @@ export class Observer {
         const move = p.args[1]
 
         const { pov, volatiles, status } = user
+        const { active: opp } = this[OPP[pov]]
 
         p = piped(line, p.i, -1)
         const { from, notarget, miss } = parseTags(p.args)
@@ -471,62 +480,75 @@ export class Observer {
           }
         }
 
-        let selected: string | null = move
-        let deductPP = true
-        let lockChoice = true
+        let direct: string | null = move
 
         switch (move) {
-          case "Sleep Talk":
-            currLine.sleepTalk = true
-            selected = null
-            break
           case "Wish":
             this[pov].wish = 0
             break
           case "Struggle":
-            deductPP = false
-            lockChoice = false
+            direct = null
+            user.lastMove = "Struggle"
             break
         }
 
-        if (cause.move === "Sleep Talk") selected = "Sleep Talk"
-        if (cause.ability === "Magic Bounce") selected = null
-        if (cause.ability === "Dancer" || this.prevLine?.dancer) deductPP = false
-        if (volatiles["Choice Locked"] && this[pov].turnMoves) selected = null
+        if (cause.move === "Sleep Talk") {
+          // revert sleep talk deduction, replace with move deduction
+          user.moveSet["Sleep Talk"].used += -1 + this.ppCost(move, user, opp)
+          direct = null
+        }
+        if (cause.ability === "Magic Bounce") direct = null
+        // dancer sometimes only shows up in the previous -active line and not in the tag smh
+        if (cause.ability === "Dancer" || this.prevLine?.dancer) {
+          direct = null
+
+          const { item } = user
+
+          // for some resaon getting outrage locked turns still can choice lock (if due to trick)
+          if (item && CHOICE_ITEMS.includes(item) && !volatiles["Choice Locked"]) {
+            volatiles["Choice Locked"] = { move, startTurn: this.turn }
+          }
+        }
 
         if (from === "lockedmove") {
-          deductPP = false
-
+          direct = null
           const { "Locked Move": lockedMove } = volatiles
           if (lockedMove?.turn === 2) delete volatiles["Locked Move"]
+          const { item } = user
+
+          // for some resaon getting outrage locked turns still can choice lock (if due to trick)
+          if (item && CHOICE_ITEMS.includes(item) && !volatiles["Choice Locked"]) {
+            volatiles["Choice Locked"] = { move, startTurn: this.turn }
+          }
         }
 
-        if (!selected) break
+        if (direct) {
+          const { item } = user
 
-        this[pov].turnMoves++
-        user.lastMove = selected
+          user.lastMove = direct
 
-        if (lockChoice && CHOICE_ITEMS.includes(user.item ?? "")) {
-          volatiles["Choice Locked"] = { move: selected }
-        }
+          if (
+            item &&
+            CHOICE_ITEMS.includes(item) &&
+            // choice lock can be reset on each turn if a different move is chosen
+            // ex. user forced to dance due to dancer turn 1, user uses different move turn 2
+            volatiles["Choice Locked"]?.startTurn !== this.turn
+          ) {
+            volatiles["Choice Locked"] = { move: direct, startTurn: this.turn }
+          }
 
-        if (deductPP) {
-          const slot = this.allocateSlot(user.moveSet, selected)
-          const { active: opp } = this[OPP[pov]]
+          const slot = this.allocateSlot(user.moveSet, direct)
 
-          slot.used +=
-            opp.volatiles["Pressure"] &&
-            opp.hp[0] !== 0 &&
-            (move === "Curse" ? "Ghost" in user.types.off : isPressuredMove(this.gen, move))
-              ? 2
-              : 1
-        }
+          if (!(volatiles["Choice Locked"]?.move && volatiles["Choice Locked"]?.move !== direct)) {
+            slot.used += this.ppCost(direct, user, opp)
+          }
 
-        if (
-          isLockingMove(this.gen, selected) &&
-          (pov === "foe" || isLocked(this.req, selected) !== false)
-        ) {
-          volatiles["Locked Move"] = { turn: 0, move: selected }
+          if (
+            isLockingMove(this.gen, direct) &&
+            (pov === "foe" || isLocked(this.req, direct) !== false)
+          ) {
+            volatiles["Locked Move"] = { turn: 0, move: direct }
+          }
         }
 
         break
@@ -535,10 +557,10 @@ export class Observer {
       case "-fail": {
         p = piped(line, p.i)
         const user = this.user(this.ref(p.args[0]))
-        const { pov, moveSet } = user
+        // const { pov, moveSet } = user
 
-        if (msgType === "-fail" && this.prevLine?.moveBy === user) this[pov].turnMoves--
-        if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
+        // if (msgType === "-fail" && this.prevLine?.moveBy === user) this[pov].turnMoves--
+        // if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
       }
       case "-immune":
@@ -562,7 +584,7 @@ export class Observer {
         const { ability, item, move } = parseEntity(from)
         if (ability) this.setAbility(user, ability)
 
-          if (move === "Lunar Dance") {
+        if (move === "Lunar Dance") {
           delete user.status
 
           const { moveSet } = user

@@ -278,6 +278,8 @@ function encodeDelayedAttack(delayedAttack: DelayedAttack | undefined) {
   return encoded
 }
 
+type RequestType = "move" | "switch" | "revive" | "wait"
+
 function encodeSide({
   requestType,
   effects,
@@ -286,7 +288,7 @@ function encodeSide({
   teraUsed,
   isReviving
 }: {
-  requestType: "move" | "switch" | "revive" | "wait"
+  requestType: RequestType
   effects: SideEffects
   wish?: number
   delayedAttack?: DelayedAttack
@@ -323,21 +325,14 @@ function encodeMemberRefs({ active, team }: Party) {
   return [active.species, Object.keys(team).find((k) => team[k].tera)]
 }
 
-function encodeMoveRefs({ volatiles, lastMove, moveSet }: User) {
-  return [
-    volatiles["Disable"]?.move,
-    volatiles["Choice Locked"]?.move,
-    volatiles["Encore"]?.move,
-    volatiles["Locked Move"]?.move,
+function encodeMoveRefs({ volatiles, lastMove }: User) {
+  return {
+    disabled: volatiles["Disable"]?.move,
+    choiceLocked: volatiles["Choice Locked"]?.move,
+    encore: volatiles["Encore"]?.move,
+    lockedMove: volatiles["Locked Move"]?.move,
     lastMove
-  ].map((m) => {
-    if (!m) return null
-    if (!(m in moveSet)) {
-      console.warn(m, moveSet)
-      return null
-    }
-    return m
-  })
+  }
 }
 
 function encodeItemRefs({ lastBerry }: User) {
@@ -437,11 +432,11 @@ export function encodeObserver(format: Format, obs: Observer) {
       }
     }
 
-    if (req.type === "wait") throw Error()
+    if (ally.isReviving && req.type !== "switch") throw Error()
 
     encodedAlly = {
       features: encodeSide({
-        requestType: req.type === "switch" ? (ally.isReviving ? "revive" : "switch") : "move",
+        requestType: ally.isReviving ? "revive" : req.type,
         delayedAttack,
         teraUsed,
         effects,
@@ -472,6 +467,7 @@ export function encodeObserver(format: Format, obs: Observer) {
         initialForme: string
       }
     } = {}
+
     for (const species in team) {
       const user = team[species]
       const {
@@ -529,9 +525,15 @@ export function encodeObserver(format: Format, obs: Observer) {
       }
     }
 
+    let requestType: RequestType = "wait"
+    {
+      if (req.type === "move") requestType = "move"
+      if (req.type === "wait") requestType = "switch"
+    }
+
     encodedFoe = {
       features: encodeSide({
-        requestType: req.type === "move" ? "move" : "wait",
+        requestType,
         delayedAttack,
         teraUsed,
         effects,
