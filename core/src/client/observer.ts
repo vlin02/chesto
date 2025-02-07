@@ -552,6 +552,7 @@ export class Observer {
         p = piped(line, p.i, 2)
         const user = this.user(this.ref(p.args[0]))
         const { hp } = parseHealth(p.args[1])!
+        const { pov } = user
 
         p = piped(line, p.i, -1)
         const { from } = parseTags(p.args)
@@ -560,7 +561,8 @@ export class Observer {
 
         const { ability, item, move } = parseEntity(from)
         if (ability) this.setAbility(user, ability)
-        if (move === "Lunar Dance") {
+
+          if (move === "Lunar Dance") {
           delete user.status
 
           const { moveSet } = user
@@ -568,7 +570,7 @@ export class Observer {
             moveSet[move].used = 0
           }
         }
-
+        if (move === "Revival Blessing") this[pov].isReviving = false
         if (move === "Healing Wish") delete user.status
 
         // berries already include an -enditem

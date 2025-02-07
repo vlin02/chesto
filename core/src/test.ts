@@ -23,17 +23,18 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
     let newReq = false
 
-    console.log(input)
-    console.log(logs.flatMap((x) => split(x)[side]))
-
     if (input.startsWith(`>${side}`)) {
       const [_, type, choice] = input.split(" ")
-      const { active, slots } = obs.ally
+      const { active, slots, isReviving } = obs.ally
 
       switch (type) {
         case "move": {
           const moves = toMoves(getMoveOptions(format, active))
-          if (!moves.includes(gen.moves.get(choice)!.name)) {
+          if (
+            !moves.includes(
+              { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
+            )
+          ) {
             console.log(moves, choice)
             throw Error()
           }
@@ -42,21 +43,18 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         case "switch": {
           const { species } = slots[Number(choice) - 1]
           const switches = getSwitchOptions(obs)
-          if (!switches.includes(species) || (obs.req.type !== "switch" && isTrapped(active))) {
-            console.log(choice, species, active, switches)
+
+          if (isReviving ? obs.ally.team[species].hp[0] !== 0 : !switches.includes(species)) {
+            throw Error()
+          }
+
+          if (obs.req.type !== "switch" && isTrapped(active)) {
             throw Error()
           }
           break
         }
       }
     }
-
-    // const all = logs.flatMap((x) => split(x)[side])
-    // if (all.length && !all[0].startsWith("|request") && !JSON.stringify(all).includes("win")) {
-    //   throw logs
-    // } else {
-    //   continue
-    // }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
       // console.log(msg)
