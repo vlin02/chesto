@@ -505,7 +505,7 @@ export class Observer {
           const { item } = user
 
           // for some resaon getting outrage locked turns still can choice lock (if due to trick)
-          if (item && CHOICE_ITEMS.includes(item) && !volatiles["Choice Locked"]) {
+          if (item && CHOICE_ITEMS.includes(item) && volatiles["Choice Locked"]?.startTurn !== this.turn) {
             volatiles["Choice Locked"] = { move, startTurn: this.turn }
           }
         }
@@ -517,7 +517,7 @@ export class Observer {
           const { item } = user
 
           // for some resaon getting outrage locked turns still can choice lock (if due to trick)
-          if (item && CHOICE_ITEMS.includes(item) && !volatiles["Choice Locked"]) {
+          if (item && CHOICE_ITEMS.includes(item) && volatiles["Choice Locked"]?.startTurn !== this.turn) {
             volatiles["Choice Locked"] = { move, startTurn: this.turn }
           }
         }

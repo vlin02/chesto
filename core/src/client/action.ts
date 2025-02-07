@@ -62,31 +62,31 @@ export function getMoveOptions({ gen }: Format, user: User): MoveOptions {
     }
 
     if (!stuck && choiceLocked && choiceLocked.move !== move) {
-      console.log("if (!stuck")
+      //      console.log("if (!stuck")
       continue
     }
     if (!stuck && encore && encore.move !== move) {
-      console.log("if (!stuck")
+      //console.log("if (!stuck")
       continue
     }
     if (disable?.move === move) {
-      console.log("if (disable?.")
+      //console.log("if (disable?.")
       continue
     }
     if (taunt && category === "Status") {
-      console.log("if (taunt &&")
+      //console.log("if (taunt &&")
       continue
     }
     if (healBlock && heal) {
-      console.log("if (healBlock &&")
+      //console.log("if (healBlock &&")
       continue
     }
     if (throatChop && sound) {
-      console.log("if (throatChop &&")
+      //console.log("if (throatChop &&")
       continue
     }
     if (item === "Assault Vest" && category === "Status") {
-      console.log("if (item ===")
+      //console.log("if (item ===")
       continue
     }
 

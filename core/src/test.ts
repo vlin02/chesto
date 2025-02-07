@@ -61,7 +61,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     // }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      // console.log(msg)
+      console.log(msg)
       const event = obs.read(msg)
       newReq ||= event === "request"
     }
