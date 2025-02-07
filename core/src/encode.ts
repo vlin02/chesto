@@ -279,19 +279,28 @@ function encodeDelayedAttack(delayedAttack: DelayedAttack | undefined) {
 }
 
 function encodeSide({
+  requestType,
   effects,
   wish,
   delayedAttack,
-  teraUsed
+  teraUsed,
+  isReviving
 }: {
+  requestType: "move" | "switch" | "revive" | "wait"
   effects: SideEffects
   wish?: number
   delayedAttack?: DelayedAttack
-  teraUsed: boolean
+  isReviving?: boolean
+  teraUsed?: boolean
 }) {
   const feats: number[] = []
 
+  for (const x of ["move", "switch", "revive", "wait"]) {
+    feats.push(requestType === x ? 1 : 0)
+  }
+
   feats.push(teraUsed ? 1 : 0)
+  feats.push(isReviving ? 1 : 0)
 
   for (const name of HAZARDS) {
     feats.push(effects[name]?.layers ?? 0)
@@ -335,18 +344,8 @@ function encodeItemRefs({ lastBerry }: User) {
   return [lastBerry?.name ?? null]
 }
 
-function encodeBattle({
-  fields,
-  weather,
-  forceSwitch
-}: {
-  fields: Fields
-  weather?: Weather
-  forceSwitch: boolean
-}) {
+function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
   const feats: number[] = []
-
-  feats.push(forceSwitch ? 1 : 0)
 
   for (const name of WEATHER_NAMES) {
     feats.push(weather?.name === name ? 5 - weather.turn : 0)
@@ -358,7 +357,8 @@ function encodeBattle({
   for (const name in fields) {
     const turnsLeft = 5 - fields[name]
     if (TERRAIN_NAMES.includes(name)) terrain = { name, turnsLeft }
-    if (name === "Trick Room") trickRoomTurnsLeft = turnsLeft
+    else if (name === "Trick Room") trickRoomTurnsLeft = turnsLeft
+    else throw Error(name)
   }
 
   for (const name of TERRAIN_NAMES) {
@@ -373,7 +373,7 @@ function encodeBattle({
 export function encodeObserver(format: Format, obs: Observer) {
   const { gen } = format
 
-  const { ally, foe, fields, weather, req: request } = obs
+  const { ally, foe, fields, weather, req } = obs
 
   let encodedAlly
 
@@ -437,8 +437,11 @@ export function encodeObserver(format: Format, obs: Observer) {
       }
     }
 
+    if (req.type === "wait") throw Error()
+
     encodedAlly = {
       features: encodeSide({
+        requestType: req.type === "switch" ? (ally.isReviving ? "revive" : "switch") : "move",
         delayedAttack,
         teraUsed,
         effects,
@@ -528,6 +531,7 @@ export function encodeObserver(format: Format, obs: Observer) {
 
     encodedFoe = {
       features: encodeSide({
+        requestType: req.type === "move" ? "move" : "wait",
         delayedAttack,
         teraUsed,
         effects,
@@ -539,7 +543,7 @@ export function encodeObserver(format: Format, obs: Observer) {
   }
 
   return {
-    features: encodeBattle({ fields, weather, forceSwitch: request.type === "switch" }),
+    features: encodeBattle({ fields, weather }),
     ally: encodedAlly,
     foe: encodedFoe
   }
