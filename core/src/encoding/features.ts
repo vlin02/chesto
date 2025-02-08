@@ -1,30 +1,7 @@
 import { STAT_IDS, STATUS_IDS, Stats, DELAYED_MOVES } from "../battle.js"
 import { DelayedAttack } from "../client/side.js"
-import { MoveSet, Status, Volatiles } from "../client/user.js"
+import { Status, Volatiles } from "../client/user.js"
 import { STAT_RANGES, scale } from "./norm.js"
-
-export type FMoveSlot = {
-  move?: string
-  features: number[]
-}
-
-export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
-  if (!move) return undefined
-
-  if (move in moveSet) {
-    const { used, max } = moveSet[move]
-    return { move, features: [Math.max(0, max - used), max] }
-  }
-
-  return {
-    move: move === "Struggle" ? move : undefined,
-    features: [0, 0]
-  }
-}
-
-export function encodeMoveSet(moveSet: MoveSet) {
-  return Object.keys(moveSet).map((k) => encodeMove(moveSet, k)!)
-}
 
 export function encodeStats(stats: Stats) {
   const feats: number[] = []

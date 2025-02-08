@@ -10,20 +10,35 @@ import {
   TERRAIN_NAMES,
   WEATHER_NAMES
 } from "../battle.js"
-import { Flags, FoeUser, Status, User, Volatiles } from "../client/user.js"
+import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, Side, SideEffects } from "../client/side.js"
 import { getPresetForme, getPotentialPresets, matchesPreset } from "../version.js"
 import { Format } from "../format.js"
-import {
-  encodeDelayedAttack,
-  encodeMove,
-  encodeMoveSet,
-  encodeStats,
-  encodeStatus,
-  encodeVolatiles,
-  FMoveSlot
-} from "./features.js"
+import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
+
+export type FMoveSlot = {
+  move?: string
+  features: number[]
+}
+
+export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
+  if (!move) return undefined
+
+  if (move in moveSet) {
+    const { used, max } = moveSet[move]
+    return { move, features: [Math.max(0, max - used), max] }
+  }
+
+  return {
+    move: move === "Struggle" ? move : undefined,
+    features: [0, 0]
+  }
+}
+
+export function encodeMoveSet(moveSet: MoveSet) {
+  return Object.keys(moveSet).map((k) => encodeMove(moveSet, k)!)
+}
 
 type UserLookup = {
   disabled: FMoveSlot | undefined
