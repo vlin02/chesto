@@ -38,7 +38,7 @@ type Line = {
   stealEat?: boolean
 }
 
-export function isLocked(req: Request, move: string) {
+export function assertLocked(req: Request, move: string) {
   if (req.type !== "move") return undefined
   const {
     choices: [{ moveSlots }]
@@ -235,7 +235,7 @@ export class Observer {
         const { volatiles } = this.ally.active
         const { "Locked Move": lockedMove } = volatiles
 
-        if (lockedMove && isLocked(this.req, lockedMove.move) === false) {
+        if (lockedMove && assertLocked(this.req, lockedMove.move) === false) {
           delete volatiles["Locked Move"]
         }
 
@@ -471,8 +471,34 @@ export class Observer {
         const failed = notarget != null || miss != null
         if (failed) this.disrupt(user)
 
+        let isDirect: boolean = true
+
+        const lockChoice = (move: string) => {
+          const { item } = user
+
+          if (
+            !(
+              item &&
+              CHOICE_ITEMS.includes(item) &&
+              // a choice lock can be overriden each turn (only from dancer ability)
+              volatiles["Choice Locked"]?.firstTurn !== this.turn
+            )
+          )
+            return
+
+          volatiles["Choice Locked"] = { move, firstTurn: this.turn }
+        }
+
         if (!failed) {
           switch (move) {
+            case "Wish":
+              this[pov].wish = 0
+              break
+            case "Struggle":
+              isDirect = false
+
+              user.lastMove = move
+              break
             case "Revival Blessing": {
               this[pov].isReviving = true
               break
@@ -480,87 +506,51 @@ export class Observer {
           }
         }
 
-        let direct: string | null = move
-
-        switch (move) {
-          case "Wish":
-            this[pov].wish = 0
-            break
-          case "Struggle":
-            direct = null
-            user.lastMove = "Struggle"
-            break
-        }
-
         if (cause.move === "Sleep Talk") {
+          isDirect = false
+
           // revert sleep talk deduction, replace with move deduction
           user.moveSet["Sleep Talk"].used += -1 + this.ppCost(move, user, opp)
-          direct = null
         }
-        if (cause.ability === "Magic Bounce") direct = null
-        // dancer sometimes only shows up in the previous -active line and not in the tag smh
+
+        if (cause.ability === "Magic Bounce") {
+          isDirect = false
+        }
+
+        // dancer sometimes only shows up in the previous -active line and not in the tag
         if (cause.ability === "Dancer" || this.prevLine?.dancer) {
-          direct = null
+          isDirect = false
 
-          const { item } = user
-
-          // for some resaon getting outrage locked turns still can choice lock (if due to trick)
-          if (item && CHOICE_ITEMS.includes(item) && volatiles["Choice Locked"]?.startTurn !== this.turn) {
-            volatiles["Choice Locked"] = { move, startTurn: this.turn }
-          }
+          // dancing to a move counts as a choice lock
+          lockChoice(move)
         }
 
         if (from === "lockedmove") {
-          direct = null
-          const { "Locked Move": lockedMove } = volatiles
-          if (lockedMove?.turn === 2) delete volatiles["Locked Move"]
-          const { item } = user
+          isDirect = false
 
-          // for some resaon getting outrage locked turns still can choice lock (if due to trick)
-          if (item && CHOICE_ITEMS.includes(item) && volatiles["Choice Locked"]?.startTurn !== this.turn) {
-            volatiles["Choice Locked"] = { move, startTurn: this.turn }
-          }
+          if (volatiles["Locked Move"]?.turn === 2) delete volatiles["Locked Move"]
+          // outrage locked turns still can choice lock (if due to trick)
+          lockChoice(move)
         }
 
-        if (direct) {
-          const { item } = user
+        if (isDirect) {
+          user.lastMove = move
 
-          user.lastMove = direct
+          lockChoice(move)
 
-          if (
-            item &&
-            CHOICE_ITEMS.includes(item) &&
-            // choice lock can be reset on each turn if a different move is chosen
-            // ex. user forced to dance due to dancer turn 1, user uses different move turn 2
-            volatiles["Choice Locked"]?.startTurn !== this.turn
-          ) {
-            volatiles["Choice Locked"] = { move: direct, startTurn: this.turn }
-          }
-
-          const slot = this.allocateSlot(user.moveSet, direct)
-
-          if (!(volatiles["Choice Locked"]?.move && volatiles["Choice Locked"]?.move !== direct)) {
-            slot.used += this.ppCost(direct, user, opp)
-          }
-
-          if (
-            isLockingMove(this.gen, direct) &&
-            (pov === "foe" || isLocked(this.req, direct) !== false)
-          ) {
-            volatiles["Locked Move"] = { turn: 0, move: direct }
-          }
+          const slot = this.allocateSlot(user.moveSet, move)
+          const choiceMove = volatiles["Choice Locked"]?.move
+          // if the selected move is not the chosen one, don't deduct pp (dancer)
+          if (!(choiceMove && choiceMove !== move)) slot.used += this.ppCost(move, user, opp)
         }
 
-        break
-      }
-      case "cant":
-      case "-fail": {
-        p = piped(line, p.i)
-        const user = this.user(this.ref(p.args[0]))
-        // const { pov, moveSet } = user
+        if (
+          isLockingMove(this.gen, move) &&
+          (pov === "foe" || assertLocked(this.req, move) !== false)
+        ) {
+          volatiles["Locked Move"] = { turn: 0, move }
+        }
 
-        // if (msgType === "-fail" && this.prevLine?.moveBy === user) this[pov].turnMoves--
-        // if (this.prevLine?.sleepTalk) this.allocateSlot(moveSet, "Sleep Talk").used++
         break
       }
       case "-immune":
@@ -883,7 +873,8 @@ export class Observer {
 
         if (fatigue != null && lockedMove) {
           const { move } = lockedMove
-          if (pov === "foe" || isLocked(this.req, move) !== true) delete volatiles["Locked Move"]
+          if (pov === "foe" || assertLocked(this.req, move) !== true)
+            delete volatiles["Locked Move"]
         }
         break
       }
