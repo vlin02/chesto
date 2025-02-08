@@ -22,6 +22,50 @@ export type FMoveSlot = {
   features: number[]
 }
 
+type UserLookup = {
+  disabled: FMoveSlot | undefined
+  choice: FMoveSlot | undefined
+  encore: FMoveSlot | undefined
+  locked: FMoveSlot | undefined
+  lastMove: FMoveSlot | undefined
+  lastBerry: string | undefined
+}
+
+type FAllyUser = {
+  features: number[]
+  lookup: UserLookup
+  moveSet: FMoveSlot[]
+  item: string | null
+  ability: string | null
+  types: string[]
+  teraType: string
+  initialForme: string
+}
+
+type FAlly = {
+  features: number[]
+  team: { [k: string]: FAllyUser }
+  lookup: SideLookup
+}
+
+type FFoeUser = {
+  features: number[]
+  lookup: UserLookup
+  moveSet: FMoveSlot[]
+  unusedMoves: string[]
+  abilities: string[]
+  items: string[]
+  types: string[]
+  teraTypes: string[]
+  initialForme: string
+}
+
+type FFoe = {
+  features: number[]
+  team: { [k: string]: FFoeUser }
+  lookup: SideLookup
+}
+
 export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
   if (!move) return undefined
 
@@ -38,15 +82,6 @@ export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefin
 
 export function encodeMoveSet(moveSet: MoveSet) {
   return Object.keys(moveSet).map((k) => encodeMove(moveSet, k)!)
-}
-
-type UserLookup = {
-  disabled: FMoveSlot | undefined
-  choice: FMoveSlot | undefined
-  encore: FMoveSlot | undefined
-  locked: FMoveSlot | undefined
-  lastMove: FMoveSlot | undefined
-  lastBerry: string | undefined
 }
 
 function encodeUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
@@ -194,41 +229,6 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   feats.push(trickRoomTurnsLeft)
 
   return feats
-}
-
-type FAllyUser = {
-  features: number[]
-  lookup: UserLookup
-  moveSet: FMoveSlot[]
-  item: string | null
-  ability: string | null
-  types: string[]
-  teraType: string
-  initialForme: string
-}
-
-type FAlly = {
-  features: number[]
-  team: { [k: string]: FAllyUser }
-  lookup: SideLookup
-}
-
-type FFoeUser = {
-  features: number[]
-  lookup: UserLookup
-  moveSet: FMoveSlot[]
-  unusedMoves: string[]
-  abilities: string[]
-  items: string[]
-  types: string[]
-  teraTypes: string[]
-  initialForme: string
-}
-
-type FFoe = {
-  features: number[]
-  team: { [k: string]: FFoeUser }
-  lookup: SideLookup
 }
 
 export function encodeObserver(format: Format, obs: Observer) {
