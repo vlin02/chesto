@@ -31,6 +31,11 @@ type UserLookup = {
   lastBerry: string | undefined
 }
 
+type SideLookup = {
+  active: string
+  tera: string | undefined
+}
+
 type FAllyUser = {
   features: number[]
   lookup: UserLookup
@@ -65,6 +70,14 @@ type FFoe = {
   team: { [k: string]: FFoeUser }
   lookup: SideLookup
 }
+
+export type FObserver = {
+  features: number[]
+  ally: FAlly
+  foe: FFoe
+}
+
+export type RequestType = "move" | "switch" | "revive" | "wait"
 
 export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
   if (!move) return undefined
@@ -150,8 +163,6 @@ function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
   return stats
 }
 
-export type RequestType = "move" | "switch" | "revive" | "wait"
-
 function encodeSide({
   requestType,
   effects,
@@ -193,11 +204,6 @@ function encodeSide({
   return feats
 }
 
-type SideLookup = {
-  active: string
-  tera: string | undefined
-}
-
 function encodeSideLookup({ active, team }: Side) {
   return {
     active: active.species,
@@ -231,7 +237,7 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   return feats
 }
 
-export function encodeObserver(format: Format, obs: Observer) {
+export function encodeObserver(format: Format, obs: Observer): FObserver {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
