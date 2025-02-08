@@ -44,4 +44,4 @@ export type Foe = {
   isReviving?: boolean
 }
 
-export type Party = Ally | Foe
+export type Side = Ally | Foe
