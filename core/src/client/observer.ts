@@ -32,7 +32,6 @@ type Ref = {
 }
 
 type Line = {
-  moveBy?: User
   dancer?: boolean
   sleepTalk?: boolean
   stealEat?: boolean
@@ -458,8 +457,6 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from, notarget, miss } = parseTags(p.args)
         const cause = parseEntity(from)
-
-        currLine.moveBy = user
 
         for (const name in volatiles) {
           if (volatiles[name].singleMove) delete volatiles[name]
