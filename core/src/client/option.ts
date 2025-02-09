@@ -153,10 +153,9 @@ export function getOptions(run: Run): Options {
       const moveOpt = getMoveOption(run, active)
       if (moveOpt.type === "struggle") opt.struggle = true
       if (moveOpt.type === "recharge") opt.recharge = true
-      if (moveOpt.type === "default") {
-        opt.canTera = teraUsed
-        opt.moves = moveOpt.moves
-      }
+      if (moveOpt.type === "default") opt.moves = moveOpt.moves
+      opt.canTera = !teraUsed
+
       if (!trapped) {
         opt.switches = getValidSwitches(obs)
       }

@@ -31,25 +31,21 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
 
         switch (choice.type) {
           case "move": {
-            const { move } = choice
+            const { move, tera } = choice
 
             const valid = getValidMoves(opt)
             const chosen =
               { recharge: "Recharge", struggle: "Struggle" }[move] ?? gen.moves.get(move)!.name
 
             if (!valid.includes(chosen)) throw Error()
+            if (tera && !opt.canTera) throw Error()
             break
           }
           case "switch": {
             const { i } = choice
             const { species } = slots[i - 1]
 
-            if (!opt.switches?.includes(species)) {
-              console.log(obs.ally.isReviving)
-              console.log(species)
-              console.log(opt)
-              throw Error()
-            }
+            if (!opt.switches?.includes(species)) throw Error()
             break
           }
         }
