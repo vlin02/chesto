@@ -2,9 +2,9 @@ import { split } from "./log.js"
 import { Observer } from "./client/observer.js"
 import { getMoveOptions, getSwitchOptions, isTrapped, toMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
-import { Replay } from "./replay.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
 import { Format } from "./format.js"
+import { Replay } from "./db.js"
 
 export function testSide(format: Format, replay: Replay, side: Side) {
   const { gen } = format
@@ -50,6 +50,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
+      console.log(msg)
       obs.read(msg)
     }
 
@@ -81,7 +82,10 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
         const trappedA = aliveCnt !== 1 && isTrapped(active)
         const trappedB = !!trapped
-        if (trappedA !== trappedB) throw Error()
+        if (trappedA !== trappedB) {
+          console.log(trappedA, trappedB)
+          throw Error()
+        }
 
         const movesA = toMoves(getMoveOptions(format, active)).sort()
         const movesB = moveSlots

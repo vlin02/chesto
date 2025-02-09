@@ -6,7 +6,6 @@ import {
   parseTags,
   parseLabel,
   parseTypes,
-  piped,
   Side
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
@@ -25,6 +24,7 @@ import {
   Screen,
   PARTIALLY_TRAPPED_MOVES
 } from "../battle.js"
+import { piped } from "../parse.js"
 
 type Ref = {
   species: string
@@ -175,10 +175,8 @@ export class Observer {
   }
 
   read(line: string) {
-    if (line[0] !== "|") return
-
     let p: { args: string[]; i: number }
-    p = piped(line, 0)
+    p = piped(line, 1)
     const msgType = p.args[0]
 
     const currLine: Line = {}
@@ -188,7 +186,7 @@ export class Observer {
       case "request": {
         event = "request"
 
-        this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i + 1)) as RawRequest)
+        this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
 
         if (this.ally) {
           this.swaps.push(

@@ -6,18 +6,6 @@ export type Side = "p1" | "p2"
 export const SIDES = ["p1", "p2"] as const
 export const FOE = { p1: "p2", p2: "p1" } as const
 
-export function piped(s: string, i: number, n = 1) {
-  const args = []
-  for (let j = 0; j !== n; j++) {
-    let k = s.indexOf("|", i + 1)
-    if (k === -1) k = s.length
-    args.push(s.slice(i + 1, k))
-    i = k
-    if (i === s.length) break
-  }
-  return { args, i }
-}
-
 export type Label = {
   forme: string
   lvl: number
