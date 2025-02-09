@@ -84,6 +84,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) {
           console.log(trappedA, trappedB)
+          console.log(active)
           throw Error()
         }
 
