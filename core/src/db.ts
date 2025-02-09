@@ -1,6 +1,39 @@
 import { Collection, Db } from "mongodb"
-import { Version } from "./version.js"
-import { Replay } from "./replay.js"
+import { Patch } from "./version.js"
+import { Log } from "./log.js"
+import { Build } from "./build.js"
+
+export type Player = {
+  name: string
+  team: Build[]
+}
+
+export type Replay = {
+  id: string
+  version: string
+  uploadtime: number
+  rating: number
+  private: number
+  password: string | null
+  inputs: string[]
+  outputs: Log[][]
+  p1: Player
+  p2: Player
+}
+
+export type Version = {
+  hash: string
+  timestamp: number
+  patch: Patch
+}
+
+type Move = {
+  name: string
+  f: number[]
+  desc: {
+    [k: string]: number[]
+  }
+}
 
 export async function createReplays(db: Db, name: string) {
   await db.createCollection(name, {
@@ -39,14 +72,6 @@ export class VersionCache {
       this.cache.set(hash, ver)
     }
     return ver
-  }
-}
-
-type Move = {
-  name: string
-  f: number[]
-  desc: {
-    [k: string]: number[]
   }
 }
 

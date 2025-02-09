@@ -28,11 +28,6 @@ export type Patch = {
   }
 }
 
-export type Version = {
-  hash: string
-  timestamp: number
-  patch: Patch
-}
 
 export function getPresetForme({ gen, patch }: Format, forme: string) {
   return forme in patch ? forme : gen.species.get(forme)!.baseSpecies

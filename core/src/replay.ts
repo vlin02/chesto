@@ -1,27 +1,6 @@
-import { ObjectId } from "mongodb"
-import { Log } from "./log.js"
-import { Build } from "./build.js"
 import { ID, toID } from "@pkmn/data"
 import { PRNGSeed } from "@pkmn/sim"
 import { Side, FOE } from "./client/protocol.js"
-
-export type Player = {
-  name: string
-  team: Build[]
-}
-
-export type Replay = {
-  id: string
-  version: string
-  uploadtime: number
-  rating: number
-  private: number
-  password: string | null
-  inputs: string[]
-  outputs: Log[][]
-  p1: Player
-  p2: Player
-}
 
 export type Header = {
   formatId: ID
