@@ -109,8 +109,9 @@ export class Observer {
     const { volatiles, boosts, lastBerry, lastMove, formeChange, pov } = user
     const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
 
-    {
-      const { volatiles } = this[OPP[pov]].active
+    const opp = this[OPP[pov]]
+    if (opp) {
+      const { volatiles } = opp.active
 
       delete volatiles["Trapped"]
       for (const move of PARTIALLY_TRAPPED_MOVES) {
