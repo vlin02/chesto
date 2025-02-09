@@ -77,20 +77,18 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const { active } = ally
         const [{ moveSlots, trapped }] = req.choices
 
-        const moves = toMoves(getMoveOptions(format, active)).sort()
-
         const aliveCnt = req.team.reduce((t, x) => t + (x.health ? 1 : 0), 0)
 
         const trappedA = aliveCnt !== 1 && isTrapped(active)
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const expectedMoves = moveSlots
+        const movesA = toMoves(getMoveOptions(format, active)).sort()
+        const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
           .sort()
-
-        if (JSON.stringify(moves) !== JSON.stringify(expectedMoves)) throw Error()
+        if (JSON.stringify(movesA) !== JSON.stringify(movesB)) throw Error()
 
         for (const { name, pp, maxpp } of moveSlots) {
           const slot = active.moveSet[name]
