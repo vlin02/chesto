@@ -1,4 +1,6 @@
-import { Db } from "mongodb"
+import { Collection, Db } from "mongodb"
+import { Version } from "./version.js"
+import { Replay } from "./replay.js"
 
 export async function createReplays(db: Db, name: string) {
   await db.createCollection(name, {
@@ -21,4 +23,43 @@ export async function createVersions(db: Db, name: string) {
 
   const col = db.collection(name)
   return col
+}
+
+export class VersionCache {
+  cache: Map<string, Version>
+
+  constructor(public db: DB) {
+    this.cache = new Map()
+  }
+
+  async load(hash: string) {
+    let ver = this.cache.get(hash)
+    if (!ver) {
+      ver = (await this.db.versions.findOne({ hash }))!
+      this.cache.set(hash, ver)
+    }
+    return ver
+  }
+}
+
+type Move = {
+  name: string
+  f: number[]
+  desc: {
+    [k: string]: number[]
+  }
+}
+
+export type DB = {
+  replays: Collection<Replay>
+  versions: Collection<Version>
+  moves: Collection<Move>
+}
+
+export function toDB(db: Db): DB {
+  return {
+    replays: db.collection("replays"),
+    versions: db.collection("versions"),
+    moves: db.collection("moves")
+  }
 }

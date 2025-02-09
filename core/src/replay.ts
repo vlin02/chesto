@@ -11,7 +11,6 @@ export type Player = {
 }
 
 export type Replay = {
-  _id: ObjectId
   id: string
   version: string
   uploadtime: number

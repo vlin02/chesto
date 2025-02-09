@@ -43,7 +43,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
             if (!switches.includes(species)) throw Error()
           }
 
-          if (obs.req.type !== "switch" && isTrapped(active)) throw Error()
+          if (obs.req.type === "move" && isTrapped(active)) throw Error()
           break
         }
       }
