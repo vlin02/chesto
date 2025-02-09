@@ -397,9 +397,8 @@ export class Observer {
       }
       case "-fieldstart": {
         p = piped(line, p.i)
-        const { move: name } = parseEntity(p.args[0])
-
-        this.fields[name!] = 0
+        const { move: field } = parseEntity(p.args[0])
+        this.fields[field!] = 0
 
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)

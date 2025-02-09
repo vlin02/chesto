@@ -193,29 +193,13 @@ function encodeSideLookup({ active, team }: Side) {
 }
 
 function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
-  const feats: number[] = []
-
-  for (const name of WEATHER_NAMES) {
-    feats.push(weather?.name === name ? 5 - weather.turn : 0)
-  }
-
-  let terrain: { name: string; turnsLeft: number } | null = null
-  let trickRoomTurnsLeft = 0
-
-  for (const name in fields) {
-    const turnsLeft = 5 - fields[name]
-    if (TERRAIN_NAMES.includes(name)) terrain = { name, turnsLeft }
-    else if (name === "Trick Room") trickRoomTurnsLeft = turnsLeft
-    else throw Error(name)
-  }
-
-  for (const name of TERRAIN_NAMES) {
-    feats.push(terrain?.name === name ? terrain.turnsLeft : 0)
-  }
-
-  feats.push(trickRoomTurnsLeft)
-
-  return feats
+  return [
+    ...WEATHER_NAMES.map((name) => (weather?.name === name ? 5 - weather.turn : 0)),
+    ...[...TERRAIN_NAMES, "Trick Room"].map((name) => {
+      const turn = fields[name]
+      return turn ? 5 - turn : 0
+    })
+  ]
 }
 
 export function encodeObserver(format: Format, obs: Observer): XObserver {
