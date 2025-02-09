@@ -20,8 +20,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     const input = inputs[inputs.length - outputs.length + i]
     const logs = outputs[i]
 
-    let newReq = false
-
     if (input.startsWith(`>${side}`)) {
       const [_, type, choice] = input.split(" ")
       const { active, slots, isReviving } = obs.ally
@@ -29,33 +27,29 @@ export function testSide(format: Format, replay: Replay, side: Side) {
       switch (type) {
         case "move": {
           const moves = toMoves(getMoveOptions(format, active))
-          if (
-            !moves.includes(
-              { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
-            )
-          ) {
-            throw Error()
-          }
+          const chosenMove =
+            { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
+
+          if (!moves.includes(chosenMove)) throw Error()
           break
         }
         case "switch": {
           const { species } = slots[Number(choice) - 1]
           const switches = getSwitchOptions(obs)
 
-          if (isReviving ? obs.ally.team[species].hp[0] !== 0 : !switches.includes(species)) {
-            throw Error()
+          if (isReviving) {
+            if (obs.ally.team[species].hp[0] !== 0) throw Error()
+          } else {
+            if (!switches.includes(species)) throw Error()
           }
 
-          if (obs.req.type !== "switch" && isTrapped(active)) {
-            throw Error()
-          }
+          if (obs.req.type !== "switch" && isTrapped(active)) throw Error()
           break
         }
       }
     }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      console.log(msg)
       obs.read(msg)
     }
 
@@ -68,13 +62,11 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const build = opp.team.find((x) => x.name === species)!
         const presets = getPotentialPresets(format, user)
 
-        if (
-          !presets.some((preset) => {
-            return preset.role === build.role && matchesPreset(preset, user)
-          })
-        ) {
-          throw Error()
-        }
+        const buildFound = presets.some((preset) => {
+          return preset.role === build.role && matchesPreset(preset, user)
+        })
+
+        if (!buildFound) throw Error()
       }
     }
 
