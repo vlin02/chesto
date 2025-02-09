@@ -1,7 +1,7 @@
-import { scale } from "./norm.js"
 import { MOVE_CATEGORY, TYPE_NAMES } from "../battle.js"
 import { Move } from "@pkmn/data"
 import { encodeMoveEffect, reconcileEffect } from "./effect.js"
+import { scalePower, scalePP } from "./norm.js"
 
 const MOVE_FLAGS = [
   "bypasssub",
@@ -149,11 +149,11 @@ export function encodeMove(move: Move) {
   const f: number[] = []
 
   f.push((accuracy === true ? 100 : accuracy) / 100)
-  f.push(basePower / 250)
+  f.push(scalePower(basePower))
 
   f.push(...MOVE_CATEGORY.map((x) => (category === x ? 1 : 0)))
-  f.push(scale(pp, 0, 64))
-  f.push(scale(priority, -7, 5))
+  f.push(scalePP(pp))
+  f.push(priority)
 
   f.push(...MOVE_FLAGS.map((k) => (flags[k] ? 1 : 0)))
   f.push(drain ? drain[0] / drain[1] : 0)
@@ -170,7 +170,7 @@ export function encodeMove(move: Move) {
   f.push(...SIDE_CONDITIONS.map((x) => (sideCondition === x ? 1 : 0)))
   f.push(...(Array.isArray(multihit) ? multihit : [multihit ?? 0, multihit ?? 0]))
 
-  f.push(scale(duration ?? 0, 0, 5))
+  f.push(duration ?? 0)
 
   f.push(...["level"].map((x) => (damage === x ? 1 : 0)))
 

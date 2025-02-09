@@ -16,6 +16,7 @@ import { getPresetForme, getPotentialPresets, matchesPreset } from "../version.j
 import { Format } from "../format.js"
 import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
+import { MAX_PP, scalePP, STAT_RANGES } from "./norm.js"
 
 export type FMoveSlot = {
   move?: string
@@ -84,7 +85,7 @@ export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefin
 
   if (move in moveSet) {
     const { used, max } = moveSet[move]
-    return { move, features: [Math.max(0, max - used), max] }
+    return { move, features: [scalePP(Math.max(0, max - used)), scalePP(max)] }
   }
 
   return {
@@ -130,7 +131,7 @@ function encodeUser({
   const feats: number[] = []
 
   feats.push(revealed ? 1 : 0)
-  feats.push(hpLeft)
+  feats.push(hpLeft / STAT_RANGES.hp[1])
   feats.push(...encodeStats(stats))
   feats.push(...encodeStatus(status))
 
@@ -195,11 +196,7 @@ function encodeSide({
   }
 
   feats.push(...encodeDelayedAttack(delayedAttack))
-
-  {
-    const turnsLeft = wish ? 2 - wish : 0
-    feats.push(turnsLeft)
-  }
+  feats.push(wish ? 2 - wish : 0)
 
   return feats
 }
@@ -274,7 +271,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         features: encodeUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
-          hpLeft: hp[0] / hp[1],
+          hpLeft: hp[0],
           flags,
           volatiles,
           boosts,

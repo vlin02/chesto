@@ -1,20 +1,20 @@
-import { STAT_IDS, STATUS_IDS, Stats, DELAYED_MOVES } from "../battle.js"
+import { STAT_IDS, STATUS_IDS, Stats, DELAYED_MOVES, MOD_STAT_IDS } from "../battle.js"
 import { DelayedAttack } from "../client/side.js"
 import { Status, Volatiles } from "../client/user.js"
-import { STAT_RANGES, scale } from "./norm.js"
+import { STAT_RANGES } from "./norm.js"
 
 export function encodeStats(stats: Stats) {
   const feats: number[] = []
   for (const statId of STAT_IDS) {
     const [lo, hi] = STAT_RANGES[statId]
-    feats.push(scale(stats[statId], lo, hi))
+    feats.push(stats[statId] / hi)
   }
   return feats
 }
 
 export function encodeStatus(status: Status | undefined) {
-  let sleepAttemptsLeft = [0, 0]
   let toxicTurns = 0
+  let sleepAttemptsLeft = [0, 0]
 
   if (status?.id === "tox") toxicTurns = status.turn!
   if (status?.id === "slp")
@@ -141,7 +141,7 @@ export function encodeVolatiles(volatiles: Volatiles) {
         break
       case "Protosynthesis":
       case "Quark Drive":
-        for (const k of ["atk", "def", "spa", "spd", "spe"] as const) {
+        for (const k of MOD_STAT_IDS) {
           feats.push(volatiles[name as "Protosynthesis" | "Quark Drive"]?.statId === k ? 1 : 0)
         }
         break
