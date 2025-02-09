@@ -1,6 +1,6 @@
 import { StatID } from "@pkmn/data"
 
-export function scaleStat(id: StatID, n: number) {
+export function scaleStat(_: StatID, n: number) {
   // max stat is 714 (hp)
   return n / 714
 }

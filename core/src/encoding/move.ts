@@ -196,22 +196,6 @@ export function encodeMove(move: Move) {
   f.push(...TERRAINS.map((x) => (terrain === x ? 1 : 0)))
   f.push(...PSEUDO_WEATHERS.map((x) => (pseudoWeather === x ? 1 : 0)))
   f.push(...WEATHERS.map((x) => (weather === x ? 1 : 0)))
-  f.push(
-    ...[
-      "auroraveil",
-      "lightscreen",
-      "mist",
-      "quickguard",
-      "reflect",
-      "safeguard",
-      "spikes",
-      "stealthrock",
-      "stickyweb",
-      "tailwind",
-      "toxicspikes",
-      "wideguard"
-    ].map((x) => (sideCondition === x ? 1 : 0))
-  )
 
   f.push(...([true, "copyvolatile", "shedtail"] as const).map((x) => (selfSwitch === x ? 1 : 0)))
   f.push(...["Wish", "healingwish", "revivalblessing"].map((x) => (slotCondition === x ? 1 : 0)))
