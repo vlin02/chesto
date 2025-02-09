@@ -75,13 +75,15 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
       if (req.type === "move") {
         const { active } = ally
-        const [{ moveSlots, trapped: _trapped }] = req.choices
+        const [{ moveSlots, trapped }] = req.choices
 
         const moves = toMoves(getMoveOptions(format, active)).sort()
 
         const aliveCnt = req.team.reduce((t, x) => t + (x.health ? 1 : 0), 0)
-        const trapped = aliveCnt !== 1 && isTrapped(active)
-        if (trapped !== !!_trapped) throw Error()
+
+        const trappedA = aliveCnt !== 1 && isTrapped(active)
+        const trappedB = !!trapped
+        if (trappedA !== trappedB) throw Error()
 
         const expectedMoves = moveSlots
           .filter((x) => !x.disabled)
