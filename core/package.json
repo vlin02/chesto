@@ -7,6 +7,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@mistralai/mistralai": "^1.5.0",
     "@pkmn/client": "^0.6.30",
     "@pkmn/data": "^0.9.25",
     "@pkmn/dex": "^0.9.25",
@@ -16,7 +17,7 @@
     "execa": "^9.5.2",
     "json-diff": "^1.0.6",
     "mongodb": "^6.12.0",
-    "openai": "^4.77.3",
+    "openai": "^4.80.0",
     "ps0": "link:/Users/vilin/ps/f0",
     "ps1": "link:/Users/vilin/ps/f1",
     "ps2": "link:/Users/vilin/ps/f2",
@@ -26,6 +27,7 @@
     "ps6": "link:/Users/vilin/ps/f6",
     "ps7": "link:/Users/vilin/ps/f7",
     "undici": "^7.2.0",
+    "voyageai": "0.0.3-1",
     "ws": "^8.18.0"
   },
   "devDependencies": {

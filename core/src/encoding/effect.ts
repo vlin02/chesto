@@ -107,8 +107,8 @@ export function reconcileEffect(move: Move) {
 
   for (const secondary of secondaries ?? []) {
     withEffect(effect.opp, secondary)
-    const { self } = secondary
-    if (self) withEffect(effect.self, self)
+    const { chance, self } = secondary
+    if (self) withEffect(effect.self, {chance, ...self})
   }
 
   return effect
