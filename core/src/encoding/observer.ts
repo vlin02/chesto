@@ -90,7 +90,7 @@ export function encodeMoveSlot(moveSet: MoveSet, move?: string): XMoveSlot | und
   }
 
   return {
-    move: move === "Struggle" ? move : undefined,
+    move,
     f: [0, 0]
   }
 }

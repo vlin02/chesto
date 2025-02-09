@@ -75,7 +75,10 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
     }
 
     if (obs.req && obs.winner === undefined) {
-      const { ally, req } = obs
+      const { ally, req } = obs 
+
+      if (obs.ally.active.lastMove && !gen.moves.get(obs.ally.active.lastMove))
+        throw Error(obs.ally.active.lastMove)
 
       if (req.type === "move") {
         const { active } = ally
