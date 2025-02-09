@@ -38,7 +38,7 @@ export function encodeDelayedAttack(delayedAttack: DelayedAttack | undefined) {
 export function encodeVolatiles(volatiles: Volatiles) {
   const feats: number[] = []
 
-  for (const name in [
+  for (const name of [
     "Leech Seed",
     "Charge",
     "Attract",

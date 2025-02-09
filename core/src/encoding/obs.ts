@@ -178,17 +178,17 @@ function encodeSide({
   delayedAttack?: DelayedAttack
   teraUsed?: boolean
 }) {
-  const feats: number[] = []
+  const f: number[] = []
 
-  feats.push(wish ? 2 - wish : 0)
-  feats.push(...encodeDelayedAttack(delayedAttack))
-  feats.push(teraUsed ? 1 : 0)
+  f.push(wish ? 2 - wish : 0)
+  f.push(...encodeDelayedAttack(delayedAttack))
+  f.push(teraUsed ? 1 : 0)
 
-  feats.push(...DECISION_MODES.map((x) => (mode === x ? 1 : 0)))
-  feats.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
-  feats.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
+  f.push(...DECISION_MODES.map((_mode) => (mode === _mode ? 1 : 0)))
+  f.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
+  f.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
 
-  return feats
+  return f
 }
 
 function encodeSideLookup({ active, team }: Side) {
