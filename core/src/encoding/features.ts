@@ -1,13 +1,12 @@
 import { STAT_IDS, STATUS_IDS, Stats, DELAYED_MOVES, MOD_STAT_IDS } from "../battle.js"
 import { DelayedAttack } from "../client/side.js"
 import { Status, Volatiles } from "../client/user.js"
-import { STAT_RANGES } from "./norm.js"
+import { scaleStat } from "./norm.js"
 
 export function encodeStats(stats: Stats) {
   const feats: number[] = []
   for (const statId of STAT_IDS) {
-    const [lo, hi] = STAT_RANGES[statId]
-    feats.push(stats[statId] / hi)
+    feats.push(scaleStat(statId, stats[statId]))
   }
   return feats
 }

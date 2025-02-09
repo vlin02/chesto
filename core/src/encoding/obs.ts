@@ -16,7 +16,7 @@ import { getPresetForme, getPotentialPresets, matchesPreset } from "../version.j
 import { Format } from "../format.js"
 import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
-import { scalePP, STAT_RANGES } from "./norm.js"
+import { scalePP, scaleStat } from "./norm.js"
 
 export type FMoveSlot = {
   move?: string
@@ -38,7 +38,7 @@ type SideLookup = {
 }
 
 type FAllyUser = {
-  features: number[]
+  f: number[]
   lookup: UserLookup
   moveSet: FMoveSlot[]
   item: string | null
@@ -49,7 +49,7 @@ type FAllyUser = {
 }
 
 type FAlly = {
-  features: number[]
+  f: number[]
   team: { [k: string]: FAllyUser }
   lookup: SideLookup
 }
@@ -58,7 +58,7 @@ type FFoeUser = {
   features: number[]
   lookup: UserLookup
   moveSet: FMoveSlot[]
-  unusedMoves: string[]
+  movepool: string[]
   abilities: string[]
   items: string[]
   types: string[]
@@ -78,7 +78,8 @@ export type FObserver = {
   foe: FFoe
 }
 
-export type RequestType = "move" | "switch" | "revive" | "wait"
+export const DECISION_MODES = ["move", "switch", "revive", "wait"]
+export type DecisionMode = (typeof DECISION_MODES)[number]
 
 export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
   if (!move) return undefined
@@ -131,7 +132,7 @@ function encodeUser({
   const feats: number[] = []
 
   feats.push(revealed ? 1 : 0)
-  feats.push(hpLeft / STAT_RANGES.hp[1])
+  feats.push(scaleStat("hp", hpLeft))
   feats.push(...encodeStats(stats))
   feats.push(...encodeStatus(status))
 
@@ -165,14 +166,14 @@ function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
 }
 
 function encodeSide({
-  requestType,
+  mode,
   effects,
   wish,
   delayedAttack,
   teraUsed,
   isReviving
 }: {
-  requestType: RequestType
+  mode: DecisionMode
   effects: SideEffects
   wish?: number
   delayedAttack?: DelayedAttack
@@ -181,8 +182,8 @@ function encodeSide({
 }) {
   const feats: number[] = []
 
-  for (const x of ["move", "switch", "revive", "wait"]) {
-    feats.push(requestType === x ? 1 : 0)
+  for (const x of DECISION_MODES) {
+    feats.push(mode === x ? 1 : 0)
   }
 
   feats.push(teraUsed ? 1 : 0)
@@ -246,6 +247,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
     let fTeam: {
       [k: string]: FAllyUser
     } = {}
+
     for (const species in team) {
       const user = team[species]
 
@@ -268,7 +270,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       const initialForme = getPresetForme(format, forme)
 
       fTeam[species] = {
-        features: encodeUser({
+        f: encodeUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
           hpLeft: hp[0],
@@ -288,8 +290,8 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
     }
 
     fAlly = {
-      features: encodeSide({
-        requestType: ally.isReviving ? "revive" : req.type,
+      f: encodeSide({
+        mode: ally.isReviving ? "revive" : req.type,
         delayedAttack,
         teraUsed,
         effects,
@@ -346,8 +348,8 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       fTeam[species] = {
         features: encodeUser({
           revealed: true,
-          stats: inferStats(gen, user),
-          hpLeft: hp[0] / hp[1],
+          stats: { ...inferStats(gen, user), hp: hp[1] },
+          hpLeft: hp[0],
           flags,
           volatiles,
           boosts,
@@ -355,7 +357,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         }),
         lookup: encodeUserLookup(user),
         moveSet: Object.keys(moveSet).map((k) => encodeMove(moveSet, k)!),
-        unusedMoves: [...validMoves].filter((move) => !(move in moveSet)),
+        movepool: [...validMoves].filter((move) => !(move in moveSet)),
         items: item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
         types: types.base,
@@ -364,7 +366,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       }
     }
 
-    let requestType: RequestType
+    let requestType: RequestMode
     {
       switch (req.type) {
         case "move":
@@ -381,7 +383,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
 
     fFoe = {
       features: encodeSide({
-        requestType,
+        mode: requestType,
         delayedAttack,
         teraUsed,
         effects,
