@@ -1,6 +1,6 @@
 import { split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOptions, getSwitchOptions, isTrapped, toMoves } from "./client/action.js"
+import { getMoveOptions, getSwitchOptions, isTrapped, toMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
 import { Replay } from "./replay.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
@@ -34,7 +34,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
               { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
             )
           ) {
-            console.log(moves, choice)
             throw Error()
           }
           break
@@ -57,9 +56,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
       console.log(msg)
-      const event = obs.read(msg)
-      newReq ||= event === "request"
-      console.log(obs.ally?.active.moveSet)
+      obs.read(msg)
     }
 
     if (!hasZoroark && obs.foe) {
@@ -76,13 +73,12 @@ export function testSide(format: Format, replay: Replay, side: Side) {
             return preset.role === build.role && matchesPreset(preset, user)
           })
         ) {
-          console.log(presets, build.role, user)
           throw Error()
         }
       }
     }
 
-    if (newReq) {
+    if (obs.req && obs.winner === undefined) {
       const { ally, req } = obs
 
       if (req.type === "move") {

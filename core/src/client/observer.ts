@@ -486,19 +486,17 @@ export class Observer {
           volatiles["Choice Locked"] = { move, firstTurn: this.turn }
         }
 
-        if (!failed) {
-          switch (move) {
-            case "Wish":
-              this[pov].wish = 0
-              break
-            case "Struggle":
-              isDirect = false
-              user.lastMove = move
-              break
-            case "Revival Blessing": {
-              this[pov].isReviving = true
-              break
-            }
+        switch (move) {
+          case "Wish":
+            if (!failed) this[pov].wish = 0
+            break
+          case "Struggle":
+            isDirect = false
+            user.lastMove = move
+            break
+          case "Revival Blessing": {
+            if (!failed) this[pov].isReviving = true
+            break
           }
         }
 
