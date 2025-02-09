@@ -1,6 +1,6 @@
 import { scale } from "./norm.js"
 import { ModStatId, MOVE_CATEGORY, StatusId, TYPE_NAMES } from "../battle.js"
-import { Move, SecondaryEffect, StatusName } from "@pkmn/data"
+import { Move, StatusName } from "@pkmn/data"
 
 const MOVE_FLAGS = [
   "bypasssub",
@@ -55,93 +55,6 @@ const SIDE_CONDITIONS = [
   "toxicspikes",
   "wideguard"
 ]
-
-const VOLATILE_STATUSES = [
-  "confusion",
-  "flinch",
-  "substitute",
-  "saltcure",
-  "glaiverush",
-  "partiallytrapped",
-  "leechseed",
-  "sparklingaria",
-  "mustrecharge",
-  "healblock",
-  "taunt",
-  "encore",
-  "disable",
-  "curse",
-  "lockedmove",
-  "roost",
-  "noretreat",
-  "destinybond",
-  "magnetrise",
-  "protect",
-  "yawn"
-]
-
-type UserEffect = {
-  boosts: { [k in ModStatId]?: { n: number; p: number } }
-  status?: { id: StatusId; p: number }
-  volatileStatus?: { name: string; p: number }
-}
-
-type MoveEffect = {
-  self: UserEffect
-  opp: UserEffect
-}
-
-function withEffect(
-  user: UserEffect,
-  {
-    chance: p = 1,
-    boosts,
-    status,
-    volatileStatus
-  }: {
-    chance?: number
-    boosts?: { [k in ModStatId]?: number }
-    status?: StatusName
-    volatileStatus?: string
-  }
-) {
-  if (boosts) {
-    for (const k in boosts) {
-      user.boosts[k as ModStatId] = { n: boosts[k as ModStatId]!, p }
-    }
-  }
-
-  if (status) user.status = { id: status, p }
-  if (volatileStatus) user.volatileStatus = { name: volatileStatus, p }
-}
-
-export function reconcileEffect(move: Move) {
-  const effect: MoveEffect = {
-    self: { boosts: {} },
-    opp: { boosts: {} }
-  }
-
-  const {
-    target,
-    selfBoost,
-
-    self,
-    secondaries
-  } = move
-
-  if (selfBoost?.boosts) withEffect(effect.self, selfBoost)
-  if (self) withEffect(effect.self, self)
-
-  withEffect(target === "self" ? effect.self : effect.opp, move)
-
-  for (const secondary of secondaries ?? []) {
-    withEffect(effect.opp, secondary)
-    const { self } = secondary
-    if (self) withEffect(effect.self, self)
-  }
-
-  return effect
-}
 
 export function encodeMove(move: Move) {
   const {
@@ -208,6 +121,7 @@ export function encodeMove(move: Move) {
     recoil,
     sideCondition,
     overrideDefensiveStat,
+    overrideDefensivePokemon,
     multihit,
     multiaccuracy,
     thawsTarget,
@@ -227,78 +141,35 @@ export function encodeMove(move: Move) {
     willCrit
   } = move
 
-  const fMove: number[] = []
+  const f: number[] = []
 
-  fMove.push(scale(accuracy === true ? 100 : accuracy, 50, 100))
-  fMove.push(scale(basePower, 0, 250))
+  f.push((accuracy === true ? 100 : accuracy) / 100)
+  f.push(basePower / 250)
 
-  fMove.push(...MOVE_CATEGORY.map((x) => (category === x ? 1 : 0)))
-  fMove.push(scale(pp, 0, 64))
-  fMove.push(scale(priority, -7, 5))
+  f.push(...MOVE_CATEGORY.map((x) => (category === x ? 1 : 0)))
+  f.push(scale(pp, 0, 64))
+  f.push(scale(priority, -7, 5))
 
-  fMove.push(...MOVE_FLAGS.map((k) => (flags[k] ? 1 : 0)))
-  fMove.push(drain ? drain[0] / drain[1] : 0)
+  f.push(...MOVE_FLAGS.map((k) => (flags[k] ? 1 : 0)))
+  f.push(drain ? drain[0] / drain[1] : 0)
 
-  fMove.push(...TYPE_NAMES.map((x) => (type === x ? 1 : 0)))
-  fMove.push([1 / 24, 1 / 8, 1 / 2, 1][willCrit ? 3 : critRatio!])
+  f.push(...TYPE_NAMES.map((x) => (type === x ? 1 : 0)))
+  f.push([1 / 24, 1 / 8, 1 / 2, 1][willCrit ? 3 : critRatio!])
 
-  fMove.push(heal ? heal[0] / heal[1] : 0)
+  f.push(heal ? heal[0] / heal[1] : 0)
 
-  fMove.push(recoil ? recoil[0] / recoil[1] : 0)
+  f.push(recoil ? recoil[0] / recoil[1] : 0)
 
-  fMove.push(
-    ...["Wish", "healingwish", "revivalblessing"].map((x) => (slotCondition === x ? 1 : 0))
-  )
+  f.push(...["always", "ifhit"].map((x) => (selfdestruct === x ? 1 : 0)))
 
-  fMove.push(...["always", "ifhit"].map((x) => (selfdestruct === x ? 1 : 0)))
+  f.push(...SIDE_CONDITIONS.map((x) => (sideCondition === x ? 1 : 0)))
+  f.push(...(Array.isArray(multihit) ? multihit : [multihit ?? 0, multihit ?? 0]))
 
-  fMove.push(...SIDE_CONDITIONS.map((x) => (sideCondition === x ? 1 : 0)))
-  fMove.push(...(Array.isArray(multihit) ? multihit : [multihit ?? 0, multihit ?? 0]))
+  f.push(scale(duration ?? 0, 0, 5))
 
-  fMove.push(scale(duration ?? 0, 0, 5))
+  f.push(...["level"].map((x) => (damage === x ? 1 : 0)))
 
-  fMove.push(...["level"].map((x) => (damage === x ? 1 : 0)))
-
-  fMove.push(...["def"].map((x) => (overrideDefensiveStat === x ? 1 : 0)))
-  fMove.push(
-    ...["def", "target"].map((x) =>
-      (overrideOffensiveStat ?? overrideOffensivePokemon) === x ? 1 : 0
-    )
-  )
-
-  fMove.push(
-    ...([true, "copyvolatile", "shedtail"] as const).map((x) => (selfSwitch === x ? 1 : 0))
-  )
-
-  fMove.push(
-    ...["electricterrain", "grassyterrain", "mistyterrain", "psychicterrain"].map((x) =>
-      terrain === x ? 1 : 0
-    )
-  )
-  fMove.push(
-    ...["fairylock", "gravity", "magicroom", "trickroom", "wonderroom"].map((x) =>
-      pseudoWeather === x ? 1 : 0
-    )
-  )
-  fMove.push(...["snow", "RainDance", "Sandstorm", "sunnyday"].map((x) => (weather === x ? 1 : 0)))
-  fMove.push(
-    ...[
-      "auroraveil",
-      "lightscreen",
-      "mist",
-      "quickguard",
-      "reflect",
-      "safeguard",
-      "spikes",
-      "stealthrock",
-      "stickyweb",
-      "tailwind",
-      "toxicspikes",
-      "wideguard"
-    ].map((x) => (sideCondition === x ? 1 : 0))
-  )
-
-  fMove.push(
+  f.push(
     ...[
       noCopy,
       affectsFainted,
@@ -317,5 +188,52 @@ export function encodeMove(move: Move) {
     ].map((x) => (x ? 1 : 0))
   )
 
-  return fMove
+  f.push(
+    ...["electricterrain", "grassyterrain", "mistyterrain", "psychicterrain"].map((x) =>
+      terrain === x ? 1 : 0
+    )
+  )
+  f.push(
+    ...["fairylock", "gravity", "magicroom", "trickroom", "wonderroom"].map((x) =>
+      pseudoWeather === x ? 1 : 0
+    )
+  )
+  f.push(...["snow", "RainDance", "Sandstorm", "sunnyday"].map((x) => (weather === x ? 1 : 0)))
+  f.push(
+    ...[
+      "auroraveil",
+      "lightscreen",
+      "mist",
+      "quickguard",
+      "reflect",
+      "safeguard",
+      "spikes",
+      "stealthrock",
+      "stickyweb",
+      "tailwind",
+      "toxicspikes",
+      "wideguard"
+    ].map((x) => (sideCondition === x ? 1 : 0))
+  )
+
+  f.push(
+    ...([true, "copyvolatile", "shedtail"] as const).map((x) => (selfSwitch === x ? 1 : 0))
+  )
+  f.push(
+    ...["Wish", "healingwish", "revivalblessing"].map((x) => (slotCondition === x ? 1 : 0))
+  )
+  f.push(
+    ...["def", "target"].map((x) =>
+      overrideDefensiveStat ?? overrideDefensivePokemon === x ? 1 : 0
+    )
+  )
+  f.push(
+    ...["def", "target"].map((x) =>
+      (overrideOffensiveStat ?? overrideOffensivePokemon) === x ? 1 : 0
+    )
+  )
+  
+  const 
+
+  return f
 }
