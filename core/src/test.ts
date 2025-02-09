@@ -19,7 +19,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
   for (let i = 0; i < outputs.length; i++) {
     const input = inputs[inputs.length - outputs.length + i]
     const logs = outputs[i]
-    let j = 0
 
     let newReq = false
 
@@ -57,8 +56,10 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
+      console.log(msg)
       const event = obs.read(msg)
       newReq ||= event === "request"
+      console.log(obs.ally?.active.moveSet)
     }
 
     if (!hasZoroark && obs.foe) {
@@ -82,7 +83,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     }
 
     if (newReq) {
-      j++
       const { ally, req } = obs
 
       if (req.type === "move") {

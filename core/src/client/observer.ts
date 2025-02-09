@@ -493,7 +493,6 @@ export class Observer {
               break
             case "Struggle":
               isDirect = false
-
               user.lastMove = move
               break
             case "Revival Blessing": {
