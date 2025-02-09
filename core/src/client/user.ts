@@ -306,6 +306,10 @@ export function getOffTyping({ types, tera, teraType }: User) {
   return typing
 }
 
+export function getDefTyping({ types, tera, teraType }: User) {
+  return tera ? [teraType!] : types
+}
+
 export type User = AllyUser | FoeUser
 
 type Temp = {
