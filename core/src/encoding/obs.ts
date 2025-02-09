@@ -55,7 +55,7 @@ type FAlly = {
 }
 
 type FFoeUser = {
-  features: number[]
+  f: number[]
   lookup: UserLookup
   moveSet: FMoveSlot[]
   movepool: string[]
@@ -67,13 +67,13 @@ type FFoeUser = {
 }
 
 type FFoe = {
-  features: number[]
+  f: number[]
   team: { [k: string]: FFoeUser }
   lookup: SideLookup
 }
 
 export type FObserver = {
-  features: number[]
+  f: number[]
   ally: FAlly
   foe: FFoe
 }
@@ -240,11 +240,11 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
 
   const { ally, foe, fields, weather, req } = obs
 
-  let fAlly: FAlly
+  let xAlly: FAlly
   {
     const { team, delayedAttack, effects, teraUsed, wish } = ally
 
-    let fTeam: {
+    let xTeam: {
       [k: string]: FAllyUser
     } = {}
 
@@ -269,7 +269,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
 
       const initialForme = getPresetForme(format, forme)
 
-      fTeam[species] = {
+      xTeam[species] = {
         f: encodeUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
@@ -289,7 +289,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       }
     }
 
-    fAlly = {
+    xAlly = {
       f: encodeSide({
         mode: ally.isReviving ? "revive" : req.type,
         delayedAttack,
@@ -298,15 +298,15 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         wish
       }),
       lookup: encodeSideLookup(ally),
-      team: fTeam
+      team: xTeam
     }
   }
 
-  let fFoe: FFoe
+  let xFoe: FFoe
   {
     const { team, delayedAttack, effects, teraUsed, wish } = foe
 
-    let fTeam: {
+    let xTeam: {
       [k: string]: FFoeUser
     } = {}
 
@@ -345,8 +345,8 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
 
       const initialForme = getPresetForme(format, forme)
 
-      fTeam[species] = {
-        features: encodeUser({
+      xTeam[species] = {
+        f: encodeUser({
           revealed: true,
           stats: { ...inferStats(gen, user), hp: hp[1] },
           hpLeft: hp[0],
@@ -366,37 +366,37 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       }
     }
 
-    let requestType: RequestMode
+    let mode: DecisionMode
     {
       switch (req.type) {
         case "move":
-          requestType = "move"
+          mode = "move"
           break
         case "wait":
-          requestType = foe.isReviving ? "revive" : "switch"
+          mode = foe.isReviving ? "revive" : "switch"
           break
         case "switch":
-          requestType = "wait"
+          mode = "wait"
           break
       }
     }
 
-    fFoe = {
-      features: encodeSide({
-        mode: requestType,
+    xFoe = {
+      f: encodeSide({
+        mode: mode,
         delayedAttack,
         teraUsed,
         effects,
         wish
       }),
       lookup: encodeSideLookup(foe),
-      team: fTeam
+      team: xTeam
     }
   }
 
   return {
-    features: encodeBattle({ fields, weather }),
-    ally: fAlly,
-    foe: fFoe
+    f: encodeBattle({ fields, weather }),
+    ally: xAlly,
+    foe: xFoe
   }
 }

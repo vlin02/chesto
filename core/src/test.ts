@@ -1,6 +1,6 @@
 import { split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOptions, isTrapped, toMoves } from "./client/action.js"
+import { getMoveOptions, getSwitchOptions, isTrapped, toMoves } from "./client/action.js"
 import { FOE, Side } from "./client/protocol.js"
 import { Replay } from "./replay.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
@@ -15,10 +15,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
   const opp = replay[FOE[side]]
 
   const hasZoroark = opp.team.some((x) => x.name === "Zoroark")
-  // if (JSON.stringify(outputs).includes("ability: Dancer")) {
-  //   console.log("dancer")
-  //   return
-  // }
 
   for (let i = 0; i < outputs.length; i++) {
     const input = inputs[inputs.length - outputs.length + i]
@@ -27,41 +23,40 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
     let newReq = false
 
-    // if (input.startsWith(`>${side}`)) {
-    //   const [_, type, choice] = input.split(" ")
-    //   const { active, slots, isReviving } = obs.ally
+    if (input.startsWith(`>${side}`)) {
+      const [_, type, choice] = input.split(" ")
+      const { active, slots, isReviving } = obs.ally
 
-    //   switch (type) {
-    //     case "move": {
-    //       const moves = toMoves(getMoveOptions(format, active))
-    //       if (
-    //         !moves.includes(
-    //           { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
-    //         )
-    //       ) {
-    //         console.log(moves, choice)
-    //         throw Error()
-    //       }
-    //       break
-    //     }
-    //     case "switch": {
-    //       const { species } = slots[Number(choice) - 1]
-    //       const switches = getSwitchOptions(obs)
+      switch (type) {
+        case "move": {
+          const moves = toMoves(getMoveOptions(format, active))
+          if (
+            !moves.includes(
+              { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
+            )
+          ) {
+            console.log(moves, choice)
+            throw Error()
+          }
+          break
+        }
+        case "switch": {
+          const { species } = slots[Number(choice) - 1]
+          const switches = getSwitchOptions(obs)
 
-    //       if (isReviving ? obs.ally.team[species].hp[0] !== 0 : !switches.includes(species)) {
-    //         throw Error()
-    //       }
+          if (isReviving ? obs.ally.team[species].hp[0] !== 0 : !switches.includes(species)) {
+            throw Error()
+          }
 
-    //       if (obs.req.type !== "switch" && isTrapped(active)) {
-    //         throw Error()
-    //       }
-    //       break
-    //     }
-    //   }
-    // }
+          if (obs.req.type !== "switch" && isTrapped(active)) {
+            throw Error()
+          }
+          break
+        }
+      }
+    }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      // console.log(msg)
       const event = obs.read(msg)
       newReq ||= event === "request"
     }
@@ -80,38 +75,24 @@ export function testSide(format: Format, replay: Replay, side: Side) {
             return preset.role === build.role && matchesPreset(preset, user)
           })
         ) {
+          console.log(presets, build.role, user)
           throw Error()
         }
       }
     }
 
-    // if (obs.ally) {
-    //   const { active } = obs.ally
-
-    //   for (const n of ["Disable", "Encore", "Choice Locked", "Locked Move"] as const) {
-    //     const x = active.volatiles[n]?.move
-    //     if (x && !(x in active.moveSet)) throw [n, x, active.moveSet]
-    //   }
-
-    //   // const x = active.lastMove
-    //   // if (x && !["Struggle", "Recharge"].includes(x) && !(x in active.moveSet))
-    //   //   throw ["last move", x, active.moveSet]
-    // }
-
     if (newReq) {
       j++
       const { ally, req } = obs
-      if (ally.isReviving) console.log("revive")
-      if (ally.isReviving && req.type !== "switch") throw Error()
 
       if (req.type === "move") {
         const { active } = ally
         const [{ moveSlots, trapped }] = req.choices
 
-        const moves = toMoves(getMoveOptions(format, active))
+        const moves = toMoves(getMoveOptions(format, active)).sort()
 
-        if (req.team.filter((x) => !!x.health).length > 1 && !!trapped !== isTrapped(active)) {
-          console.log(!!trapped, isTrapped(active), active)
+        const aliveCnt = req.team.reduce((t, x) => t + (x.health ? 1 : 0), 0)
+        if (aliveCnt > 1 && !!trapped !== isTrapped(active)) {
           throw Error()
         }
 
@@ -120,24 +101,18 @@ export function testSide(format: Format, replay: Replay, side: Side) {
           .map((x) => x.name)
           .sort()
 
-        if (
-          !(moves.length === expectedMoves.length && moves.every((x) => expectedMoves.includes(x)))
-        ) {
-          console.log(ally.active)
-          console.log(moves, expectedMoves)
+        if (JSON.stringify(moves) !== JSON.stringify(expectedMoves)) {
           throw Error()
         }
 
         for (const { name, pp, maxpp } of moveSlots) {
           const slot = active.moveSet[name]
 
-          if (
-            (pp !== undefined && Math.max(0, slot.max - slot.used) !== pp) ||
-            (maxpp !== undefined && slot.max !== maxpp)
-          ) {
-            console.log(name, pp, maxpp, slot)
-            throw Error()
-          }
+          // outrage
+          if (!pp) continue
+
+          if (Math.max(0, slot.max - slot.used) !== pp) throw Error()
+          if (slot.max !== maxpp) throw Error()
         }
       }
 
@@ -185,30 +160,18 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         if (health) {
           const { hp, status } = health
 
-          if (!(user.hp[0] === hp[0] && user.hp[1] === hp[1])) {
-            throw Error()
-          }
+          if (JSON.stringify(user.hp) !== JSON.stringify(hp)) throw Error()
 
-          if (!(user.status?.id === status)) {
-            throw Error()
-          }
+          if (user.status?.id !== status) throw Error()
         } else {
-          if (!(user.hp[0] === 0)) {
-            throw Error()
-          }
+          if (user.hp[0] !== 0) throw Error()
         }
 
-        if (!(user.base.gender === gender)) {
-          throw Error()
-        }
+        if (user.base.gender !== gender) throw Error()
 
-        if (user.lvl !== lvl) {
-          throw Error()
-        }
+        if (user.lvl !== lvl) throw Error()
 
-        if (user.tera !== !!terastallized) {
-          throw Error()
-        }
+        if (user.tera !== !!terastallized) throw Error()
       }
     }
   }
