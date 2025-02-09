@@ -18,17 +18,17 @@ import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from 
 import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"
 
-export type FMoveSlot = {
+export type XMoveSlot = {
   move?: string
-  features: number[]
+  f: number[]
 }
 
 type UserLookup = {
-  disabled: FMoveSlot | undefined
-  choice: FMoveSlot | undefined
-  encore: FMoveSlot | undefined
-  locked: FMoveSlot | undefined
-  lastMove: FMoveSlot | undefined
+  disabled: XMoveSlot | undefined
+  choice: XMoveSlot | undefined
+  encore: XMoveSlot | undefined
+  locked: XMoveSlot | undefined
+  lastMove: XMoveSlot | undefined
   lastBerry: string | undefined
 }
 
@@ -37,10 +37,10 @@ type SideLookup = {
   tera: string | undefined
 }
 
-type FAllyUser = {
+type XAllyUser = {
   f: number[]
   lookup: UserLookup
-  moveSet: FMoveSlot[]
+  moveSet: XMoveSlot[]
   item: string | null
   ability: string | null
   types: string[]
@@ -48,16 +48,16 @@ type FAllyUser = {
   initialForme: string
 }
 
-type FAlly = {
+type XAlly = {
   f: number[]
-  team: { [k: string]: FAllyUser }
+  team: { [k: string]: XAllyUser }
   lookup: SideLookup
 }
 
-type FFoeUser = {
+type XFoeUser = {
   f: number[]
   lookup: UserLookup
-  moveSet: FMoveSlot[]
+  moveSet: XMoveSlot[]
   movepool: string[]
   abilities: string[]
   items: string[]
@@ -66,32 +66,32 @@ type FFoeUser = {
   initialForme: string
 }
 
-type FFoe = {
+type XFoe = {
   f: number[]
-  team: { [k: string]: FFoeUser }
+  team: { [k: string]: XFoeUser }
   lookup: SideLookup
 }
 
-export type FObserver = {
+export type XObserver = {
   f: number[]
-  ally: FAlly
-  foe: FFoe
+  ally: XAlly
+  foe: XFoe
 }
 
 export const DECISION_MODES = ["move", "switch", "revive", "wait"]
 export type DecisionMode = (typeof DECISION_MODES)[number]
 
-export function encodeMove(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
+export function encodeMove(moveSet: MoveSet, move?: string): XMoveSlot | undefined {
   if (!move) return undefined
 
   if (move in moveSet) {
     const { used, max } = moveSet[move]
-    return { move, features: [scalePP(Math.max(0, max - used)), scalePP(max)] }
+    return { move, f: [scalePP(Math.max(0, max - used)), scalePP(max)] }
   }
 
   return {
     move: move === "Struggle" ? move : undefined,
-    features: [0, 0]
+    f: [0, 0]
   }
 }
 
@@ -235,17 +235,17 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   return feats
 }
 
-export function encodeObserver(format: Format, obs: Observer): FObserver {
+export function encodeObserver(format: Format, obs: Observer): XObserver {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
 
-  let xAlly: FAlly
+  let xAlly: XAlly
   {
     const { team, delayedAttack, effects, teraUsed, wish } = ally
 
     let xTeam: {
-      [k: string]: FAllyUser
+      [k: string]: XAllyUser
     } = {}
 
     for (const species in team) {
@@ -302,12 +302,12 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
     }
   }
 
-  let xFoe: FFoe
+  let xFoe: XFoe
   {
     const { team, delayedAttack, effects, teraUsed, wish } = foe
 
     let xTeam: {
-      [k: string]: FFoeUser
+      [k: string]: XFoeUser
     } = {}
 
     for (const species in team) {

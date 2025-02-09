@@ -50,6 +50,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
+      // console.log(msg)
       obs.read(msg)
     }
 
@@ -88,7 +89,10 @@ export function testSide(format: Format, replay: Replay, side: Side) {
           .filter((x) => !x.disabled)
           .map((x) => x.name)
           .sort()
-        if (JSON.stringify(movesA) !== JSON.stringify(movesB)) throw Error()
+        if (JSON.stringify(movesA) !== JSON.stringify(movesB)) {
+          console.log(movesA, movesB)
+          throw Error()
+        }
 
         for (const { name, pp, maxpp } of moveSlots) {
           const slot = active.moveSet[name]
@@ -102,9 +106,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
       }
 
       for (let i = 0; i < 6; i++) {
-        if (obs.ally.slots[i].species !== req.team[i].species) {
-          throw Error()
-        }
+        if (obs.ally.slots[i].species !== req.team[i].species) throw Error()
       }
 
       for (const {

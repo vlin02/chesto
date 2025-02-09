@@ -471,13 +471,14 @@ export class Observer {
 
         const lockChoice = (move: string) => {
           const { item } = user
+          const curr = volatiles["Choice Locked"]
 
           if (
             !(
               item &&
               CHOICE_ITEMS.includes(item) &&
-              // a choice lock can be overriden each turn (only from dancer ability)
-              volatiles["Choice Locked"]?.firstTurn !== this.turn
+              // choice lock can be overriden if it is a different turn and the choice move is not in the move set (due to dancer)
+              (!curr || (!(curr.move in user.moveSet) && curr.firstTurn !== this.turn))
             )
           )
             return
