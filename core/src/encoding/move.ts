@@ -1,6 +1,7 @@
 import { scale } from "./norm.js"
-import { ModStatId, MOVE_CATEGORY, StatusId, TYPE_NAMES } from "../battle.js"
-import { Move, StatusName } from "@pkmn/data"
+import { MOVE_CATEGORY, TYPE_NAMES } from "../battle.js"
+import { Move } from "@pkmn/data"
+import { encodeMoveEffect, reconcileEffect } from "./effect.js"
 
 const MOVE_FLAGS = [
   "bypasssub",
@@ -23,7 +24,7 @@ const MOVE_FLAGS = [
   "mirror",
   "mustpressure",
   "noassist",
-  // "allyanim", not useful
+  "allyanim",
   "nonsky",
   "noparentalbond",
   "nosketch",
@@ -55,6 +56,10 @@ const SIDE_CONDITIONS = [
   "toxicspikes",
   "wideguard"
 ]
+
+const PSEUDO_WEATHERS = ["fairylock", "gravity", "magicroom", "trickroom", "wonderroom"]
+const WEATHERS = ["snow", "RainDance", "Sandstorm", "sunnyday"]
+const TERRAINS = ["electricterrain", "grassyterrain", "mistyterrain", "psychicterrain"]
 
 export function encodeMove(move: Move) {
   const {
@@ -188,17 +193,9 @@ export function encodeMove(move: Move) {
     ].map((x) => (x ? 1 : 0))
   )
 
-  f.push(
-    ...["electricterrain", "grassyterrain", "mistyterrain", "psychicterrain"].map((x) =>
-      terrain === x ? 1 : 0
-    )
-  )
-  f.push(
-    ...["fairylock", "gravity", "magicroom", "trickroom", "wonderroom"].map((x) =>
-      pseudoWeather === x ? 1 : 0
-    )
-  )
-  f.push(...["snow", "RainDance", "Sandstorm", "sunnyday"].map((x) => (weather === x ? 1 : 0)))
+  f.push(...TERRAINS.map((x) => (terrain === x ? 1 : 0)))
+  f.push(...PSEUDO_WEATHERS.map((x) => (pseudoWeather === x ? 1 : 0)))
+  f.push(...WEATHERS.map((x) => (weather === x ? 1 : 0)))
   f.push(
     ...[
       "auroraveil",
@@ -216,12 +213,8 @@ export function encodeMove(move: Move) {
     ].map((x) => (sideCondition === x ? 1 : 0))
   )
 
-  f.push(
-    ...([true, "copyvolatile", "shedtail"] as const).map((x) => (selfSwitch === x ? 1 : 0))
-  )
-  f.push(
-    ...["Wish", "healingwish", "revivalblessing"].map((x) => (slotCondition === x ? 1 : 0))
-  )
+  f.push(...([true, "copyvolatile", "shedtail"] as const).map((x) => (selfSwitch === x ? 1 : 0)))
+  f.push(...["Wish", "healingwish", "revivalblessing"].map((x) => (slotCondition === x ? 1 : 0)))
   f.push(
     ...["def", "target"].map((x) =>
       overrideDefensiveStat ?? overrideDefensivePokemon === x ? 1 : 0
@@ -232,8 +225,9 @@ export function encodeMove(move: Move) {
       (overrideOffensiveStat ?? overrideOffensivePokemon) === x ? 1 : 0
     )
   )
-  
-  const 
+
+  const effect = reconcileEffect(move)
+  f.push(...encodeMoveEffect(effect))
 
   return f
 }
