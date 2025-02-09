@@ -1,6 +1,6 @@
 import { Generation, TypeName } from "@pkmn/data"
 import { Label } from "./protocol.js"
-import { getMaxPP } from "./move.js"
+import { inferMaxPP } from "./move.js"
 import { Boosts, Gender, StatId, StatusId } from "../battle.js"
 import { Member } from "./request.js"
 
@@ -178,7 +178,7 @@ export class AllyUser {
       moveSet: Object.fromEntries(
         moves.map((id) => {
           const { name } = gen.moves.get(id)!
-          return [name, { used: 0, max: getMaxPP(gen, name) }]
+          return [name, { used: 0, max: inferMaxPP(gen, name) }]
         })
       ),
       gender,

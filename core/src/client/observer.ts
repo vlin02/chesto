@@ -11,7 +11,7 @@ import {
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
 import { AllyUser, FoeUser, getOffTyping, MoveSet, User } from "./user.js"
-import { getMaxPP, isLockingMove, isPressuredMove } from "./move.js"
+import { inferMaxPP, isLockingMove, isPressuredMove } from "./move.js"
 import {
   StatusId,
   CHOICE_ITEMS,
@@ -174,7 +174,7 @@ export class Observer {
   allocateSlot(moveSet: MoveSet, move: string) {
     return (moveSet[move] = moveSet[move] ?? {
       used: 0,
-      max: getMaxPP(this.gen, move)
+      max: inferMaxPP(this.gen, move)
     })
   }
 
@@ -747,7 +747,7 @@ export class Observer {
           for (const move of moves) {
             moveSet[move] = moveSet[move] ?? {
               used: 0,
-              max: getMaxPP(this.gen, move)
+              max: inferMaxPP(this.gen, move)
             }
           }
 

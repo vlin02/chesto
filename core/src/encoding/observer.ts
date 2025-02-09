@@ -12,11 +12,12 @@ import {
 } from "../battle.js"
 import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, Side, SideEffects } from "../client/side.js"
-import { getPresetForme, getPotentialPresets, matchesPreset } from "../version.js"
+import { getPotentialPresets, matchesPreset } from "../version.js"
 import { Format } from "../format.js"
 import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"
+import { inferMaxPP } from "../client/move.js"
 
 export type XMoveSlot = {
   move?: string
@@ -45,7 +46,6 @@ type XAllyUser = {
   ability: string | null
   types: string[]
   teraType: string
-  initialForme: string
 }
 
 type XAlly = {
@@ -58,12 +58,11 @@ type XFoeUser = {
   f: number[]
   lookup: UserLookup
   moveSet: XMoveSlot[]
-  movepool: string[]
+  movePool: XMoveSlot[]
   abilities: string[]
   items: string[]
   types: string[]
   teraTypes: string[]
-  initialForme: string
 }
 
 type XFoe = {
@@ -81,7 +80,7 @@ export type XObserver = {
 export const DECISION_MODES = ["move", "switch", "revive", "wait"]
 export type DecisionMode = (typeof DECISION_MODES)[number]
 
-export function encodeMove(moveSet: MoveSet, move?: string): XMoveSlot | undefined {
+export function encodeMoveSlot(moveSet: MoveSet, move?: string): XMoveSlot | undefined {
   if (!move) return undefined
 
   if (move in moveSet) {
@@ -96,16 +95,16 @@ export function encodeMove(moveSet: MoveSet, move?: string): XMoveSlot | undefin
 }
 
 export function encodeMoveSet(moveSet: MoveSet) {
-  return Object.keys(moveSet).map((k) => encodeMove(moveSet, k)!)
+  return Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!)
 }
 
 function encodeUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
   return {
-    disabled: encodeMove(moveSet, volatiles["Disable"]?.move),
-    choice: encodeMove(moveSet, volatiles["Choice Locked"]?.move),
-    encore: encodeMove(moveSet, volatiles["Encore"]?.move),
-    locked: encodeMove(moveSet, volatiles["Locked Move"]?.move),
-    lastMove: encodeMove(moveSet, lastMove),
+    disabled: encodeMoveSlot(moveSet, volatiles["Disable"]?.move),
+    choice: encodeMoveSlot(moveSet, volatiles["Choice Locked"]?.move),
+    encore: encodeMoveSlot(moveSet, volatiles["Encore"]?.move),
+    locked: encodeMoveSlot(moveSet, volatiles["Locked Move"]?.move),
+    lastMove: encodeMoveSlot(moveSet, lastMove),
     lastBerry: lastBerry?.name
   }
 }
@@ -125,7 +124,7 @@ function encodeUser({
   stats: Stats
   status?: Status
   flags: Flags
-  forme?: string
+  forme: string
   volatiles: Volatiles
   boosts: Boosts
 }) {
@@ -251,8 +250,6 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         volatiles
       } = user
 
-      const initialForme = getPresetForme(format, forme)
-
       xTeam[species] = {
         f: encodeUser({
           revealed,
@@ -261,15 +258,15 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
           flags,
           volatiles,
           boosts,
-          status
+          status,
+          forme
         }),
         lookup: encodeUserLookup(user),
         moveSet: encodeMoveSet(moveSet),
         ability,
         item,
         types,
-        teraType,
-        initialForme
+        teraType
       }
     }
 
@@ -327,8 +324,6 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         for (const move of moves) validMoves.add(move)
       }
 
-      const initialForme = getPresetForme(format, forme)
-
       xTeam[species] = {
         f: encodeUser({
           revealed: true,
@@ -337,16 +332,24 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
           flags,
           volatiles,
           boosts,
-          status
+          status,
+          forme
         }),
         lookup: encodeUserLookup(user),
-        moveSet: Object.keys(moveSet).map((k) => encodeMove(moveSet, k)!),
-        movepool: [...validMoves].filter((move) => !(move in moveSet)),
+        moveSet: Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!),
+        movePool: [...validMoves]
+          .filter((move) => !(move in moveSet))
+          .map((move) => {
+            const pp = scalePP(inferMaxPP(gen, move))
+            return {
+              move,
+              f: [pp, pp]
+            }
+          }),
         items: item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
         types,
-        teraTypes: teraType ? [teraType] : [...validTeraTypes],
-        initialForme
+        teraTypes: teraType ? [teraType] : [...validTeraTypes]
       }
     }
 

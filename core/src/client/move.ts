@@ -1,6 +1,6 @@
 import { Generation } from "@pkmn/data"
 
-export function getMaxPP(gen: Generation, move: string) {
+export function inferMaxPP(gen: Generation, move: string) {
   const { noPPBoosts, pp } = gen.moves.get(move)!
   return noPPBoosts ? pp : Math.floor(pp * 1.6)
 }
