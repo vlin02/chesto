@@ -1,9 +1,9 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOptions, getSwitchOptions, isTrapped, toMoves } from "./client/option.js"
+import { getMoveOption, getSwitchOptions, isTrapped, toMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format } from "./format.js"
+import { Format } from "./run.js"
 import { Replay } from "./db.js"
 
 export function testSide(format: Format, replay: Replay, side: Side) {
@@ -31,7 +31,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
             const chosenMove =
               { recharge: "Recharge", struggle: "Struggle" }[move] ?? gen.moves.get(move)!.name
-            const moves = toMoves(getMoveOptions(format, active))
+            const moves = toMoves(getMoveOption(format, active))
 
             if (!moves.includes(chosenMove)) throw Error()
             break
@@ -42,11 +42,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
             const { species } = slots[i - 1]
             const switches = getSwitchOptions(obs)
 
-            if (isReviving) {
-              if (obs.ally.team[species].hp[0] !== 0) throw Error()
-            } else {
-              if (!switches.includes(species)) throw Error()
-            }
+            if (!switches.includes(species)) throw Error()
 
             if (obs.req.type === "move" && isTrapped(active)) throw Error()
             break
@@ -90,15 +86,12 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = toMoves(getMoveOptions(format, active)).sort()
+        const movesA = toMoves(getMoveOption(format, active)).sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
           .sort()
-        if (JSON.stringify(movesA) !== JSON.stringify(movesB)) {
-          console.log(movesA, movesB)
-          throw Error()
-        }
+        if (JSON.stringify(movesA) !== JSON.stringify(movesB)) throw Error()
 
         for (const { name, pp, maxpp } of moveSlots) {
           const slot = active.moveSet[name]

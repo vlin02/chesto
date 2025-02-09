@@ -14,7 +14,7 @@ import {
 import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, Side, SideEffects } from "../client/side.js"
 import { getPotentialPresets, matchesPreset } from "../version.js"
-import { Format } from "../format.js"
+import { Format } from "../run.js"
 import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"

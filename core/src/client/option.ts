@@ -1,19 +1,19 @@
-import { User } from "./user.js"
-import { Format } from "../format.js"
+import { getDefTyping, User } from "./user.js"
+import { Run } from "../run.js"
 import { PARTIALLY_TRAPPED_MOVES } from "../battle.js"
 import { Observer } from "./observer.js"
 
-type MoveOptions =
+type MoveOption =
   | {
       type: "struggle" | "recharge"
     }
   | {
       type: "default"
-      stuck?: boolean
       moves: string[]
+      stuck?: boolean
     }
 
-export function getMoveOptions({ gen }: Format, user: User): MoveOptions {
+export function getMoveOption({ fmt: { gen } }: Run, user: User): MoveOption {
   let {
     volatiles: {
       "Encore": encore,
@@ -80,7 +80,7 @@ export function getMoveOptions({ gen }: Format, user: User): MoveOptions {
   return { type: "default", moves, stuck }
 }
 
-export function toMoves(choice: MoveOptions) {
+export function toMoves(choice: MoveOption) {
   switch (choice.type) {
     case "struggle":
       return ["Struggle"]
@@ -92,10 +92,11 @@ export function toMoves(choice: MoveOptions) {
   }
 }
 
-export function isTrapped({ volatiles, types }: User) {
+export function isTrapped(user: User) {
+  const { volatiles } = user
   if (volatiles["Recharge"] || volatiles["Prepare"] || volatiles["Locked Move"]) return true
 
-  if (types.def.includes("Ghost")) return false
+  if (getDefTyping(user).includes("Ghost")) return false
 
   if (
     volatiles["Trapped"] ||
@@ -107,14 +108,74 @@ export function isTrapped({ volatiles, types }: User) {
   return false
 }
 
-export function getSwitchOptions({ ally: { team, active } }: Observer) {
+export function getReviveOptions({ ally: { team } }: Observer) {
+  const opts: string[] = []
+  for (const species in team) {
+    if (team[species].hp[0] !== 0) continue
+  }
+  return opts
+}
+
+export function getSwitchOptions({ ally: { team, active, isReviving } }: Observer) {
   const opts: string[] = []
 
   for (const species in team) {
     const member = team[species]
-    if (member === active || member.hp[0] === 0) continue
+    if (isReviving) {
+      if (team[species].hp[0] !== 0) continue
+    } else {
+      if (member === active || member.hp[0] === 0) continue
+    }
     opts.push(species)
   }
 
   return opts
+}
+
+type Options =
+  | {
+      type: "move"
+      canTera: boolean
+      move: MoveOption
+      trapped: boolean
+      switch?: string[]
+    }
+  | {
+      type: "switch"
+      isReviving: boolean
+      switch: string[]
+    }
+  | {
+      type: "wait"
+    }
+
+export function getOptions(run: Run): Options {
+  const { obs } = run
+
+  const {
+    req,
+    ally: { active, isReviving, teraUsed }
+  } = obs
+
+  switch (req.type) {
+    case "move":
+      const trapped = isTrapped(active)
+      return {
+        type: "move",
+        canTera: !teraUsed,
+        trapped,
+        move: getMoveOption(run, active),
+        switch: trapped ? undefined : getSwitchOptions(obs)
+      }
+    case "switch":
+      return {
+        type: "switch",
+        isReviving: !!isReviving,
+        switch: isReviving ? getReviveOptions(obs) : getSwitchOptions(obs)
+      }
+    default:
+      return {
+        type: "wait"
+      }
+  }
 }

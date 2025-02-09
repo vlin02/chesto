@@ -1,7 +1,7 @@
 import { FoeUser } from "./client/user.js"
 import { Stats } from "fs"
 import { TypeName } from "./battle.js"
-import { Format } from "./format.js"
+import { Format } from "./run.js"
 
 export type Preset = {
   role: string

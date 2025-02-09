@@ -1,5 +1,14 @@
 import { StatID } from "@pkmn/data"
 
+export const STAT_MAX = {
+  hp: 714,
+  atk: 348,
+  def: 393,
+  spa: 318,
+  spd: 402,
+  spe: 35
+} as const
+
 export function scaleStat(_: StatID, n: number) {
   // max stat is 714 (hp)
   return n / 714
