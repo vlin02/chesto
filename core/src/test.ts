@@ -50,7 +50,6 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      console.log(msg)
       obs.read(msg)
     }
 
@@ -82,11 +81,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
         const trappedA = aliveCnt !== 1 && isTrapped(active)
         const trappedB = !!trapped
-        if (trappedA !== trappedB) {
-          console.log(trappedA, trappedB)
-          console.log(active)
-          throw Error()
-        }
+        if (trappedA !== trappedB) throw Error()
 
         const movesA = toMoves(getMoveOptions(format, active)).sort()
         const movesB = moveSlots
