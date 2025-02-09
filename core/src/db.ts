@@ -31,7 +31,21 @@ type Move = {
   name: string
   f: number[]
   desc: {
-    [k: string]: number[]
+    mistral: number[]
+  }
+}
+
+type Ability = {
+  name: string
+  desc: {
+    mistral: number[]
+  }
+}
+
+type Item = {
+  name: string
+  desc: {
+    mistral: number[]
   }
 }
 
@@ -79,12 +93,16 @@ export type DB = {
   replays: Collection<Replay>
   versions: Collection<Version>
   moves: Collection<Move>
+  items: Collection<Item>
+  abilities: Collection<Ability>
 }
 
 export function toDB(db: Db): DB {
   return {
     replays: db.collection("replays"),
     versions: db.collection("versions"),
-    moves: db.collection("moves")
+    moves: db.collection("moves"),
+    items: db.collection("items"),
+    abilities: db.collection("abilities")
   }
 }
