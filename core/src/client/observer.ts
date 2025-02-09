@@ -32,6 +32,7 @@ type Ref = {
 }
 
 type Line = {
+  revivalBlessing?: POV
   dancer?: boolean
   sleepTalk?: boolean
   stealEat?: boolean
@@ -501,6 +502,7 @@ export class Observer {
             user.lastMove = move
             break
           case "Revival Blessing": {
+            currLine.revivalBlessing = pov
             if (!failed) this[pov].isReviving = true
             break
           }
@@ -553,6 +555,9 @@ export class Observer {
 
         break
       }
+      case "-fail":
+        if (this.prevLine?.revivalBlessing) this[this.prevLine.revivalBlessing].isReviving = false
+        break
       case "-immune":
         p = piped(line, p.i)
         const { pov } = this.user(this.ref(p.args[0]))

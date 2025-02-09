@@ -80,16 +80,11 @@ export function getMoveOption({ fmt: { gen } }: Run, user: User): MoveOption {
   return { type: "default", moves, stuck }
 }
 
-export function toMoves(choice: MoveOption) {
-  switch (choice.type) {
-    case "struggle":
-      return ["Struggle"]
-    case "recharge":
-      return ["Recharge"]
-    case "default":
-      const { moves } = choice
-      return moves
-  }
+export function getValidMoves({ struggle, recharge, moves = [] }: Options) {
+  const all = [...moves]
+  if (struggle) all.push("Struggle")
+  if (recharge) all.push("Recharge")
+  return all
 }
 
 export function isTrapped(user: User) {
@@ -108,15 +103,16 @@ export function isTrapped(user: User) {
   return false
 }
 
-export function getReviveOptions({ ally: { team } }: Observer) {
+export function getValidRevives({ ally: { team } }: Observer) {
   const opts: string[] = []
   for (const species in team) {
     if (team[species].hp[0] !== 0) continue
+    opts.push(species)
   }
   return opts
 }
 
-export function getSwitchOptions({ ally: { team, active, isReviving } }: Observer) {
+export function getValidSwitches({ ally: { team, active, isReviving } }: Observer) {
   const opts: string[] = []
 
   for (const species in team) {
@@ -132,25 +128,18 @@ export function getSwitchOptions({ ally: { team, active, isReviving } }: Observe
   return opts
 }
 
-type Options =
-  | {
-      type: "move"
-      canTera: boolean
-      move: MoveOption
-      trapped: boolean
-      switches?: string[]
-    }
-  | {
-      type: "switch"
-      isReviving: boolean
-      switches: string[]
-    }
-  | {
-      type: "wait"
-    }
+type Options = {
+  canTera?: boolean
+  struggle?: boolean
+  recharge?: boolean
+  moves?: string[]
+  switches?: string[]
+}
 
 export function getOptions(run: Run): Options {
   const { obs } = run
+
+  const opt: Options = {}
 
   const {
     req,
@@ -160,22 +149,22 @@ export function getOptions(run: Run): Options {
   switch (req.type) {
     case "move":
       const trapped = isTrapped(active)
-      return {
-        type: "move",
-        canTera: !teraUsed,
-        trapped,
-        move: getMoveOption(run, active),
-        switches: trapped ? undefined : getSwitchOptions(obs)
+
+      const moveOpt = getMoveOption(run, active)
+      if (moveOpt.type === "struggle") opt.struggle = true
+      if (moveOpt.type === "recharge") opt.recharge = true
+      if (moveOpt.type === "default") {
+        opt.canTera = teraUsed
+        opt.moves = moveOpt.moves
       }
+      if (!trapped) {
+        opt.switches = getValidSwitches(obs)
+      }
+      break
     case "switch":
-      return {
-        type: "switch",
-        isReviving: !!isReviving,
-        switches: isReviving ? getReviveOptions(obs) : getSwitchOptions(obs)
-      }
-    default:
-      return {
-        type: "wait"
-      }
+      opt.switches = isReviving ? getValidRevives(obs) : getValidSwitches(obs)
+      break
   }
+
+  return opt
 }

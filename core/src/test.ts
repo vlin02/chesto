@@ -1,6 +1,6 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOption, getOptions, isTrapped, toMoves } from "./client/option.js"
+import { getMoveOption, getOptions, isTrapped, getValidMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
 import { Format, Run } from "./run.js"
@@ -33,21 +33,23 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
           case "move": {
             const { move } = choice
 
-            if (opt.type !== "move") throw Error()
-
-            const chosenMove =
+            const valid = getValidMoves(opt)
+            const chosen =
               { recharge: "Recharge", struggle: "Struggle" }[move] ?? gen.moves.get(move)!.name
-            const moves = toMoves(opt.move)
 
-            if (!moves.includes(chosenMove)) throw Error()
+            if (!valid.includes(chosen)) throw Error()
             break
           }
           case "switch": {
-            if (opt.type === "wait") throw Error()
             const { i } = choice
             const { species } = slots[i - 1]
 
-            if (!opt.switches?.includes(species)) throw Error()
+            if (!opt.switches?.includes(species)) {
+              console.log(obs.ally.isReviving)
+              console.log(species)
+              console.log(opt)
+              throw Error()
+            }
             break
           }
         }
@@ -89,7 +91,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = toMoves(getMoveOption(run, active)).sort()
+        const movesA = getValidMoves(getOptions(run)).sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
