@@ -16,7 +16,7 @@ export function encodeStatus(status: Status | undefined) {
     sleepAttemptsLeft = [Math.max(1 - status.attempt!, 1), 3 - status.attempt!]
 
   const feats = []
-  feats.push(...STATUS_IDS.map((id) => feats.push(id === status?.id ? 1 : 0)))
+  feats.push(...STATUS_IDS.map((id) => (id === status?.id ? 1 : 0)))
   feats.push(toxicTurns, ...sleepAttemptsLeft)
 
   return feats

@@ -114,17 +114,10 @@ export type FormeChange = {
   ability?: string
 }
 
-function getTypes({ tera, teraType, volatiles: { "Type Change": typeChange }, gen, forme }: User) {
+function getTypes({ volatiles: { "Type Change": typeChange }, gen, forme }: User) {
   const { types } = typeChange ?? gen.species.get(forme)!
 
-  let off: { [k in TypeName]?: number } = Object.fromEntries(types.map((t) => [t, 1]))
-  let def: TypeName[] = tera ? [teraType!] : types
-
-  if (tera) {
-    off[teraType!] = (off[teraType!] ?? 0) + 1
-  }
-
-  return { base: types, off, def }
+  return types
 }
 
 export class AllyUser {
@@ -304,6 +297,13 @@ export class FoeUser {
     const { volatiles, base } = this
     return (volatiles["Transform"] ?? base).gender
   }
+}
+
+export function getOffTyping({ types, tera, teraType }: User) {
+  const typing: { [k in TypeName]?: number } = Object.fromEntries(types.map((t) => [t, 1]))
+  if (tera) typing[teraType!] = (typing[teraType!] ?? 0) + 1
+
+  return typing
 }
 
 export type User = AllyUser | FoeUser

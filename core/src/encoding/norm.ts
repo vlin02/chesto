@@ -1,16 +1,8 @@
 import { StatID } from "@pkmn/data"
 
-export const STAT_RANGES = {
-  hp: [191, 566],
-  atk: [13, 348],
-  def: [57, 393],
-  spa: [85, 318],
-  spd: [71, 402],
-  spe: [57, 357]
-} as const
-
 export function scaleStat(id: StatID, n: number) {
-  return n / STAT_RANGES[id][1]
+  // max stat is 714 (hp)
+  return n / 714
 }
 
 export function scalePP(n: number) {

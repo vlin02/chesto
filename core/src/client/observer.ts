@@ -10,7 +10,7 @@ import {
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
-import { AllyUser, FoeUser, MoveSet, User } from "./user.js"
+import { AllyUser, FoeUser, getOffTyping, MoveSet, User } from "./user.js"
 import { getMaxPP, isLockingMove, isPressuredMove } from "./move.js"
 import {
   StatusId,
@@ -95,7 +95,7 @@ export class Observer {
   ppCost(move: string, src: User, dest: User) {
     return dest.volatiles["Pressure"] &&
       dest.hp[0] !== 0 &&
-      (move === "Curse" ? "Ghost" in src.types.off : isPressuredMove(this.gen, move))
+      (move === "Curse" ? "Ghost" in getOffTyping(src) : isPressuredMove(this.gen, move))
       ? 2
       : 1
   }
@@ -127,6 +127,10 @@ export class Observer {
     if (formeChange?.whileActiveOnly) delete user.formeChange
 
     return recover
+  }
+
+  onSwitchIn(user: User) {
+    if (user.pov === "ally") user.revealed = true
   }
 
   user({ pov, species }: Ref) {
@@ -209,7 +213,10 @@ export class Observer {
 
           for (const member of this.req.team) {
             const user = new AllyUser(this.gen, member)
-            if (member.active) active = user
+            if (member.active) {
+              this.onSwitchIn(user)
+              active = user
+            }
 
             team[user.species] = user
             slots.push(user)
@@ -342,7 +349,7 @@ export class Observer {
         }
 
         this.clear(prev)
-
+        this.onSwitchIn(user)
         this[pov].active = user
         break
       }

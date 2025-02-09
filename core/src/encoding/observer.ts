@@ -116,7 +116,7 @@ function encodeUser({
   stats,
   status,
   flags,
-  interimForme,
+  forme,
   volatiles,
   boosts
 }: {
@@ -125,7 +125,7 @@ function encodeUser({
   stats: Stats
   status?: Status
   flags: Flags
-  interimForme?: string
+  forme?: string
   volatiles: Volatiles
   boosts: Boosts
 }) {
@@ -136,17 +136,12 @@ function encodeUser({
   feats.push(...encodeStats(stats))
   feats.push(...encodeStatus(status))
 
-  for (const k of ["battleBond", "intrepidSword", "illusionRevealed"] as const) {
-    feats.push(flags[k] ? 1 : 0)
-  }
+  feats.push(
+    ...(["battleBond", "intrepidSword", "illusionRevealed"] as const).map((k) => (flags[k] ? 1 : 0))
+  )
 
-  for (const k of INTERIM_FORMES) {
-    feats.push(k === interimForme ? 1 : 0)
-  }
-
-  for (const id of BOOST_IDS) {
-    feats.push(boosts[id] ?? 0)
-  }
+  feats.push(...INTERIM_FORMES.map((k) => (k === forme ? 1 : 0)))
+  feats.push(...BOOST_IDS.map((id) => boosts[id] ?? 0))
 
   feats.push(...encodeVolatiles(volatiles))
 
@@ -184,7 +179,7 @@ function encodeSide({
   f.push(...encodeDelayedAttack(delayedAttack))
   f.push(teraUsed ? 1 : 0)
 
-  f.push(...DECISION_MODES.map((_mode) => (mode === _mode ? 1 : 0)))
+  f.push(...DECISION_MODES.map((x) => (mode === x ? 1 : 0)))
   f.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
   f.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
 
@@ -272,7 +267,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         moveSet: encodeMoveSet(moveSet),
         ability,
         item,
-        types: types.base,
+        types,
         teraType,
         initialForme
       }
@@ -349,7 +344,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         movepool: [...validMoves].filter((move) => !(move in moveSet)),
         items: item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
-        types: types.base,
+        types,
         teraTypes: teraType ? [teraType] : [...validTeraTypes],
         initialForme
       }
