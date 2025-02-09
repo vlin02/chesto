@@ -1,4 +1,4 @@
-import { split } from "./log.js"
+import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
 import { getMoveOptions, getSwitchOptions, isTrapped, toMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
@@ -17,34 +17,40 @@ export function testSide(format: Format, replay: Replay, side: Side) {
   const hasZoroark = opp.team.some((x) => x.name === "Zoroark")
 
   for (let i = 0; i < outputs.length; i++) {
-    const input = inputs[inputs.length - outputs.length + i]
+    const input = parseInput(inputs[inputs.length - outputs.length + i])
     const logs = outputs[i]
 
-    if (input.startsWith(`>${side}`)) {
-      const [_, type, choice] = input.split(" ")
-      const { active, slots, isReviving } = obs.ally
+    if (input.type === "choose") {
+      const { choice } = input
+      if (input.side === side) {
+        const { active, slots, isReviving } = obs.ally
 
-      switch (type) {
-        case "move": {
-          const moves = toMoves(getMoveOptions(format, active))
-          const chosenMove =
-            { recharge: "Recharge", struggle: "Struggle" }[choice] ?? gen.moves.get(choice)!.name
+        switch (choice.type) {
+          case "move": {
+            const { move } = choice
 
-          if (!moves.includes(chosenMove)) throw Error()
-          break
-        }
-        case "switch": {
-          const { species } = slots[Number(choice) - 1]
-          const switches = getSwitchOptions(obs)
+            const chosenMove =
+              { recharge: "Recharge", struggle: "Struggle" }[move] ?? gen.moves.get(move)!.name
+            const moves = toMoves(getMoveOptions(format, active))
 
-          if (isReviving) {
-            if (obs.ally.team[species].hp[0] !== 0) throw Error()
-          } else {
-            if (!switches.includes(species)) throw Error()
+            if (!moves.includes(chosenMove)) throw Error()
+            break
           }
+          case "switch": {
+            const { i } = choice
 
-          if (obs.req.type === "move" && isTrapped(active)) throw Error()
-          break
+            const { species } = slots[i - 1]
+            const switches = getSwitchOptions(obs)
+
+            if (isReviving) {
+              if (obs.ally.team[species].hp[0] !== 0) throw Error()
+            } else {
+              if (!switches.includes(species)) throw Error()
+            }
+
+            if (obs.req.type === "move" && isTrapped(active)) throw Error()
+            break
+          }
         }
       }
     }

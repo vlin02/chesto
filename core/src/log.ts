@@ -57,7 +57,7 @@ export function split(log: Log) {
 type Choice =
   | {
       type: "move"
-      name: string
+      move: string
       tera: boolean
     }
   | {
@@ -110,7 +110,7 @@ export function parseInput(line: string): Input {
       let choice: Choice
       switch (p.args[0]) {
         case "move":
-          choice = { type: "move", name: p.args[1], tera: p.args[2] === "terastallize" }
+          choice = { type: "move", move: p.args[1], tera: p.args[2] === "terastallize" }
           break
         case "switch":
           choice = { type: "switch", i: Number(p.args[1]) }
