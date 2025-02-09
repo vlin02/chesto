@@ -4,11 +4,7 @@ import { Status, Volatiles } from "../client/user.js"
 import { scaleStat } from "./norm.js"
 
 export function encodeStats(stats: Stats) {
-  const feats: number[] = []
-  for (const statId of STAT_IDS) {
-    feats.push(scaleStat(statId, stats[statId]))
-  }
-  return feats
+  return STAT_IDS.map((id) => scaleStat(id, stats[id]))
 }
 
 export function encodeStatus(status: Status | undefined) {
@@ -20,9 +16,7 @@ export function encodeStatus(status: Status | undefined) {
     sleepAttemptsLeft = [Math.max(1 - status.attempt!, 1), 3 - status.attempt!]
 
   const feats = []
-  for (const id of STATUS_IDS) {
-    feats.push(id === status?.id ? 1 : 0)
-  }
+  feats.push(...STATUS_IDS.map((id) => feats.push(id === status?.id ? 1 : 0)))
   feats.push(toxicTurns, ...sleepAttemptsLeft)
 
   return feats

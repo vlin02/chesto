@@ -170,34 +170,23 @@ function encodeSide({
   effects,
   wish,
   delayedAttack,
-  teraUsed,
-  isReviving
+  teraUsed
 }: {
   mode: DecisionMode
   effects: SideEffects
   wish?: number
   delayedAttack?: DelayedAttack
-  isReviving?: boolean
   teraUsed?: boolean
 }) {
   const feats: number[] = []
 
-  for (const x of DECISION_MODES) {
-    feats.push(mode === x ? 1 : 0)
-  }
-
-  feats.push(teraUsed ? 1 : 0)
-  feats.push(isReviving ? 1 : 0)
-
-  for (const name of HAZARDS) {
-    feats.push(effects[name]?.layers ?? 0)
-  }
-  for (const name of SCREENS) {
-    feats.push(effects[name]?.turn ?? 0)
-  }
-
-  feats.push(...encodeDelayedAttack(delayedAttack))
   feats.push(wish ? 2 - wish : 0)
+  feats.push(...encodeDelayedAttack(delayedAttack))
+  feats.push(teraUsed ? 1 : 0)
+
+  feats.push(...DECISION_MODES.map((x) => (mode === x ? 1 : 0)))
+  feats.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
+  feats.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
 
   return feats
 }
