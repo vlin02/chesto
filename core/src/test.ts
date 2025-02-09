@@ -1,16 +1,18 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOption, getSwitchOptions, isTrapped, toMoves } from "./client/option.js"
+import { getMoveOption, getOptions, isTrapped, toMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format } from "./run.js"
+import { Format, Run } from "./run.js"
 import { Replay } from "./db.js"
 
-export function testSide(format: Format, replay: Replay, side: Side) {
-  const { gen } = format
+export function testSide(fmt: Format, replay: Replay, side: Side) {
+  const { gen } = fmt
 
   const { inputs, outputs } = replay
   const obs = new Observer(gen)
+
+  const run: Run = { fmt, obs }
 
   const opp = replay[FOE[side]]
 
@@ -23,28 +25,29 @@ export function testSide(format: Format, replay: Replay, side: Side) {
     if (input.type === "choose") {
       const { choice } = input
       if (input.side === side) {
-        const { active, slots, isReviving } = obs.ally
+        const { slots } = obs.ally
+
+        const opt = getOptions(run)
 
         switch (choice.type) {
           case "move": {
             const { move } = choice
 
+            if (opt.type !== "move") throw Error()
+
             const chosenMove =
               { recharge: "Recharge", struggle: "Struggle" }[move] ?? gen.moves.get(move)!.name
-            const moves = toMoves(getMoveOption(format, active))
+            const moves = toMoves(opt.move)
 
             if (!moves.includes(chosenMove)) throw Error()
             break
           }
           case "switch": {
+            if (opt.type === "wait") throw Error()
             const { i } = choice
-
             const { species } = slots[i - 1]
-            const switches = getSwitchOptions(obs)
 
-            if (!switches.includes(species)) throw Error()
-
-            if (obs.req.type === "move" && isTrapped(active)) throw Error()
+            if (!opt.switches?.includes(species)) throw Error()
             break
           }
         }
@@ -63,7 +66,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const user = team[species]
 
         const build = opp.team.find((x) => x.name === species)!
-        const presets = getPotentialPresets(format, user)
+        const presets = getPotentialPresets(fmt, user)
 
         const buildFound = presets.some((preset) => {
           return preset.role === build.role && matchesPreset(preset, user)
@@ -86,7 +89,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = toMoves(getMoveOption(format, active)).sort()
+        const movesA = toMoves(getMoveOption(run, active)).sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)

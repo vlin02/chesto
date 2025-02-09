@@ -138,12 +138,12 @@ type Options =
       canTera: boolean
       move: MoveOption
       trapped: boolean
-      switch?: string[]
+      switches?: string[]
     }
   | {
       type: "switch"
       isReviving: boolean
-      switch: string[]
+      switches: string[]
     }
   | {
       type: "wait"
@@ -165,13 +165,13 @@ export function getOptions(run: Run): Options {
         canTera: !teraUsed,
         trapped,
         move: getMoveOption(run, active),
-        switch: trapped ? undefined : getSwitchOptions(obs)
+        switches: trapped ? undefined : getSwitchOptions(obs)
       }
     case "switch":
       return {
         type: "switch",
         isReviving: !!isReviving,
-        switch: isReviving ? getReviveOptions(obs) : getSwitchOptions(obs)
+        switches: isReviving ? getReviveOptions(obs) : getSwitchOptions(obs)
       }
     default:
       return {
