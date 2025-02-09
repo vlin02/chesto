@@ -4,6 +4,7 @@ import {
   BOOST_IDS,
   Boosts,
   HAZARDS,
+  PSEUDO_WEATHER_NAMES,
   SCREENS,
   STAT_IDS,
   Stats,
@@ -195,7 +196,7 @@ function encodeSideLookup({ active, team }: Side) {
 function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
   return [
     ...WEATHER_NAMES.map((name) => (weather?.name === name ? 5 - weather.turn : 0)),
-    ...[...TERRAIN_NAMES, "Trick Room"].map((name) => {
+    ...[...TERRAIN_NAMES, ...PSEUDO_WEATHER_NAMES].map((name) => {
       const turn = fields[name]
       return turn ? 5 - turn : 0
     })
