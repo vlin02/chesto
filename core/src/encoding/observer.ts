@@ -99,7 +99,7 @@ export function encodeMoveSet(moveSet: MoveSet) {
   return Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!)
 }
 
-function encodeUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
+function getUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
   return {
     disabled: encodeMoveSlot(moveSet, volatiles["Disable"]?.move),
     choice: encodeMoveSlot(moveSet, volatiles["Choice Locked"]?.move),
@@ -186,7 +186,7 @@ function encodeSide({
   return f
 }
 
-function encodeSideLookup({ active, team }: Side) {
+function getSideLookup({ active, team }: Side) {
   return {
     active: active.species,
     tera: Object.keys(team).find((k) => team[k].tera)
@@ -246,7 +246,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
           status,
           forme
         }),
-        lookup: encodeUserLookup(user),
+        lookup: getUserLookup(user),
         moveSet: encodeMoveSet(moveSet),
         ability,
         item,
@@ -263,7 +263,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         effects,
         wish
       }),
-      lookup: encodeSideLookup(ally),
+      lookup: getSideLookup(ally),
       team: xTeam
     }
   }
@@ -320,7 +320,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
           status,
           forme
         }),
-        lookup: encodeUserLookup(user),
+        lookup: getUserLookup(user),
         moveSet: Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!),
         movePool: [...validMoves]
           .filter((move) => !(move in moveSet))
@@ -361,7 +361,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         effects,
         wish
       }),
-      lookup: encodeSideLookup(foe),
+      lookup: getSideLookup(foe),
       team: xTeam
     }
   }
