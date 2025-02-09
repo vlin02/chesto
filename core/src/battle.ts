@@ -11,27 +11,29 @@ export type TerrainName = (typeof TERRAIN_NAMES)[number]
 
 export type Gender = "M" | "F" | null
 
-export type TypeName =
-  | "Normal"
-  | "Fighting"
-  | "Flying"
-  | "Poison"
-  | "Ground"
-  | "Rock"
-  | "Bug"
-  | "Ghost"
-  | "Steel"
-  | "Fire"
-  | "Water"
-  | "Grass"
-  | "Electric"
-  | "Psychic"
-  | "Ice"
-  | "Dragon"
-  | "Dark"
-  | "Fairy"
-  | "???"
-  | "Stellar"
+export const TYPE_NAMES = [
+  "Normal",
+  "Fighting",
+  "Flying",
+  "Poison",
+  "Ground",
+  "Rock",
+  "Bug",
+  "Ghost",
+  "Steel",
+  "Fire",
+  "Water",
+  "Grass",
+  "Electric",
+  "Psychic",
+  "Ice",
+  "Dragon",
+  "Dark",
+  "Fairy",
+  "???",
+  "Stellar"
+]
+export type TypeName = (typeof TYPE_NAMES)[number]
 
 export const STATUS_IDS = ["slp", "psn", "brn", "frz", "par", "tox"] as const
 export type StatusId = (typeof STATUS_IDS)[number]
@@ -60,3 +62,6 @@ export const DELAYED_MOVES = ["Future Sight", "Doom Desire"]
 export type DelayedMove = (typeof DELAYED_MOVES)[number]
 
 export const PARTIALLY_TRAPPED_MOVES = ["Magma Storm", "Infestation", "Whirlpool"]
+
+export const MOVE_CATEGORY = ["Physical", "Special", "Status"] as const
+export type MoveCategory = (typeof MOVE_CATEGORY)[number]
