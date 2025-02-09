@@ -32,7 +32,7 @@ export const TYPE_NAMES = [
   "Fairy",
   "???",
   "Stellar"
-]
+] as const
 export type TypeName = (typeof TYPE_NAMES)[number]
 
 export const STATUS_IDS = ["slp", "psn", "brn", "frz", "par", "tox"] as const
@@ -50,9 +50,8 @@ export type Boosts = {
 export const STAT_IDS = ["hp", "atk", "def", "spa", "spd", "spe"] as const
 export type StatId = (typeof STAT_IDS)[number]
 
-export const MOD_STAT_IDS = [ "atk", "def", "spa", "spd", "spe"] as const
+export const MOD_STAT_IDS = ["atk", "def", "spa", "spd", "spe"] as const
 export type ModStatId = (typeof MOD_STAT_IDS)[number]
-
 
 export type Stats = { [k in StatId]: number }
 

@@ -16,7 +16,7 @@ import { getPresetForme, getPotentialPresets, matchesPreset } from "../version.j
 import { Format } from "../format.js"
 import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
-import { MAX_PP, scalePP, STAT_RANGES } from "./norm.js"
+import { scalePP, STAT_RANGES } from "./norm.js"
 
 export type FMoveSlot = {
   move?: string
@@ -287,8 +287,6 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       }
     }
 
-    if (ally.isReviving && req.type !== "switch") throw Error()
-
     fAlly = {
       features: encodeSide({
         requestType: ally.isReviving ? "revive" : req.type,
@@ -366,10 +364,19 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       }
     }
 
-    let requestType: RequestType = "wait"
+    let requestType: RequestType
     {
-      if (req.type === "move") requestType = "move"
-      if (req.type === "wait") requestType = "switch"
+      switch (req.type) {
+        case "move":
+          requestType = "move"
+          break
+        case "wait":
+          requestType = foe.isReviving ? "revive" : "switch"
+          break
+        case "switch":
+          requestType = "wait"
+          break
+      }
     }
 
     fFoe = {

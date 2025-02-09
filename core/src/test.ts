@@ -100,15 +100,17 @@ export function testSide(format: Format, replay: Replay, side: Side) {
 
     if (newReq) {
       j++
-      const { ally, req: request } = obs
+      const { ally, req } = obs
+      if (ally.isReviving) console.log("revive")
+      if (ally.isReviving && req.type !== "switch") throw Error()
 
-      if (request.type === "move") {
+      if (req.type === "move") {
         const { active } = ally
-        const [{ moveSlots, trapped }] = request.choices
+        const [{ moveSlots, trapped }] = req.choices
 
         const moves = toMoves(getMoveOptions(format, active))
 
-        if (request.team.filter((x) => !!x.health).length > 1 && !!trapped !== isTrapped(active)) {
+        if (req.team.filter((x) => !!x.health).length > 1 && !!trapped !== isTrapped(active)) {
           console.log(!!trapped, isTrapped(active), active)
           throw Error()
         }
@@ -140,7 +142,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
       }
 
       for (let i = 0; i < 6; i++) {
-        if (obs.ally.slots[i].species !== request.team[i].species) {
+        if (obs.ally.slots[i].species !== req.team[i].species) {
           throw Error()
         }
       }
@@ -155,7 +157,7 @@ export function testSide(format: Format, replay: Replay, side: Side) {
         health,
         stats,
         label: { gender, lvl }
-      } of request.team) {
+      } of req.team) {
         const user = ally.team[species]
 
         for (const id of ["atk", "def", "spa", "spd", "spe"] as const) {
