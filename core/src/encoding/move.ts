@@ -1,6 +1,6 @@
 import { scale } from "./norm.js"
-import { MOVE_CATEGORY, StatId, StatusId, TYPE_NAMES } from "../battle.js"
-import { Move } from "@pkmn/data"
+import { ModStatId, MOVE_CATEGORY, StatusId, TYPE_NAMES } from "../battle.js"
+import { Move, SecondaryEffect, StatusName } from "@pkmn/data"
 
 const MOVE_FLAGS = [
   "bypasssub",
@@ -56,18 +56,91 @@ const SIDE_CONDITIONS = [
   "wideguard"
 ]
 
+const VOLATILE_STATUSES = [
+  "confusion",
+  "flinch",
+  "substitute",
+  "saltcure",
+  "glaiverush",
+  "partiallytrapped",
+  "leechseed",
+  "sparklingaria",
+  "mustrecharge",
+  "healblock",
+  "taunt",
+  "encore",
+  "disable",
+  "curse",
+  "lockedmove",
+  "roost",
+  "noretreat",
+  "destinybond",
+  "magnetrise",
+  "protect",
+  "yawn"
+]
+
 type UserEffect = {
-  boosts: { [k in StatId]?: { n: number; p: number } }
+  boosts: { [k in ModStatId]?: { n: number; p: number } }
   status?: { id: StatusId; p: number }
+  volatileStatus?: { name: string; p: number }
 }
 
-type SideEffect = {}
-
-type Effect = {
+type MoveEffect = {
   self: UserEffect
   opp: UserEffect
+}
 
-  ally
+function withEffect(
+  user: UserEffect,
+  {
+    chance: p = 1,
+    boosts,
+    status,
+    volatileStatus
+  }: {
+    chance?: number
+    boosts?: { [k in ModStatId]?: number }
+    status?: StatusName
+    volatileStatus?: string
+  }
+) {
+  if (boosts) {
+    for (const k in boosts) {
+      user.boosts[k as ModStatId] = { n: boosts[k as ModStatId]!, p }
+    }
+  }
+
+  if (status) user.status = { id: status, p }
+  if (volatileStatus) user.volatileStatus = { name: volatileStatus, p }
+}
+
+export function reconcileEffect(move: Move) {
+  const effect: MoveEffect = {
+    self: { boosts: {} },
+    opp: { boosts: {} }
+  }
+
+  const {
+    target,
+    selfBoost,
+
+    self,
+    secondaries
+  } = move
+
+  if (selfBoost?.boosts) withEffect(effect.self, selfBoost)
+  if (self) withEffect(effect.self, self)
+
+  withEffect(target === "self" ? effect.self : effect.opp, move)
+
+  for (const secondary of secondaries ?? []) {
+    withEffect(effect.opp, secondary)
+    const { self } = secondary
+    if (self) withEffect(effect.self, self)
+  }
+
+  return effect
 }
 
 export function encodeMove(move: Move) {
@@ -110,6 +183,7 @@ export function encodeMove(move: Move) {
 
     self,
     selfBoost,
+
     secondaries,
 
     weather,

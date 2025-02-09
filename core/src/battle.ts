@@ -50,6 +50,10 @@ export type Boosts = {
 export const STAT_IDS = ["hp", "atk", "def", "spa", "spd", "spe"] as const
 export type StatId = (typeof STAT_IDS)[number]
 
+export const MOD_STAT_IDS = [ "atk", "def", "spa", "spd", "spe"] as const
+export type ModStatId = (typeof MOD_STAT_IDS)[number]
+
+
 export type Stats = { [k in StatId]: number }
 
 export const HAZARDS = ["Sticky Web", "Toxic Spikes", "Stealth Rock", "Spikes"] as const
