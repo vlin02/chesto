@@ -61,27 +61,13 @@ export function getMoveOptions({ gen }: Format, user: User): MoveOptions {
       }
     }
 
-    if (!stuck && choiceLocked && choiceLocked.move !== move) {
-      continue
-    }
-    if (!stuck && encore && encore.move !== move) {
-      continue
-    }
-    if (disable?.move === move) {
-      continue
-    }
-    if (taunt && category === "Status") {
-      continue
-    }
-    if (healBlock && heal) {
-      continue
-    }
-    if (throatChop && sound) {
-      continue
-    }
-    if (item === "Assault Vest" && category === "Status") {
-      continue
-    }
+    if (!stuck && choiceLocked && choiceLocked.move !== move) continue
+    if (!stuck && encore && encore.move !== move) continue
+    if (disable?.move === move) continue
+    if (taunt && category === "Status") continue
+    if (healBlock && heal) continue
+    if (throatChop && sound) continue
+    if (item === "Assault Vest" && category === "Status") continue
 
     moves.push(move)
   }

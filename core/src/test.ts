@@ -126,21 +126,13 @@ export function testSide(format: Format, replay: Replay, side: Side) {
           }
         }
 
-        if ((user === ally.active) !== active) {
-          throw Error()
-        }
+        if ((user === ally.active) !== active) throw Error()
 
-        if (user.ability !== ability) {
-          throw Error()
-        }
+        if (user.ability !== ability) throw Error()
 
-        if (user.teraType !== teraType) {
-          throw Error()
-        }
+        if (user.teraType !== teraType) throw Error()
 
-        if (user.item !== item) {
-          throw Error()
-        }
+        if (user.item !== item) throw Error()
 
         if (health) {
           const { hp, status } = health
