@@ -1,4 +1,4 @@
-import { Stats as Calc, Generation } from "@pkmn/data"
+import { Generation } from "@pkmn/data"
 import { Fields, Observer, Weather } from "../client/observer.js"
 import {
   BOOST_IDS,
@@ -149,12 +149,11 @@ function encodeUser({
 }
 
 function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
-  const calc = new Calc(gen.dex)
   const { baseStats } = gen.species.get(forme)!
 
   const stats: any = {}
   for (const id of STAT_IDS) {
-    stats[id] = calc.calc(id, baseStats[id], 31, 85, lvl)
+    stats[id] = gen.stats.calc(id, baseStats[id], 31, 85, lvl)
   }
 
   return stats
