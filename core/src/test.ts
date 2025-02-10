@@ -26,7 +26,6 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
 
       if (input.side === side) {
         const opt = getOption(run)
-        console.log(opt, choice)
 
         switch (choice.type) {
           case "struggle":
