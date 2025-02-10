@@ -54,7 +54,7 @@ export function split(log: Log) {
   return chs
 }
 
-type Choice =
+export type Choice =
   | {
       type: "move"
       move: string
@@ -65,7 +65,7 @@ type Choice =
       i: number
     }
 
-type Input =
+export type Input =
   | {
       type: "version"
       origin: boolean

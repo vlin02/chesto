@@ -128,7 +128,7 @@ export function getValidSwitches({ ally: { team, active, isReviving } }: Observe
   return opts
 }
 
-type Options = {
+export type Options = {
   canTera?: boolean
   struggle?: boolean
   recharge?: boolean

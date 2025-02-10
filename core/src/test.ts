@@ -75,7 +75,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
     }
 
     if (obs.req && obs.winner === undefined) {
-      const { ally, req } = obs 
+      const { ally, req } = obs
 
       if (obs.ally.active.lastMove && !gen.moves.get(obs.ally.active.lastMove))
         throw Error(obs.ally.active.lastMove)
@@ -126,9 +126,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const user = ally.team[species]
 
         for (const id of ["atk", "def", "spa", "spd", "spe"] as const) {
-          if (user.stats[id] !== stats[id]) {
-            throw Error()
-          }
+          if (user.stats[id] !== stats[id]) throw Error()
         }
 
         if ((user === ally.active) !== active) throw Error()
@@ -143,7 +141,6 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
           const { hp, status } = health
 
           if (JSON.stringify(user.hp) !== JSON.stringify(hp)) throw Error()
-
           if (user.status?.id !== status) throw Error()
         } else {
           if (user.hp[0] !== 0) throw Error()

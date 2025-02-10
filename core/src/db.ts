@@ -2,6 +2,8 @@ import { Collection, Db } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
+import { FObserver } from "./encoding/observer.js"
+import { Options } from "./client/option.js"
 
 export type Player = {
   name: string
@@ -47,6 +49,26 @@ type Item = {
   desc: {
     mistral: number[]
   }
+}
+
+type Choice =
+  | {
+      type: "struggle" | "recharge"
+    }
+  | {
+      type: "move"
+      move: string
+      tera: boolean
+    }
+  | {
+      type: "switch"
+      species: string
+    }
+
+export type Sample = {
+  observer: FObserver
+  options: Options
+  choice: Choice
 }
 
 export async function createReplays(db: Db, name: string) {

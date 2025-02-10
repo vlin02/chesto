@@ -20,17 +20,17 @@ import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"
 import { inferMaxPP } from "../client/move.js"
 
-export type XMoveSlot = {
+export type FMoveSlot = {
   move?: string
-  f: number[]
+  x: number[]
 }
 
 type UserLookup = {
-  disabled: XMoveSlot | undefined
-  choice: XMoveSlot | undefined
-  encore: XMoveSlot | undefined
-  locked: XMoveSlot | undefined
-  lastMove: XMoveSlot | undefined
+  disabled: FMoveSlot | undefined
+  choice: FMoveSlot | undefined
+  encore: FMoveSlot | undefined
+  locked: FMoveSlot | undefined
+  lastMove: FMoveSlot | undefined
   lastBerry: string | undefined
 }
 
@@ -39,59 +39,59 @@ type SideLookup = {
   tera: string | undefined
 }
 
-type XAllyUser = {
+type FAllyUser = {
   f: number[]
   lookup: UserLookup
-  moveSet: XMoveSlot[]
+  moveSet: FMoveSlot[]
   item: string | null
   ability: string | null
   types: string[]
   teraType: string
 }
 
-type XAlly = {
-  f: number[]
-  team: { [k: string]: XAllyUser }
+type FAlly = {
+  x: number[]
+  team: { [k: string]: FAllyUser }
   lookup: SideLookup
 }
 
-type XFoeUser = {
+type FFoeUser = {
   f: number[]
   lookup: UserLookup
-  moveSet: XMoveSlot[]
-  movePool: XMoveSlot[]
+  moveSet: FMoveSlot[]
+  movePool: FMoveSlot[]
   abilities: string[]
   items: string[]
   types: string[]
   teraTypes: string[]
 }
 
-type XFoe = {
+type FFoe = {
   f: number[]
-  team: { [k: string]: XFoeUser }
+  team: { [k: string]: FFoeUser }
   lookup: SideLookup
 }
 
-export type XObserver = {
+export type FObserver = {
   f: number[]
-  ally: XAlly
-  foe: XFoe
+  ally: FAlly
+  foe: FFoe
 }
 
 export const DECISION_MODES = ["move", "switch", "revive", "wait"]
 export type DecisionMode = (typeof DECISION_MODES)[number]
 
-export function encodeMoveSlot(moveSet: MoveSet, move?: string): XMoveSlot | undefined {
+export function encodeMoveSlot(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
   if (!move) return undefined
 
   if (move in moveSet) {
     const { used, max } = moveSet[move]
-    return { move, f: [scalePP(Math.max(0, max - used)), scalePP(max)] }
+    return { move, x: [scalePP(Math.max(0, max - used)), scalePP(max)] }
   }
 
   return {
     move,
-    f: [0, 0]
+    x: [0, 0]
   }
 }
 
@@ -172,17 +172,17 @@ function encodeSide({
   delayedAttack?: DelayedAttack
   teraUsed?: boolean
 }) {
-  const f: number[] = []
+  const x: number[] = []
 
-  f.push(wish ? 2 - wish : 0)
-  f.push(...encodeDelayedAttack(delayedAttack))
-  f.push(teraUsed ? 1 : 0)
+  x.push(wish ? 2 - wish : 0)
+  x.push(...encodeDelayedAttack(delayedAttack))
+  x.push(teraUsed ? 1 : 0)
 
-  f.push(...DECISION_MODES.map((x) => (mode === x ? 1 : 0)))
-  f.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
-  f.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
+  x.push(...DECISION_MODES.map((x) => (mode === x ? 1 : 0)))
+  x.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
+  x.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
 
-  return f
+  return x
 }
 
 function getSideLookup({ active, team }: Side) {
@@ -202,17 +202,17 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   ]
 }
 
-export function encodeObserver(format: Format, obs: Observer): XObserver {
+export function encodeObserver(format: Format, obs: Observer): FObserver {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
 
-  let xAlly: XAlly
+  let fAlly: FAlly
   {
     const { team, delayedAttack, effects, teraUsed, wish } = ally
 
-    let xTeam: {
-      [k: string]: XAllyUser
+    let fTeam: {
+      [k: string]: FAllyUser
     } = {}
 
     for (const species in team) {
@@ -234,7 +234,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         volatiles
       } = user
 
-      xTeam[species] = {
+      fTeam[species] = {
         f: encodeUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
@@ -254,8 +254,8 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
       }
     }
 
-    xAlly = {
-      f: encodeSide({
+    fAlly = {
+      x: encodeSide({
         mode: ally.isReviving ? "revive" : req.type,
         delayedAttack,
         teraUsed,
@@ -263,16 +263,16 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         wish
       }),
       lookup: getSideLookup(ally),
-      team: xTeam
+      team: fTeam
     }
   }
 
-  let xFoe: XFoe
+  let fFoe: FFoe
   {
     const { team, delayedAttack, effects, teraUsed, wish } = foe
 
-    let xTeam: {
-      [k: string]: XFoeUser
+    let fTeam: {
+      [k: string]: FFoeUser
     } = {}
 
     for (const species in team) {
@@ -308,7 +308,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         for (const move of moves) validMoves.add(move)
       }
 
-      xTeam[species] = {
+      fTeam[species] = {
         f: encodeUser({
           revealed: true,
           stats: { ...inferStats(gen, user), hp: hp[1] },
@@ -327,7 +327,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
             const pp = scalePP(inferMaxPP(gen, move))
             return {
               move,
-              f: [pp, pp]
+              x: [pp, pp]
             }
           }),
         items: item ? [item] : [...validItems],
@@ -352,7 +352,7 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
       }
     }
 
-    xFoe = {
+    fFoe = {
       f: encodeSide({
         mode: mode,
         delayedAttack,
@@ -361,13 +361,13 @@ export function encodeObserver(format: Format, obs: Observer): XObserver {
         wish
       }),
       lookup: getSideLookup(foe),
-      team: xTeam
+      team: fTeam
     }
   }
 
   return {
     f: encodeBattle({ fields, weather }),
-    ally: xAlly,
-    foe: xFoe
+    ally: fAlly,
+    foe: fFoe
   }
 }
