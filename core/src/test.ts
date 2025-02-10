@@ -37,7 +37,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
           case "move": {
             const { tera, move } = choice
 
-            if (!opt.moves?.includes(move)) throw Error()
+            if (!opt.moves?.includes(gen.moves.get(move)!.name)) throw Error()
             if (tera && !opt.canTera) throw Error()
             break
           }

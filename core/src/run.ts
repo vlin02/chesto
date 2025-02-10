@@ -204,8 +204,8 @@ export function toChoice({ obs }: Run, raw: RawChoice): Choice {
   switch (raw.type) {
     case "move": {
       const { move, tera } = raw
-      if (move === "Struggle") return { type: "struggle" }
-      if (move === "Recharge") return { type: "recharge" }
+      if (move === "struggle") return { type: "struggle" }
+      if (move === "recharge") return { type: "recharge" }
       return { type: "move", move, tera }
     }
     case "switch": {
