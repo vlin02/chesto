@@ -91,7 +91,7 @@ export function getMoveOption({ fmt: { gen } }: Run, user: User): MoveOption {
   return { type: "default", moves, stuck }
 }
 
-export function getValidMoves({ struggle, recharge, moves = [] }: Options) {
+export function getValidMoves({ struggle, recharge, moves = [] }: Option) {
   const all = [...moves]
   if (struggle) all.push("Struggle")
   if (recharge) all.push("Recharge")
@@ -147,7 +147,7 @@ export function getValidSwitches({
   return opts
 }
 
-export type Options = {
+export type Option = {
   canTera?: boolean
   struggle?: boolean
   recharge?: boolean
@@ -155,10 +155,10 @@ export type Options = {
   switches?: string[]
 }
 
-export function getOptions(run: Run): Options {
+export function getOption(run: Run): Option {
   const { obs } = run
 
-  const opt: Options = {}
+  const opt: Option = {}
 
   const {
     req,

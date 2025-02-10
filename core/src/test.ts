@@ -1,9 +1,8 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
-import { getMoveOption, getOptions, isTrapped, getValidMoves } from "./client/option.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format, Run } from "./run.js"
+import { Format, getOption, getValidMoves, isTrapped, Run } from "./run.js"
 import { Replay } from "./db.js"
 
 export function testSide(fmt: Format, replay: Replay, side: Side) {
@@ -27,7 +26,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
       if (input.side === side) {
         const { slots } = obs.ally
 
-        const opt = getOptions(run)
+        const opt = getOption(run)
 
         switch (choice.type) {
           case "move": {
@@ -90,7 +89,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = getValidMoves(getOptions(run)).sort()
+        const movesA = getValidMoves(getOption(run)).sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
