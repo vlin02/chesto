@@ -125,7 +125,7 @@ export class Observer {
     delete user.lastBerry
     delete user.lastMove
 
-    if (formeChange?.whileActiveOnly) delete user.formeChange
+    if (formeChange?.temporary) delete user.formeChange
 
     return recover
   }
@@ -903,7 +903,7 @@ export class Observer {
         if (forme !== "Shaymin") {
           user.formeChange = {
             forme: forme,
-            whileActiveOnly: true
+            temporary: true
           }
         }
 
@@ -922,7 +922,7 @@ export class Observer {
 
         user.formeChange = {
           forme: forme,
-          whileActiveOnly: false,
+          temporary: false,
           ability: {
             "Ogerpon-Teal-Tera": "Embody Aspect (Teal)",
             "Ogerpon-Hearthflame-Tera": "Embody Aspect (Hearthflame)",

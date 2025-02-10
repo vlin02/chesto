@@ -110,7 +110,7 @@ export type Status = {
 
 export type FormeChange = {
   forme: string
-  whileActiveOnly: boolean
+  temporary: boolean
   ability?: string
 }
 
