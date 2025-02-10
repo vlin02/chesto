@@ -2,7 +2,7 @@ import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format, getOption, getValidMoves, isTrapped, Run } from "./run.js"
+import { Format, getOption, getValidMoves, isTrapped, Run, toChoice } from "./run.js"
 import { Replay } from "./db.js"
 
 export function testSide(fmt: Format, replay: Replay, side: Side) {
@@ -22,29 +22,27 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
     const logs = outputs[i]
 
     if (input.type === "choose") {
-      const { choice } = input
-      if (input.side === side) {
-        const { slots } = obs.ally
+      const choice = toChoice(run, input.choice)
 
+      if (input.side === side) {
         const opt = getOption(run)
 
         switch (choice.type) {
+          case "struggle":
+            if (!opt.struggle) throw Error()
+            break
+          case "recharge":
+            if (!opt.recharge) throw Error()
+            break
           case "move": {
-            const { move, tera } = choice
+            const { tera, move } = choice
 
-            const valid = getValidMoves(opt)
-            const chosen =
-              { recharge: "Recharge", struggle: "Struggle" }[move] ?? gen.moves.get(move)!.name
-
-            if (!valid.includes(chosen)) throw Error()
+            if (!opt.moves?.includes(move)) throw Error()
             if (tera && !opt.canTera) throw Error()
             break
           }
           case "switch": {
-            const { i } = choice
-            const { species } = slots[i - 1]
-
-            if (!opt.switches?.includes(species)) throw Error()
+            if (!opt.switches?.includes(choice.species)) throw Error()
             break
           }
         }

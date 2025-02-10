@@ -3,6 +3,7 @@ import { Patch } from "./version.js"
 import { Observer } from "./client/observer.js"
 import { PARTIALLY_TRAPPED_MOVES } from "./battle.js"
 import { User, getDefTyping } from "./client/user.js"
+import { Choice as RawChoice } from "./log.js"
 
 export type Format = {
   gen: Generation
@@ -183,4 +184,33 @@ export function getOption(run: Run): Option {
   }
 
   return opt
+}
+
+export type Choice =
+  | {
+      type: "struggle" | "recharge"
+    }
+  | {
+      type: "move"
+      move: string
+      tera: boolean
+    }
+  | {
+      type: "switch"
+      species: string
+    }
+
+export function toChoice({ obs }: Run, raw: RawChoice): Choice {
+  switch (raw.type) {
+    case "move": {
+      const { move, tera } = raw
+      if (move === "Struggle") return { type: "struggle" }
+      if (move === "Recharge") return { type: "recharge" }
+      return { type: "move", move, tera }
+    }
+    case "switch": {
+      const { i } = raw
+      return { type: "switch", species: obs.ally.slots[i - 1].species }
+    }
+  }
 }

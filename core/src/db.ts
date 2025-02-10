@@ -3,7 +3,7 @@ import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
 import { FObserver } from "./encoding/observer.js"
-import { Options } from "./client/option.js"
+import { Option } from "./run.js"
 
 export type Player = {
   name: string
@@ -51,23 +51,9 @@ type Item = {
   }
 }
 
-type Choice =
-  | {
-      type: "struggle" | "recharge"
-    }
-  | {
-      type: "move"
-      move: string
-      tera: boolean
-    }
-  | {
-      type: "switch"
-      species: string
-    }
-
 export type Sample = {
   observer: FObserver
-  options: Options
+  option: Option
   choice: Choice
 }
 
