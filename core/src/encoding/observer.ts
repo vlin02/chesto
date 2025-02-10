@@ -21,8 +21,8 @@ import { scalePP, scaleStat } from "./norm.js"
 import { inferMaxPP } from "../client/move.js"
 
 export type FMoveSlot = {
-  move?: string
   x: number[]
+  move?: string
 }
 
 type UserLookup = {
@@ -36,44 +36,33 @@ type UserLookup = {
 
 type SideLookup = {
   active: string
-  tera: string | undefined
 }
 
-type FAllyUser = {
-  f: number[]
-  lookup: UserLookup
-  moveSet: FMoveSlot[]
-  item: string | null
-  ability: string | null
-  types: string[]
-  teraType: string
-}
-
-type FAlly = {
+type FUser = {
   x: number[]
-  team: { [k: string]: FAllyUser }
-  lookup: SideLookup
-}
-
-type FFoeUser = {
-  f: number[]
   lookup: UserLookup
   moveSet: FMoveSlot[]
   movePool: FMoveSlot[]
   abilities: string[]
-  items: string[]
+  items: string[] | null
   types: string[]
   teraTypes: string[]
 }
 
+type FAlly = {
+  x: number[]
+  team: { [k: string]: FUser }
+  lookup: SideLookup
+}
+
 type FFoe = {
-  f: number[]
-  team: { [k: string]: FFoeUser }
+  x: number[]
+  team: { [k: string]: FUser }
   lookup: SideLookup
 }
 
 export type FObserver = {
-  f: number[]
+  x: number[]
   ally: FAlly
   foe: FFoe
 }
@@ -188,10 +177,9 @@ function encodeSide({
   return x
 }
 
-function getSideLookup({ active, team }: Side) {
+function getSideLookup({ active }: Side) {
   return {
-    active: active.species,
-    tera: Object.keys(team).find((k) => team[k].tera)
+    active: active.species
   }
 }
 
@@ -215,7 +203,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
     const { team, delayedAttack, effects, teraUsed, wish } = ally
 
     let fTeam: {
-      [k: string]: FAllyUser
+      [k: string]: FUser
     } = {}
 
     for (const species in team) {
@@ -239,7 +227,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       } = user
 
       fTeam[species] = {
-        f: encodeUser({
+        x: encodeUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
           hpLeft: hp[0],
@@ -252,10 +240,11 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         }),
         lookup: getUserLookup(user),
         moveSet: encodeMoveSet(moveSet),
-        ability,
-        item,
+        movePool: [],
+        abilities: [ability],
+        items: item ? [item] : null,
         types,
-        teraType
+        teraTypes: [teraType]
       }
     }
 
@@ -277,7 +266,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
     const { team, delayedAttack, effects, teraUsed, wish } = foe
 
     let fTeam: {
-      [k: string]: FFoeUser
+      [k: string]: FUser
     } = {}
 
     for (const species in team) {
@@ -315,7 +304,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       }
 
       fTeam[species] = {
-        f: encodeUser({
+        x: encodeUser({
           revealed: true,
           stats: { ...inferStats(gen, user), hp: hp[1] },
           hpLeft: hp[0],
@@ -337,7 +326,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
               x: [pp, pp]
             }
           }),
-        items: item ? [item] : [...validItems],
+        items: item === null ? null : item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
         types,
         teraTypes: teraType ? [teraType] : [...validTeraTypes]
@@ -360,7 +349,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
     }
 
     fFoe = {
-      f: encodeSide({
+      x: encodeSide({
         mode: mode,
         delayedAttack,
         teraUsed,
@@ -373,7 +362,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
   }
 
   return {
-    f: encodeBattle({ fields, weather }),
+    x: encodeBattle({ fields, weather }),
     ally: fAlly,
     foe: fFoe
   }
