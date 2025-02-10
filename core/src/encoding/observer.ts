@@ -118,7 +118,8 @@ function encodeUser({
   flags,
   forme,
   volatiles,
-  boosts
+  boosts,
+  tera
 }: {
   revealed: boolean
   hpLeft: number
@@ -128,10 +129,12 @@ function encodeUser({
   forme: string
   volatiles: Volatiles
   boosts: Boosts
+  tera: boolean
 }) {
   const feats: number[] = []
 
   feats.push(revealed ? 1 : 0)
+  feats.push(tera ? 1 : 0)
   feats.push(scaleStat("hp", hpLeft))
   feats.push(...encodeStats(stats))
   feats.push(...encodeStatus(status))
@@ -230,6 +233,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         moveSet,
         teraType,
         boosts,
+        tera,
         flags,
         volatiles
       } = user
@@ -243,7 +247,8 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
           volatiles,
           boosts,
           status,
-          forme
+          forme,
+          tera
         }),
         lookup: getUserLookup(user),
         moveSet: encodeMoveSet(moveSet),
@@ -286,6 +291,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         status,
         teraType,
         flags,
+        tera,
         boosts,
         forme,
         volatiles
@@ -317,7 +323,8 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
           volatiles,
           boosts,
           status,
-          forme
+          forme,
+          tera
         }),
         lookup: getUserLookup(user),
         moveSet: Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!),

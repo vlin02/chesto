@@ -1,4 +1,4 @@
-import { Collection, Db } from "mongodb"
+import { Collection, Db, IntegerType } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
@@ -104,12 +104,19 @@ export class VersionCache {
   }
 }
 
+type Type = {
+  name: string
+  x: number[]
+  num: number
+}
+
 export type DB = {
   replays: Collection<Replay>
   versions: Collection<Version>
   moves: Collection<Move>
   items: Collection<Item>
   abilities: Collection<Ability>
+  types: Collection<Type>
 }
 
 export function toDB(db: Db): DB {
@@ -118,6 +125,7 @@ export function toDB(db: Db): DB {
     versions: db.collection("versions"),
     moves: db.collection("moves"),
     items: db.collection("items"),
-    abilities: db.collection("abilities")
+    abilities: db.collection("abilities"),
+    types: db.collection("types")
   }
 }
