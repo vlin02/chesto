@@ -3,11 +3,17 @@ import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
 import { FObserver } from "./encoding/observer.js"
-import { Option } from "./run.js"
+import { Choice, Option } from "./run.js"
 
 export type Player = {
   name: string
   team: Build[]
+}
+
+export type Step = {
+  input: string
+  logs: Log[]
+  sample?: Sample
 }
 
 export type Replay = {
@@ -19,6 +25,7 @@ export type Replay = {
   password: string | null
   inputs: string[]
   outputs: Log[][]
+  steps: Step[]
   p1: Player
   p2: Player
 }
@@ -54,7 +61,7 @@ type Item = {
 export type Sample = {
   observer: FObserver
   option: Option
-  choice: Choice
+  choice?: Choice
 }
 
 export async function createReplays(db: Db, name: string) {
