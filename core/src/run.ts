@@ -200,13 +200,13 @@ export type Choice =
       species: string
     }
 
-export function toChoice({ obs }: Run, raw: RawChoice): Choice {
+export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
   switch (raw.type) {
     case "move": {
       const { move, tera } = raw
       if (move === "struggle") return { type: "struggle" }
       if (move === "recharge") return { type: "recharge" }
-      return { type: "move", move, tera }
+      return { type: "move", move: gen.moves.get(move)!.name, tera }
     }
     case "switch": {
       const { i } = raw

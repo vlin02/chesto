@@ -5,10 +5,6 @@
       "path": "core"
     },
     {
-      "name": "sim",
-      "path": "sim"
-    },
-    {
       "name": "model",
       "path": "model"
     },
