@@ -8,37 +8,40 @@ class Net(nn.Module):
     def __init__(self, lookup):
         super().__init__()
         self.lookup = lookup
-        self.fc_item = nn.Linear(256, 128)
-        self.fc_ability = nn.Linear(256, 128)
-        self.fc_move_slot = nn.Linear(1000, 256)
-        self.fc_user = nn.Linear(100, 512)
-        self.avg_pool_ability = nn.AvgPool1d()
-        self.avg_pool_item = nn.AvgPool1d()
-        self.avg_pool_move_slot = nn.AvgPool1d()
-        self.max_pool_move = nn.MaxPool1d()
-        self.max_pool_user = nn.MaxPool1d()
+        self.item_fc = nn.Sequential(nn.Linear(256, 128), nn.ReLU())
+        self.ability_fc = nn.Sequential(nn.Linear(256, 128), nn.ReLU())
+        self.move_slot_fc = nn.Sequential(nn.Linear(1000, 256), nn.ReLU())
+        self.user_fc = nn.Sequential(nn.Linear(100, 512), nn.ReLU())
+        self.ability_avg_pool = nn.AvgPool1d()
+        self.item_avg_pool = nn.AvgPool1d()
+        self.move_avg_pool = nn.AvgPool1d()
+        self.move_max_pool = nn.MaxPool1d()
+        self.user_max_pool = nn.MaxPool1d()
 
     def move_slot(self, slot):
         if not slot:
             return torch.zeros(300)
 
+        x_move = torch.zeros(298) if slot["move"] == "Recharge" else self.lookup.moves[slot["move"]]
+
         x = torch.concat(
-            slot["f"], self.lookup.moves[slot["move"]] if slot["move"] else 280
+            slot["f"], 
+            x_move
         )
 
-        return self.fc_move_slot(x)
+        return self.move_slot_fc(x)
 
     def item(self, name):
         if not name:
             return torch.zeros(300)
 
-        return self.fc_item(self.lookup.items[name])
+        return self.item_fc(self.lookup.items[name])
 
     def ability(self, name):
         if not name:
             return torch.zeros(300)
 
-        return self.fc_ability(self.lookup.abilities[name])
+        return self.ability_fc(self.lookup.abilities[name])
 
     def types(self, names):
         x = torch.zeros(20)
@@ -57,18 +60,18 @@ class Net(nn.Module):
         x_move_slots = [self.move_slot(slot) for slot in user["moveSet"]]
         if len(user["movePool"]):
             x_move_slots.append(
-                self.avg_pool_move_slot(
-                    [self.move_slot(slot) for slot in user["movePool"]]
+                self.move_avg_pool(
+                    self.move_slot(slot) for slot in user["movePool"]
                 )
             )
-        x_move_set = self.max_pool_move(x_move_slots)
+        x_move_set = self.move_max_pool(x_move_slots)
 
         x_item = (
-            self.avg_pool_item([self.item(name) for name in items])
+            self.item_avg_pool([self.item(name) for name in items])
             if items
             else self.item(None)
         )
-        x_ability = self.avg_pool_ability(
+        x_ability = self.ability_avg_pool(
             [self.ability(name) for name in user["abilities"]]
         )
         x_types = self.types(user["types"])
@@ -89,7 +92,13 @@ class Net(nn.Module):
             x_tera_type,
         )
 
-        return self.fc_user(x)
+        return self.user_fc(x)
+    
+    def move(self, battle, slot):
+        return 
+    
+    def switch(self, battle, user):
+        
 
     def side(self, side):
         lookup = side["lookup"]
@@ -97,26 +106,29 @@ class Net(nn.Module):
 
         x_team = {}
         for k in team.keys():
-            x_team[k] = self.uerteam[k]
+            x_team[k] = team[k]
 
         x = torch.concat(
-            side["x"], x_team[lookup["active"]], self.max_pool_user(x_team.values())
+            side["x"], x_team[lookup["active"]], self.user_max_pool(x_team.values())
         )
 
-        return x
+        return x, x_team
 
-    def obs(self, obs):
+    def forward(self, obs, opts):
         ally = obs["ally"]
         foe = obs["foe"]
 
-        return torch.concat(
-            obs["x"],
-            self.side(ally),
-            self.side(foe),
-        )
+        x_ally, x_ally_team = self.side(ally)
+        x_foe, _ = self.side(foe)
 
-    def forward(self, obs, opts):
-        pass
+        x_battle = torch.concat(obs["x"], x_ally, x_foe)
+
+        x_opts = []
+        for i in range(4):
+          x_opts.append()
+            
+        for i in range(6):
+          x_opts
 
         # xTeam = {}
         # for species in ally["team"].keys():
