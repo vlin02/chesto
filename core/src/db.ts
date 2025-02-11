@@ -1,4 +1,4 @@
-import { Collection, Db, IntegerType } from "mongodb"
+import { Collection, Db } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
