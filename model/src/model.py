@@ -33,31 +33,29 @@ def load_dex(db):
 class Net(nn.Module):
     def __init__(self, dex):
         super().__init__()
-        item_dims = DIMS["item_embed"]
-        ability_dims = DIMS["ability_embed"]
-        move_slot_dims = 256 + DIMS["move_slot_feat"]
-        battle_dims = DIMS["battle_feat"] + 2 * (DIMS["side_feat"] + 2 * 512)
+        item_dim = DIMS["item_embed"]
+        ability_dim = DIMS["ability_embed"]
+        move_slot_dim = 256 + DIMS["move_slot_feat"]
+        battle_dim = DIMS["battle_feat"] + 2 * (DIMS["side_feat"] + 2 * 512)
 
-        self.no_item = torch.zeros(item_dims)
-        self.no_ability = torch.zeros(ability_dims)
-        self.no_move_slot = torch.zeros(move_slot_dims)
+        self.no_item = torch.zeros(item_dim)
+        self.no_ability = torch.zeros(ability_dim)
+        self.no_move_slot = torch.zeros(move_slot_dim)
 
         self.dex = dex
-        self.item_mlp = nn.Sequential(nn.Linear(item_dims, 128), nn.ReLU())
-        self.ability_mlp = nn.Sequential(nn.Linear(ability_dims, 128), nn.ReLU())
+        self.item_mlp = nn.Sequential(nn.Linear(item_dim, 128), nn.ReLU())
+        self.ability_mlp = nn.Sequential(nn.Linear(ability_dim, 128), nn.ReLU())
         self.move_mlp = nn.Sequential(nn.Linear(DIMS["move_embed"], 256), nn.ReLU())
-        self.move_slot_mlp = nn.Sequential(
-            nn.Linear(256 + DIMS["move_slot_feat"], 128), nn.ReLU()
-        )
+        self.move_slot_mlp = nn.Sequential(nn.Linear(move_slot_dim, 128), nn.ReLU())
         self.user_mlp = nn.Sequential(
             nn.Linear(DIMS["user_feat"] + 9 * 128 + 2 * DIMS["types"], 512), nn.ReLU()
         )
 
         self.move_opt_mlp = nn.Sequential(
-            nn.Linear(battle_dims + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
+            nn.Linear(battle_dim + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
         )
         self.switch_opt_mlp = nn.Sequential(
-            nn.Linear(battle_dims + 512, 512), nn.ReLU(), nn.Linear(512, 1)
+            nn.Linear(battle_dim + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
         self.ability_avg_pool = nn.AvgPool1d()
         self.item_avg_pool = nn.AvgPool1d()

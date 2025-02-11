@@ -2,7 +2,7 @@ import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format, getOption, getValidMoves, isTrapped, Run, toChoice } from "./run.js"
+import { Format, getOption, isTrapped, Run, toChoice } from "./run.js"
 import { Replay } from "./db.js"
 
 export function testSide(fmt: Format, replay: Replay, side: Side) {
@@ -28,16 +28,10 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const opt = getOption(run)
 
         switch (choice.type) {
-          case "struggle":
-            if (!opt.struggle) throw Error()
-            break
-          case "recharge":
-            if (!opt.recharge) throw Error()
-            break
           case "move": {
             const { tera, move } = choice
 
-            if (!opt.moves?.includes(gen.moves.get(move)!.name)) throw Error()
+            if (!opt.moves?.includes(move)) throw Error()
             if (tera && !opt.canTera) throw Error()
             break
           }
@@ -87,7 +81,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = getValidMoves(getOption(run)).sort()
+        const movesA = getOption(run).moves!.sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)

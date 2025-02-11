@@ -92,13 +92,6 @@ export function getMoveOption({ fmt: { gen } }: Run, user: User): MoveOption {
   return { type: "default", moves, stuck }
 }
 
-export function getValidMoves({ struggle, recharge, moves = [] }: Option) {
-  const all = [...moves]
-  if (struggle) all.push("Struggle")
-  if (recharge) all.push("Recharge")
-  return all
-}
-
 export function isTrapped(user: User) {
   const { volatiles } = user
   if (volatiles["Recharge"] || volatiles["Prepare"] || volatiles["Locked Move"]) return true
@@ -150,8 +143,6 @@ export function getValidSwitches({
 
 export type Option = {
   canTera?: boolean
-  struggle?: boolean
-  recharge?: boolean
   moves?: string[]
   switches?: string[]
 }
@@ -171,15 +162,16 @@ export function getOption(run: Run): Option {
       const trapped = isTrapped(active)
 
       const moveOpt = getMoveOption(run, active)
-      if (moveOpt.type === "struggle") opt.struggle = true
-      if (moveOpt.type === "recharge") opt.recharge = true
+      if (moveOpt.type === "struggle") opt.moves = ["Struggle"]
+      if (moveOpt.type === "recharge") opt.moves = ["Recharge"]
       if (moveOpt.type === "default") opt.moves = moveOpt.moves
-      opt.canTera = !teraUsed
 
+      if (!teraUsed && moveOpt.type === "default") opt.canTera = true
       if (!trapped) opt.switches = getValidSwitches(run)
       break
     case "switch":
       opt.switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
+
       break
   }
 
@@ -187,9 +179,6 @@ export function getOption(run: Run): Option {
 }
 
 export type Choice =
-  | {
-      type: "struggle" | "recharge"
-    }
   | {
       type: "move"
       move: string
@@ -204,9 +193,11 @@ export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
   switch (raw.type) {
     case "move": {
       const { move, tera } = raw
-      if (move === "struggle") return { type: "struggle" }
-      if (move === "recharge") return { type: "recharge" }
-      return { type: "move", move: gen.moves.get(move)!.name, tera }
+      return {
+        type: "move",
+        move: move === "recharge" ? "Recharge" : gen.moves.get(move)!.name,
+        tera
+      }
     }
     case "switch": {
       const { i } = raw
