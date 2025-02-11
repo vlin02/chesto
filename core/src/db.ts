@@ -10,10 +10,16 @@ export type Player = {
   team: Build[]
 }
 
+export type Sample = {
+  observer: FObserver
+  option: Option
+  choice: Choice
+}
+
 export type Step = {
   input: string
   logs: Log[]
-  sample?: Sample
+  sample: Sample | null
 }
 
 export type Replay = {
@@ -56,12 +62,6 @@ type Item = {
   desc: {
     mistral: number[]
   }
-}
-
-export type Sample = {
-  observer: FObserver
-  option: Option
-  choice?: Choice
 }
 
 export async function createReplays(db: Db, name: string) {

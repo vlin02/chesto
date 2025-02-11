@@ -171,7 +171,6 @@ export function getOption(run: Run): Option {
       break
     case "switch":
       opt.switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
-
       break
   }
 

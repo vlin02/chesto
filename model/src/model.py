@@ -2,10 +2,11 @@ import torch
 from torch import nn
 from dataclasses import dataclass
 from typing import Dict, List
+from pymongo import MongoClient
 
 DIMS = dict(
-    item_embed=256,
     move_slot_feat=2,
+    item_embed=256,
     ability_embed=256,
     move_embed=258 + 256,
     side_feat=17,
@@ -30,6 +31,16 @@ def load_dex(db):
     return Dex(items=items, abilities=abilities, moves=moves)
 
 
+def load_samples(db):
+    return db.replays.aggregate(
+        [
+            {"$unwind": "$steps"},
+            {"$match": {"steps.sample": {"$ne": None}}},
+            {"$project": {"sample": "$steps.sample"}},
+        ]
+    )
+
+
 class Net(nn.Module):
     def __init__(self, dex):
         super().__init__()
@@ -43,6 +54,7 @@ class Net(nn.Module):
         self.no_move_slot = torch.zeros(move_slot_dim)
 
         self.dex = dex
+
         self.item_mlp = nn.Sequential(nn.Linear(item_dim, 128), nn.ReLU())
         self.ability_mlp = nn.Sequential(nn.Linear(ability_dim, 128), nn.ReLU())
         self.move_mlp = nn.Sequential(nn.Linear(DIMS["move_embed"], 256), nn.ReLU())
@@ -50,18 +62,12 @@ class Net(nn.Module):
         self.user_mlp = nn.Sequential(
             nn.Linear(DIMS["user_feat"] + 9 * 128 + 2 * DIMS["types"], 512), nn.ReLU()
         )
-
         self.move_opt_mlp = nn.Sequential(
             nn.Linear(battle_dim + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
         )
         self.switch_opt_mlp = nn.Sequential(
             nn.Linear(battle_dim + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
-        self.ability_avg_pool = nn.AvgPool1d()
-        self.item_avg_pool = nn.AvgPool1d()
-        self.move_avg_pool = nn.AvgPool1d()
-        self.move_max_pool = nn.MaxPool1d()
-        self.user_max_pool = nn.MaxPool1d()
 
     def move_slot(self, slot):
         if not slot:
@@ -72,15 +78,9 @@ class Net(nn.Module):
         return self.move_slot_mlp(x)
 
     def item(self, name):
-        if not name:
-            return self.no_item
-
         return self.item_mlp(self.dex.items[name])
 
     def ability(self, name):
-        if not name:
-            return self.no_ability
-
         return self.ability_mlp(self.dex.abilities[name])
 
     def types(self, names):
@@ -100,18 +100,21 @@ class Net(nn.Module):
         move_slot_xs = [self.move_slot(slot) for slot in user["moveSet"]]
         if len(user["movePool"]):
             move_slot_xs.append(
-                self.move_avg_pool(self.move_slot(slot) for slot in user["movePool"])
+                torch.stack(self.move_slot(slot) for slot in user["movePool"]).mean(
+                    dim=0
+                )
             )
-        move_set_x = self.move_max_pool(move_slot_xs)
+        move_set_x = torch.stack(move_slot_xs).max(dim=0)
 
         item_x = (
-            self.item_avg_pool([self.item(name) for name in items])
+            torch.stack(self.item(name) for name in items).mean(dim=0)
             if items
-            else self.item(None)
+            else self.no_item
         )
-        ability_x = self.ability_avg_pool(
+        ability_x = torch.stack(
             [self.ability(name) for name in user["abilities"]]
-        )
+        ).mean(dim=0)
+
         types_x = self.types(user["types"])
         tera_type_x = self.types(user["teraTypes"])
 
@@ -154,7 +157,7 @@ class Net(nn.Module):
             team_x[k] = team[k]
 
         x = torch.concat(
-            side["x"], team_x[lookup["active"]], self.user_max_pool(team_x.values())
+            side["x"], team_x[lookup["active"]], torch.stack(team_x.values()).max(dim=0)
         )
 
         return x, team_x
@@ -191,6 +194,18 @@ class Net(nn.Module):
         return
 
 
-# client = MongoClient("mongodb://localhost:27017")
-# db = client.get_database("chesto")
-# print(load_dex(db))
+def main():
+    client = MongoClient("mongodb://localhost:27017")
+    db = client.get_database("chesto")
+    dex = load_dex(db)
+
+    net = Net(dex)
+
+    # for epoch in range()
+
+    for sample in load_samples(db):
+        print(sample)
+        break
+
+
+main()
