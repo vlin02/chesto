@@ -26,11 +26,11 @@ export type FMoveSlot = {
 }
 
 type UserLookup = {
-  disabled: FMoveSlot | undefined
-  choice: FMoveSlot | undefined
-  encore: FMoveSlot | undefined
-  locked: FMoveSlot | undefined
-  lastMove: FMoveSlot | undefined
+  disabled: string | undefined
+  choice: string | undefined
+  encore: string | undefined
+  locked: string | undefined
+  lastMove: string | undefined
   lastBerry: string | undefined
 }
 
@@ -88,13 +88,13 @@ export function encodeMoveSet(moveSet: MoveSet) {
   return Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!)
 }
 
-function getUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
+function getUserLookup({ volatiles, lastBerry, lastMove }: User) {
   return {
-    disabled: encodeMoveSlot(moveSet, volatiles["Disable"]?.move),
-    choice: encodeMoveSlot(moveSet, volatiles["Choice Locked"]?.move),
-    encore: encodeMoveSlot(moveSet, volatiles["Encore"]?.move),
-    locked: encodeMoveSlot(moveSet, volatiles["Locked Move"]?.move),
-    lastMove: encodeMoveSlot(moveSet, lastMove),
+    disabled: volatiles["Disable"]?.move,
+    choice: volatiles["Choice Locked"]?.move,
+    encore: volatiles["Encore"]?.move,
+    locked: volatiles["Locked Move"]?.move,
+    lastMove: lastMove,
     lastBerry: lastBerry?.name
   }
 }
