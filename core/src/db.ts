@@ -2,7 +2,7 @@ import { Collection, Db } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
-import { FObserver } from "./encoding/observer.js"
+import { FObservation } from "./encoding/obs.js"
 import { Choice, Option } from "./run.js"
 
 export type Player = {
@@ -11,8 +11,8 @@ export type Player = {
 }
 
 export type Sample = {
-  observer: FObserver
-  option: Option
+  obs: FObservation
+  opt: Option
   choice: Choice
 }
 

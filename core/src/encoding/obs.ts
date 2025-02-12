@@ -11,7 +11,7 @@ import {
   TERRAIN_NAMES,
   WEATHER_NAMES
 } from "../battle.js"
-import { Flags, FoeUser, MoveSet, Status, User, Volatiles } from "../client/user.js"
+import { Flags, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, Side, SideEffects } from "../client/side.js"
 import { getPotentialPresets, matchesPreset } from "../version.js"
 import { Format } from "../run.js"
@@ -26,11 +26,11 @@ export type FMoveSlot = {
 }
 
 type UserLookup = {
-  disabled: string | undefined
-  choice: string | undefined
-  encore: string | undefined
-  locked: string | undefined
-  lastMove: string | undefined
+  disabled: FMoveSlot | undefined
+  choice: FMoveSlot | undefined
+  encore: FMoveSlot | undefined
+  locked: FMoveSlot | undefined
+  lastMove: FMoveSlot | undefined
   lastBerry: string | undefined
 }
 
@@ -61,7 +61,7 @@ type FFoe = {
   lookup: SideLookup
 }
 
-export type FObserver = {
+export type FObservation = {
   x: number[]
   ally: FAlly
   foe: FFoe
@@ -88,13 +88,13 @@ export function encodeMoveSet(moveSet: MoveSet) {
   return Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!)
 }
 
-function getUserLookup({ volatiles, lastBerry, lastMove }: User) {
+function getUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
   return {
-    disabled: volatiles["Disable"]?.move,
-    choice: volatiles["Choice Locked"]?.move,
-    encore: volatiles["Encore"]?.move,
-    locked: volatiles["Locked Move"]?.move,
-    lastMove: lastMove,
+    disabled: encodeMoveSlot(moveSet, volatiles["Disable"]?.move),
+    choice: encodeMoveSlot(moveSet, volatiles["Choice Locked"]?.move),
+    encore: encodeMoveSlot(moveSet, volatiles["Encore"]?.move),
+    locked: encodeMoveSlot(moveSet, volatiles["Locked Move"]?.move),
+    lastMove: encodeMoveSlot(moveSet, lastMove),
     lastBerry: lastBerry?.name
   }
 }
@@ -193,7 +193,7 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   ]
 }
 
-export function encodeObserver(format: Format, obs: Observer): FObserver {
+export function encodeObservation(format: Format, obs: Observer): FObservation {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
