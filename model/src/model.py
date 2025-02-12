@@ -3,6 +3,8 @@ from torch import nn
 from dataclasses import dataclass
 from typing import Dict, List
 from pymongo import MongoClient
+import torch.nn.functional as F
+
 
 DIMS = dict(
     move_slot_feat=2,
@@ -41,11 +43,10 @@ def load_dex(db):
 def load_samples(db):
     return db.replays.aggregate(
         [
-            {"$unwind": "$steps"},
-            {"$match": {"steps.sample": {"$ne": None}}},
-            {"$project": {"sample": "$steps.sample"}},
+            {"$unwind": "$samples"},
+            {"$match": {"samples": {"$ne": None}}},
+            {"$replaceRoot": {"newRoot": "$samples"}},
         ],
-        cursor={"batchSize": 10000},
     )
 
 
@@ -76,7 +77,7 @@ class Net(nn.Module):
         self.switch_opt_block = nn.Sequential(
             nn.Linear(battle_dim + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
-    @profile
+
     def move_slot(self, slot):
         if not slot:
             return self.no_move_slot
@@ -84,19 +85,19 @@ class Net(nn.Module):
         x = torch.concat([torch.tensor(slot["x"]), self.dex.moves[slot["move"]]])
 
         return self.move_slot_block(x)
-    @profile
+
     def item(self, name):
         if not name:
             return self.no_item
 
         return self.item_block(self.dex.items[name])
-    @profile
+
     def ability(self, name):
         if not name:
             return self.no_ability
 
         return self.ability_block(self.dex.abilities[name])
-    @profile
+
     def types(self, names):
         x = torch.zeros(20)
         for name in names:
@@ -104,7 +105,6 @@ class Net(nn.Module):
 
         return x
 
-    @profile
     def user(self, user):
         lookup = user["lookup"]
         items = user["items"]
@@ -149,19 +149,16 @@ class Net(nn.Module):
 
         return self.user_block(x)
 
-    @profile
     def move_opt(self, battle_x, slot_x, tera):
         x = torch.concat([battle_x, slot_x, torch.tensor([tera])])
 
         return self.move_opt_block(x)
 
-    @profile
     def switch_opt(self, battle_x, user_x):
         x = torch.concat([battle_x, user_x])
 
         return self.switch_opt_block(x)
 
-    @profile
     def side(self, side):
         lookup = side["lookup"]
         team = side["team"]
@@ -180,8 +177,6 @@ class Net(nn.Module):
 
         return x, team_x
 
-
-    @profile
     def forward(self, obs, opt):
         ally = obs["ally"]
         foe = obs["foe"]
@@ -190,14 +185,14 @@ class Net(nn.Module):
         foe_x, _ = self.side(foe)
         battle_x = torch.concat([torch.tensor(obs["x"]), ally_x, foe_x])
 
-        moves = opt["moves"]
+        move_slot_xs = list(map(self.move_slot, opt["moves"]))
         switches = opt["switches"]
         logits = []
 
         for i in range(4):
             for tera in [0, 1]:
-                if i < len(moves) and (("canTera" in opt) or (not tera)):
-                    logits.append(self.move_opt(battle_x, moves[i], tera))
+                if i < len(move_slot_xs) and (("canTera" in opt) or (not tera)):
+                    logits.append(self.move_opt(battle_x, move_slot_xs[i], tera))
                 else:
                     logits.append(float("-inf"))
 
@@ -207,7 +202,10 @@ class Net(nn.Module):
             else:
                 logits.append(float("-inf"))
 
-        return torch.tensor(logits).float()
+        logits = torch.tensor(logits)
+        probs = F.softmax(logits, dim=0)
+
+        return probs
 
 
 def to_label(opt, choice):
@@ -233,25 +231,24 @@ def to_label(opt, choice):
     return torch.tensor(y).float()
 
 
-
-@profile
 def main():
     client = MongoClient("mongodb://localhost:27017")
     db = client.get_database("chesto")
     dex = load_dex(db)
 
-    i = 0
-
     model = Net(dex)
 
-    # # for epoch in range()
-    for result in load_samples(db):
-        sample = result["sample"]
+    i = 0
+    print("loading")
+    for sample in load_samples(db):
+        # print(sample)
         obs = sample["observer"]
         opt = sample["option"]
-            model(obs, opt)
+        model(obs, opt)
         # break
+
         # print(result["sample"].keys())
+        # break
         # opt = sample["option"]
         # choice = sample["choice"]
         # if to_label(opt, choice).sum() != 1:
