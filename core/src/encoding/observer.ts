@@ -80,7 +80,7 @@ export function encodeMoveSlot(moveSet: MoveSet, move?: string): FMoveSlot | und
 
   return {
     move,
-    x: [0, 0]
+    x: [1, 1]
   }
 }
 
@@ -140,7 +140,7 @@ function encodeUser({
   return feats
 }
 
-function inferStats(gen: Generation, { forme, lvl }: FoeUser): Stats {
+function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!
 
   const stats: any = {}
@@ -271,7 +271,8 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
 
     for (const species in team) {
       const user = team[species]
-      const {
+      let {
+        lvl,
         hp,
         item,
         ability,
@@ -286,8 +287,22 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
         volatiles
       } = user
 
-      let presets = getPotentialPresets(format, user)
-      presets = presets.filter((x) => matchesPreset(x, user))
+      let presets = getPotentialPresets(format, forme)
+      let filtered = presets.filter((x) => matchesPreset(x, user))
+      if (filtered.length) {
+        presets = filtered
+      } else {
+        // check if its due to illusion
+        filtered = getPotentialPresets(format, "Zoroark").filter((x) => matchesPreset(x, user))
+
+        if (filtered) {
+          forme = "Zoroark"
+          presets = filtered
+          lvl = format.patch["Zoroark"].level
+        } else {
+          console.warn("neither matches forme nor zoroark")
+        }
+      }
 
       const validItems = new Set<string>()
       const validAbilities = new Set<string>()
@@ -306,7 +321,7 @@ export function encodeObserver(format: Format, obs: Observer): FObserver {
       fTeam[species] = {
         x: encodeUser({
           revealed: true,
-          stats: { ...inferStats(gen, user), hp: hp[1] },
+          stats: { ...inferStats(gen, forme, lvl), hp: hp[1] },
           hpLeft: hp[0],
           flags,
           volatiles,

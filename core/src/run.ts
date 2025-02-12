@@ -4,6 +4,7 @@ import { Observer } from "./client/observer.js"
 import { PARTIALLY_TRAPPED_MOVES } from "./battle.js"
 import { User, getDefTyping } from "./client/user.js"
 import { Choice as RawChoice } from "./log.js"
+import { encodeMoveSlot, FMoveSlot } from "./encoding/observer.js"
 
 export type Format = {
   gen: Generation
@@ -142,15 +143,17 @@ export function getValidSwitches({
 }
 
 export type Option = {
-  canTera?: boolean
-  moves?: string[]
-  switches?: string[]
+  canTera: boolean
+  moves: FMoveSlot[]
+  switches: string[]
 }
 
 export function getOption(run: Run): Option {
   const { obs } = run
 
-  const opt: Option = {}
+  let canTera = false
+  let fMoveSlots: FMoveSlot[] = []
+  let switches: string[] = []
 
   const {
     req,
@@ -161,20 +164,26 @@ export function getOption(run: Run): Option {
     case "move":
       const trapped = isTrapped(active)
 
-      const moveOpt = getMoveOption(run, active)
-      if (moveOpt.type === "struggle") opt.moves = ["Struggle"]
-      if (moveOpt.type === "recharge") opt.moves = ["Recharge"]
-      if (moveOpt.type === "default") opt.moves = moveOpt.moves
+      encodeMoveSlot
 
-      if (!teraUsed && moveOpt.type === "default") opt.canTera = true
-      if (!trapped) opt.switches = getValidSwitches(run)
+      const moveOpt = getMoveOption(run, active)
+
+      let moves: string[] = []
+
+      if (moveOpt.type === "struggle") moves = ["Struggle"]
+      if (moveOpt.type === "recharge") moves = ["Recharge"]
+      if (moveOpt.type === "default") moves = moveOpt.moves
+
+      fMoveSlots = moves.map((x) => encodeMoveSlot(active.moveSet, x)!)
+      if (!teraUsed && moveOpt.type === "default") canTera = true
+      if (!trapped) switches = getValidSwitches(run)
       break
     case "switch":
-      opt.switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
+      switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
       break
   }
 
-  return opt
+  return { canTera, moves: fMoveSlots, switches }
 }
 
 export type Choice =

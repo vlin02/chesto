@@ -63,18 +63,18 @@ class Net(nn.Module):
         self.no_ability = torch.zeros(128)
         self.no_move_slot = torch.zeros(128)
 
-        self.item_mlp = nn.Sequential(nn.Linear(item_dim, 128), nn.ReLU())
-        self.ability_mlp = nn.Sequential(nn.Linear(ability_dim, 128), nn.ReLU())
-        self.move_slot_mlp = nn.Sequential(
+        self.item_block = nn.Sequential(nn.Linear(item_dim, 128), nn.ReLU())
+        self.ability_block = nn.Sequential(nn.Linear(ability_dim, 128), nn.ReLU())
+        self.move_slot_block = nn.Sequential(
             nn.Linear(DIMS["move_embed"] + DIMS["move_slot_feat"], 128), nn.ReLU()
         )
-        self.user_mlp = nn.Sequential(
+        self.user_block = nn.Sequential(
             nn.Linear(DIMS["user_feat"] + 9 * 128 + 2 * DIMS["types"], 512), nn.ReLU()
         )
-        self.move_opt_mlp = nn.Sequential(
+        self.move_opt_block = nn.Sequential(
             nn.Linear(battle_dim + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
         )
-        self.switch_opt_mlp = nn.Sequential(
+        self.switch_opt_block = nn.Sequential(
             nn.Linear(battle_dim + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
     @profile
@@ -84,19 +84,19 @@ class Net(nn.Module):
 
         x = torch.concat([torch.tensor(slot["x"]), self.dex.moves[slot["move"]]])
 
-        return self.move_slot_mlp(x)
+        return self.move_slot_block(x)
     @profile
     def item(self, name):
         if not name:
             return self.no_item
 
-        return self.item_mlp(self.dex.items[name])
+        return self.item_block(self.dex.items[name])
     @profile
     def ability(self, name):
         if not name:
             return self.no_ability
 
-        return self.ability_mlp(self.dex.abilities[name])
+        return self.ability_block(self.dex.abilities[name])
     @profile
     def types(self, names):
         x = torch.zeros(20)
@@ -148,19 +148,19 @@ class Net(nn.Module):
             ]
         )
 
-        return self.user_mlp(x)
+        return self.user_block(x)
 
     @profile
     def move_opt(self, battle_x, slot_x, tera):
         x = torch.concat([battle_x, slot_x, torch.tensor([tera])])
 
-        return self.move_opt_mlp(x)
+        return self.move_opt_block(x)
 
     @profile
     def switch_opt(self, battle_x, user_x):
         x = torch.concat([battle_x, user_x])
 
-        return self.switch_opt_mlp(x)
+        return self.switch_opt_block(x)
 
     @profile
     def side(self, side):
@@ -252,7 +252,10 @@ def main():
         sample = result["sample"]
         obs = sample["observer"]
         opt = sample["option"]
-        model(obs, opt)
+        try: 
+            model(obs, opt)
+        except:
+            print(result["_id"])
         # break
         # print(result["sample"].keys())
         # opt = sample["option"]
@@ -262,7 +265,7 @@ def main():
 
         i += 1
         if i % 1000 == 0:
-            break
+            print(i)
         # break
 
 

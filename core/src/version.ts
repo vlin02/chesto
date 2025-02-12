@@ -28,19 +28,14 @@ export type Patch = {
   }
 }
 
-
-export function getPresetForme({ gen, patch }: Format, forme: string) {
+export function getBaseForme({ gen, patch }: Format, forme: string) {
   return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
 }
 
-export function getPotentialPresets(format: Format, user: FoeUser) {
+export function getPotentialPresets(format: Format, forme: string) {
   const { patch } = format
 
-  const {
-    base: { forme }
-  } = user
-
-  const baseForme = getPresetForme(format, forme)
+  const baseForme = getBaseForme(format, forme)
   const presets = [...patch[baseForme].presets]
 
   if (baseForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
