@@ -191,24 +191,24 @@ class Net(nn.Module):
         foe_x, _ = self.side(foe)
         battle_x = torch.concat([torch.tensor(obs["x"]), ally_x, foe_x])
 
-        # moves = opt["moves"]
-        # switches = opt["switches"]
-        # logits = []
+        moves = opt["moves"]
+        switches = opt["switches"]
+        logits = []
 
-        # for i in range(4):
-        #     for tera in [0, 1]:
-        #         if i < len(moves) and (("canTera" in opt) or (not tera)):
-        #             logits.append(self.move_opt(battle_x, moves[i], tera))
-        #         else:
-        #             logits.append(float("-inf"))
+        for i in range(4):
+            for tera in [0, 1]:
+                if i < len(moves) and (("canTera" in opt) or (not tera)):
+                    logits.append(self.move_opt(battle_x, moves[i], tera))
+                else:
+                    logits.append(float("-inf"))
 
-        # for i in range(6):
-        #     if i < len(switches):
-        #         logits.append(self.switch_opt(battle_x, ally_team_x[switches[i]]))
-        #     else:
-        #         logits.append(float("-inf"))
+        for i in range(6):
+            if i < len(switches):
+                logits.append(self.switch_opt(battle_x, ally_team_x[switches[i]]))
+            else:
+                logits.append(float("-inf"))
 
-        # return torch.tensor(logits).float()
+        return torch.tensor(logits).float()
 
 
 def to_label(opt, choice):
