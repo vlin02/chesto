@@ -43,6 +43,7 @@ def load_dex(db):
 def load_samples(db):
     return db.replays.aggregate(
         [
+            {"$limit": 1000},
             {"$unwind": "$samples"},
             {"$match": {"samples": {"$ne": None}}},
             {"$replaceRoot": {"newRoot": "$samples"}},
