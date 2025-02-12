@@ -252,13 +252,14 @@ def main():
     i = 0
     print("loading")
 
-    start_time = time.perf_counter()
 
+    v = []
     for sample in load_samples(db):
+        v.append(sample)
         # print(sample)
-        obs = sample["obs"]
-        opt = sample["opt"]
-        model(obs, opt)
+        # obs = sample["obs"]
+        # opt = sample["opt"]
+        # model(obs, opt)
         # break
 
         # print(result["sample"].keys())
@@ -270,9 +271,12 @@ def main():
 
         i += 1
         if i % 1000 == 0:
-            print(i)
             break
         # break
+
+    start_time = time.perf_counter()
+    for s in v:
+        model(s["obs"], s["opt"])
 
     end_time = time.perf_counter()
     print(end_time - start_time)
