@@ -21,8 +21,8 @@ import { scalePP, scaleStat } from "./norm.js"
 import { inferMaxPP } from "../client/move.js"
 
 export type FMoveSlot = {
+  move: string
   x: number[]
-  move?: string
 }
 
 type UserLookup = {

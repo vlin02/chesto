@@ -148,7 +148,7 @@ export type Option = {
   switches: string[]
 }
 
-export function getOption(run: Run): Option {
+export function encodeOption(run: Run): Option {
   const { obs } = run
 
   let canTera = false

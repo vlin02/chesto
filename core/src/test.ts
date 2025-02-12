@@ -2,7 +2,7 @@ import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format, getOption, isTrapped, Run, toChoice } from "./run.js"
+import { Format, encodeOption, isTrapped, Run, toChoice } from "./run.js"
 import { Replay } from "./db.js"
 
 export function testSide(fmt: Format, replay: Replay, side: Side) {
@@ -25,18 +25,18 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
       const choice = toChoice(run, input.choice)
 
       if (input.side === side) {
-        const opt = getOption(run)
+        const opt = encodeOption(run)
 
         switch (choice.type) {
           case "move": {
             const { tera, move } = choice
 
-            if (!opt.moves?.includes(move)) throw Error()
+            if (!opt.moves.some((x) => x.move === move)) throw Error()
             if (tera && !opt.canTera) throw Error()
             break
           }
           case "switch": {
-            if (!opt.switches?.includes(choice.species)) throw Error()
+            if (!opt.switches.includes(choice.species)) throw Error()
             break
           }
         }
@@ -55,7 +55,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const user = team[species]
 
         const build = opp.team.find((x) => x.name === species)!
-        const presets = getPotentialPresets(fmt, user)
+        const presets = getPotentialPresets(fmt, user.base.forme)
 
         const buildFound = presets.some((preset) => {
           return preset.role === build.role && matchesPreset(preset, user)
@@ -81,7 +81,9 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = getOption(run).moves!.sort()
+        const movesA = encodeOption(run)
+          .moves!.map((x) => x.move)
+          .sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
