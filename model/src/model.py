@@ -19,6 +19,7 @@ DIMS = dict(
     types=20,
 )
 
+
 @dataclass
 class Dex:
     items: Dict[str, List[float]]
@@ -26,33 +27,35 @@ class Dex:
     moves: Dict[str, List[float]]
     types: Dict[str, List[float]]
 
+
 def load_dex(db):
-    items = {f["name"]: torch.tensor(f["desc"]["openai"], device=device) for f in db.items.find()}
-    abilities = {f["name"]: torch.tensor(f["desc"]["openai"], device=device) for f in db.abilities.find()}
-    moves = {f["name"]: torch.tensor(f["x"] + f["desc"]["openai"], device=device) for f in db.moves.find()}
+    items = {
+        f["name"]: torch.tensor(f["desc"]["openai"], device=device)
+        for f in db.items.find()
+    }
+    abilities = {
+        f["name"]: torch.tensor(f["desc"]["openai"], device=device)
+        for f in db.abilities.find()
+    }
+    moves = {
+        f["name"]: torch.tensor(f["x"] + f["desc"]["openai"], device=device)
+        for f in db.moves.find()
+    }
     types = {f["name"]: f for f in db.types.find()}
 
     return Dex(items=items, abilities=abilities, moves=moves, types=types)
 
+
 def load_samples(db):
-    samples = []
-    batch = []
-    
-    for res in db.replays.aggregate([
-        {"$limit": 1000},
-        {"$unwind": "$samples"},
-        {"$match": {"samples": {"$ne": None}}},
-        {"$project": {"id": 1, "samples": 1}},
-    ]).:
-        batch.append(res)
-        if len(batch) == 50:
-            yield batch
-            batch = []
-    
-    if batch:
-        yield batch
-    
-    return samples
+    return db.replays.aggregate(
+        [
+            {"$limit": 1000},
+            {"$unwind": "$samples"},
+            {"$match": {"samples": {"$ne": None}}},
+            {"$replaceRoot": {"newRoot": "$samples"}},
+        ],
+    )
+
 
 class Net(nn.Module):
     def __init__(self, dex):
@@ -87,11 +90,14 @@ class Net(nn.Module):
             return self.no_move_slot
 
         move = slot["move"]
-        x = torch.concat([
-            torch.tensor(slot["x"], device=device),
-            torch.zeros(DIMS["move_embed"], device=device) if move == "Recharge" 
-            else self.dex.moves[slot["move"]]
-        ])
+        x = torch.concat(
+            [
+                torch.tensor(slot["x"], device=device),
+                torch.zeros(DIMS["move_embed"], device=device)
+                if move == "Recharge"
+                else self.dex.moves[slot["move"]],
+            ]
+        )
 
         return self.move_slot_block(x)
 
@@ -118,7 +124,9 @@ class Net(nn.Module):
         move_slot_xs = [self.move_slot(slot) for slot in user["moveSet"]]
         if len(user["movePool"]):
             move_slot_xs.append(
-                torch.stack([self.move_slot(slot) for slot in user["movePool"]]).mean(dim=0)
+                torch.stack([self.move_slot(slot) for slot in user["movePool"]]).mean(
+                    dim=0
+                )
             )
         move_set_x, _ = torch.stack(move_slot_xs).max(dim=0)
 
@@ -134,20 +142,22 @@ class Net(nn.Module):
         types_x = self.types(user["types"])
         tera_type_x = self.types(user["teraTypes"])
 
-        x = torch.concat([
-            torch.tensor(user["x"], device=device),
-            self.move_slot(lookup["disabled"]),
-            self.move_slot(lookup["choice"]),
-            self.move_slot(lookup["encore"]),
-            self.move_slot(lookup["locked"]),
-            self.move_slot(lookup["lastMove"]),
-            self.item(lookup["lastBerry"]),
-            move_set_x,
-            item_x,
-            ability_x,
-            types_x,
-            tera_type_x,
-        ])
+        x = torch.concat(
+            [
+                torch.tensor(user["x"], device=device),
+                self.move_slot(lookup["disabled"]),
+                self.move_slot(lookup["choice"]),
+                self.move_slot(lookup["encore"]),
+                self.move_slot(lookup["locked"]),
+                self.move_slot(lookup["lastMove"]),
+                self.item(lookup["lastBerry"]),
+                move_set_x,
+                item_x,
+                ability_x,
+                types_x,
+                tera_type_x,
+            ]
+        )
 
         return self.user_block(x)
 
@@ -167,46 +177,46 @@ class Net(nn.Module):
         for k in team.keys():
             team_x[k] = self.user(team[k])
 
-        x = torch.concat([
-            torch.tensor(side["x"], device=device),
-            team_x[lookup["active"]],
-            torch.stack(list(team_x.values())).max(dim=0)[0],
-        ])
+        x = torch.concat(
+            [
+                torch.tensor(side["x"], device=device),
+                team_x[lookup["active"]],
+                torch.stack(list(team_x.values())).max(dim=0)[0],
+            ]
+        )
 
         return x, team_x
 
-    def forward(self, batch_obs, batch_opt):
-        all_probs = []
-        for obs, opt in zip(batch_obs, batch_opt):
-            ally = obs["ally"]
-            foe = obs["foe"]
+    def forward(self, obs, opt):
+        ally = obs["ally"]
+        foe = obs["foe"]
 
-            ally_x, ally_team_x = self.side(ally)
-            foe_x, _ = self.side(foe)
-            battle_x = torch.concat([torch.tensor(obs["x"], device=device), ally_x, foe_x])
+        ally_x, ally_team_x = self.side(ally)
+        foe_x, _ = self.side(foe)
+        battle_x = torch.concat([torch.tensor(obs["x"], device=device), ally_x, foe_x])
 
-            move_slot_xs = list(map(self.move_slot, opt["moves"]))
-            switches = opt["switches"]
-            logits = []
+        move_slot_xs = list(map(self.move_slot, opt["moves"]))
+        switches = opt["switches"]
+        logits = []
 
-            for i in range(4):
-                for tera in [0, 1]:
-                    if i < len(move_slot_xs) and (("canTera" in opt) or (not tera)):
-                        logits.append(self.move_opt(battle_x, move_slot_xs[i], tera))
-                    else:
-                        logits.append(torch.tensor(float("-inf"), device=device))
-
-            for i in range(6):
-                if i < len(switches):
-                    logits.append(self.switch_opt(battle_x, ally_team_x[switches[i]]))
+        for i in range(4):
+            for tera in [0, 1]:
+                if i < len(move_slot_xs) and (("canTera" in opt) or (not tera)):
+                    logits.append(self.move_opt(battle_x, move_slot_xs[i], tera))
                 else:
-                    logits.append(torch.tensor(float("-inf"), device=device))
+                    logits.append(float("-inf"))
 
-            logits = torch.stack(logits)
-            probs = F.softmax(logits, dim=0)
-            all_probs.append(probs)
-        
-        return torch.stack(all_probs)
+        for i in range(6):
+            if i < len(switches):
+                logits.append(self.switch_opt(battle_x, ally_team_x[switches[i]]))
+            else:
+                logits.append(float("-inf"))
+
+        logits = torch.tensor(logits, device=device)
+        probs = F.softmax(logits, dim=0)
+
+        return probs
+
 
 def to_label(opt, choice):
     moves = opt["moves"]
@@ -230,27 +240,36 @@ def to_label(opt, choice):
 
     return torch.tensor(y, device=device).float()
 
+
 def main():
     client = MongoClient("mongodb://localhost:27017")
     db = client.get_database("chesto")
     dex = load_dex(db)
 
     model = Net(dex).to(device)
-    
-    print("loading")
-    for batch_idx, batch in enumerate(load_samples(db)):
-        try:
-            batch_obs = [sample["samples"]["obs"] for sample in batch]
-            batch_opt = [sample["samples"]["opt"] for sample in batch]
-            print("ready")
-            model(batch_obs, batch_opt)
-        except Exception as e:
-            print(f"Error in batch {batch_idx}")
-            print([sample["id"] for sample in batch])
-            raise e
 
-        if batch_idx % 10 == 0:
-            print(f"Processed {batch_idx * 50} samples")
+    i = 0
+    print("loading")
+    for sample in load_samples(db):
+        # print(sample)
+        obs = sample["obs"]
+        opt = sample["opt"]
+        model(obs, opt)
+        # break
+
+        # print(result["sample"].keys())
+        # break
+        # opt = sample["option"]
+        # choice = sample["choice"]
+        # if to_label(opt, choice).sum() != 1:
+        #     raise result["_id"]
+
+        i += 1
+        if i % 1000 == 0:
+            print(i)
+            break
+        # break
+
 
 if __name__ == "__main__":
     main()
