@@ -46,7 +46,7 @@ def load_samples(db):
             {"$limit": 1000},
             {"$unwind": "$samples"},
             {"$match": {"samples": {"$ne": None}}},
-            {"$replaceRoot": {"newRoot": "$samples"}},
+            {"$project": {"id": 1, "samples": 1}},
         ],
     )
 
@@ -250,11 +250,17 @@ def main():
 
     i = 0
     print("loading")
-    for sample in load_samples(db):
+    for res in load_samples(db):
+        id = res["id"]
+        sample = res["samples"]
         # print(sample)
         obs = sample["obs"]
         opt = sample["opt"]
-        model(obs, opt)
+        try:
+            model(obs, opt)
+        except:
+            print(id)
+            raise id
         # break
 
         # print(result["sample"].keys())
