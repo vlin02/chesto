@@ -240,6 +240,7 @@ def to_label(opt, choice):
 
     return torch.tensor(y, device=device).float()
 
+import time
 
 def main():
     client = MongoClient("mongodb://localhost:27017")
@@ -250,6 +251,9 @@ def main():
 
     i = 0
     print("loading")
+
+    start_time = time.perf_counter()
+
     for sample in load_samples(db):
         # print(sample)
         obs = sample["obs"]
@@ -269,6 +273,10 @@ def main():
             print(i)
             break
         # break
+
+    end_time = time.perf_counter()
+    print(end_time - start_time)
+
 
 
 if __name__ == "__main__":
