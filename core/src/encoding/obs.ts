@@ -309,6 +309,11 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
             break
           }
         }
+
+        if (v === 0) {
+          console.log(user)
+          console.warn("failed")
+        }
       }
 
       const validItems = new Set<string>()
