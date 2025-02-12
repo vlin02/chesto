@@ -212,8 +212,8 @@ class Net(nn.Module):
 
 
 def to_label(opt, choice):
-    moves = opt["moves"] if "moves" in opt else []
-    switches = opt["switches"] if "switches" in opt else []
+    moves = opt["moves"]
+    switches = opt["switches"]
 
     y = []
     for i in range(4):

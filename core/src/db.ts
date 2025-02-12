@@ -31,6 +31,7 @@ export type Replay = {
   password: string | null
   inputs: string[]
   outputs: Log[][]
+  samples: (Sample | null)[]
   steps: Step[]
   p1: Player
   p2: Player
