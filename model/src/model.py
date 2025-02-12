@@ -3,7 +3,6 @@ from torch import nn
 from dataclasses import dataclass
 from typing import Dict, List
 from pymongo import MongoClient
-from line_profiler import profile
 
 DIMS = dict(
     move_slot_feat=2,
@@ -242,8 +241,6 @@ def main():
     dex = load_dex(db)
 
     i = 0
-    # for _ in db.replays.find({}, {"step.sample": 1}):
-    # print()
 
     model = Net(dex)
 
@@ -252,10 +249,7 @@ def main():
         sample = result["sample"]
         obs = sample["observer"]
         opt = sample["option"]
-        try: 
             model(obs, opt)
-        except:
-            print(result["_id"])
         # break
         # print(result["sample"].keys())
         # opt = sample["option"]
