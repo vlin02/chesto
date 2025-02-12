@@ -82,7 +82,16 @@ class Net(nn.Module):
         if not slot:
             return self.no_move_slot
 
-        x = torch.concat([torch.tensor(slot["x"]), self.dex.moves[slot["move"]]])
+        move = slot["move"]
+
+        x = torch.concat(
+            [
+                torch.tensor(slot["x"]),
+                torch.zeros(DIMS["move_embed"])
+                if move == "Recharge"
+                else self.dex.moves[slot["move"]],
+            ]
+        )
 
         return self.move_slot_block(x)
 
@@ -242,8 +251,8 @@ def main():
     print("loading")
     for sample in load_samples(db):
         # print(sample)
-        obs = sample["observer"]
-        opt = sample["option"]
+        obs = sample["obs"]
+        opt = sample["opt"]
         model(obs, opt)
         # break
 

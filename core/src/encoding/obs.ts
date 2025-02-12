@@ -13,7 +13,7 @@ import {
 } from "../battle.js"
 import { Flags, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, Side, SideEffects } from "../client/side.js"
-import { getPotentialPresets, matchesPreset } from "../version.js"
+import { getInitialForme, getPotentialPresets, matchesPreset } from "../version.js"
 import { Format } from "../run.js"
 import { encodeDelayedAttack, encodeStats, encodeStatus, encodeVolatiles } from "./features.js"
 import { INTERIM_FORMES } from "./forme.js"
@@ -284,23 +284,30 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
         tera,
         boosts,
         forme,
+        base,
         volatiles
       } = user
 
-      let presets = getPotentialPresets(format, forme)
+      const initialForme = getInitialForme(format, base.forme)
+      let presets = getPotentialPresets(format, initialForme)
       let filtered = presets.filter((x) => matchesPreset(x, user))
+
       if (filtered.length) {
         presets = filtered
       } else {
-        // check if its due to illusion
-        filtered = getPotentialPresets(format, "Zoroark").filter((x) => matchesPreset(x, user))
+        let v = 0
+        for (const initialForme of ["Zoroark", "Zoroark-Hisui"]) {
+          const filtered = getPotentialPresets(format, initialForme).filter((x) =>
+            matchesPreset(x, user)
+          )
 
-        if (filtered) {
-          forme = "Zoroark"
-          presets = filtered
-          lvl = format.patch["Zoroark"].level
-        } else {
-          console.warn("neither matches forme nor zoroark")
+          if (filtered.length) {
+            forme = initialForme
+            presets = filtered
+            lvl = format.patch[initialForme].level
+            v = 1
+            break
+          }
         }
       }
 
