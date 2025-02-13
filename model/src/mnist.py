@@ -5,29 +5,20 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-torch.set_num_threads(40)
-torch.set_num_interop_threads(4)
+device = torch.device('cuda')
 
-# Modified model with parallel splits
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        # Break large 784x512 layer into smaller sequential ones
-        self.fc1a = nn.Linear(784, 128)
-        self.fc1b = nn.Linear(128, 256)
-        self.fc1c = nn.Linear(256, 512)
+        self.fc1 = nn.Linear(784, 512)
         self.fc2 = nn.Linear(512, 10)
     
     def forward(self, x):
         x = x.view(-1, 784)
-        # Process in stages to reduce peak memory
-        x = torch.relu(self.fc1a(x))
-        x = torch.relu(self.fc1b(x))
-        x = torch.relu(self.fc1c(x))
+        x = torch.relu(self.fc1(x))
         return self.fc2(x).log_softmax(dim=1)
 
-model = Net()
-# model = model.half()
+model = Net().to(device)
 
 train_dataset = datasets.MNIST(
     'data', 
@@ -38,54 +29,64 @@ train_dataset = datasets.MNIST(
 
 train_loader = DataLoader(
     train_dataset,
-    batch_size=5000,
-    shuffle=True
+    batch_size=60000,
+    shuffle=True,
+    pin_memory=True
 )
 
-test_loader = DataLoader(
-    datasets.MNIST('data', train=False, transform=transforms.ToTensor()),
-    batch_size=10000
-)
+# Make optimizer capturable
+optimizer = optim.Adam(model.parameters(), lr=0.001, capturable=True)
+criterion = nn.NLLLoss().to(device)
 
-torch.backends.cuda.matmul.allow_tf32 = True
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-criterion = nn.NLLLoss()
+data, target = next(iter(train_loader))
+data, target = data.to(device), target.to(device)
 
-for p in model.parameters():
-    p.grad = torch.zeros_like(p)
+s = torch.cuda.Stream()
+s.wait_stream(torch.cuda.current_stream())
 
-train_data = list(enumerate(train_loader))
+static_output = None
+static_loss = None
 
-epochs = 10
+def train_step():
+    global static_output, static_loss
+    optimizer.zero_grad(set_to_none=True)
+    static_output = model(data)
+    static_loss = criterion(static_output, target)
+    static_loss.backward()
+    optimizer.step()
+
+with torch.cuda.stream(s):
+    train_step()
+torch.cuda.current_stream().wait_stream(s)
+
+g = torch.cuda.CUDAGraph()
+with torch.cuda.stream(s):
+    with torch.cuda.graph(g):
+        train_step()
+
+epochs = 1000
 start_time = time.perf_counter()
 
-@profile
 def main():
     for epoch in range(epochs):
-        for batch_idx, (data, target) in train_data:
-            # Just make contiguous, no pin_memory
-            data = data.contiguous()
-            
-            for p in model.parameters():
-                p.grad.zero_()
-                
-            output = model(data)
-            loss = criterion(output, target)
-            loss.backward()
-            optimizer.step()
-            
-            if batch_idx % 10 == 0:
-                print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
-                    f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
+        g.replay()
+        print(f'Loss: {static_loss.item():.6f}')
 
     end_time = time.perf_counter()
     print(f"Training time: {end_time - start_time:.2f} seconds")
 
 main()
 
+test_loader = DataLoader(
+    datasets.MNIST('data', train=False, transform=transforms.ToTensor()),
+    batch_size=10000,
+    pin_memory=True
+)
+
 model.eval()
 with torch.no_grad():
     data, target = next(iter(test_loader))
+    data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
     output = model(data)
     pred = output.argmax(dim=1)
     correct = pred.eq(target).sum().item()
