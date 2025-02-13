@@ -1,78 +1,92 @@
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-# Define the model
+torch.set_num_threads(40)
+torch.set_num_interop_threads(4)
+
+# Modified model with parallel splits
 class Net(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
-        self.fc1 = nn.Linear(28 * 28, 512)
-        self.relu = nn.ReLU()
+        super().__init__()
+        # Break large 784x512 layer into smaller sequential ones
+        self.fc1a = nn.Linear(784, 128)
+        self.fc1b = nn.Linear(128, 256)
+        self.fc1c = nn.Linear(256, 512)
         self.fc2 = nn.Linear(512, 10)
-        self.log_softmax = nn.LogSoftmax(dim=1)
     
     def forward(self, x):
-        x = x.view(-1, 28 * 28)
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.log_softmax(x)
-        return x
+        x = x.view(-1, 784)
+        # Process in stages to reduce peak memory
+        x = torch.relu(self.fc1a(x))
+        x = torch.relu(self.fc1b(x))
+        x = torch.relu(self.fc1c(x))
+        return self.fc2(x).log_softmax(dim=1)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = Net()
+# model = model.half()
 
-# Load the data with much larger batches
+train_dataset = datasets.MNIST(
+    'data', 
+    train=True, 
+    download=True,
+    transform=transforms.ToTensor()
+)
+
 train_loader = DataLoader(
-    datasets.MNIST("data", train=True, download=True, transform=transforms.ToTensor()),
-    generator=torch.Generator(),
-    batch_size=2000,  # Massively increased from 128
-    shuffle=True,
-    pin_memory=True  # Added for faster GPU transfer
+    train_dataset,
+    batch_size=5000,
+    shuffle=True
 )
 
 test_loader = DataLoader(
-    datasets.MNIST("data", train=False, transform=transforms.ToTensor()),
-    generator=torch.Generator(),
-    batch_size=10000,  # Increased test batch size too
+    datasets.MNIST('data', train=False, transform=transforms.ToTensor()),
+    batch_size=10000
 )
 
-model = Net().to(device)
+torch.backends.cuda.matmul.allow_tf32 = True
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-criterion = nn.NLLLoss().to(device)
+criterion = nn.NLLLoss()
 
-# Train the model
-epochs = 100
-v = list(enumerate(train_loader))
-for epoch in range(epochs):
-    for batch_idx, (data, target) in v:
-        data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
-        output = model(data)
-        loss = criterion(output, target)
-        loss.backward()
-        optimizer.step()
-        if batch_idx % 10 == 0:  # Changed from 100 since we have fewer batches now
-            print(
-                "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
-                    epoch,
-                    batch_idx * len(data),
-                    len(train_loader.dataset),
-                    100.0 * batch_idx / len(train_loader),
-                    loss.item(),
-                )
-            )
+for p in model.parameters():
+    p.grad = torch.zeros_like(p)
 
-# Test the model
+train_data = list(enumerate(train_loader))
+
+epochs = 10
+start_time = time.perf_counter()
+
+@profile
+def main():
+    for epoch in range(epochs):
+        for batch_idx, (data, target) in train_data:
+            # Just make contiguous, no pin_memory
+            data = data.contiguous()
+            
+            for p in model.parameters():
+                p.grad.zero_()
+                
+            output = model(data)
+            loss = criterion(output, target)
+            loss.backward()
+            optimizer.step()
+            
+            if batch_idx % 10 == 0:
+                print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
+                    f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
+
+    end_time = time.perf_counter()
+    print(f"Training time: {end_time - start_time:.2f} seconds")
+
+main()
+
 model.eval()
 with torch.no_grad():
-    test_loss = 0
-    correct = 0
-    for data, target in test_loader:
-        data, target = data.to(device), target.to(device)
-        output = model(data)
-        pred = output.argmax(dim=1)
-        correct += pred.eq(target).sum().item()
-
-print("Accuracy: {:.2f}%".format(100 * correct / len(test_loader.dataset)))
+    data, target = next(iter(test_loader))
+    output = model(data)
+    pred = output.argmax(dim=1)
+    correct = pred.eq(target).sum().item()
+    print(f'Accuracy: {100. * correct / len(test_loader.dataset):.2f}%')

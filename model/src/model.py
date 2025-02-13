@@ -7,6 +7,10 @@ import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.backends.cudnn.benchmark = True
+# print(torch.get_num_threads())
+torch.set_num_threads(1)
+
+
 
 DIMS = dict(
     move_slot_feat=2,
