@@ -35,3 +35,8 @@
 import torch
 # print(torch.tensor([-5]) * float('-inf'))
 print(torch.tensor([[1,2],[3,4]]).repeat(2, 1))
+lists = [[1,2,3], [4,5,6], [7,8,9]]
+# Convert to tensors first if they're not already
+tensors = [torch.tensor(x) for x in lists]
+stacked = torch.stack(tensors)  # shape: (3,3)
+print(stacked)

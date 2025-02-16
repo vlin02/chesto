@@ -12,13 +12,13 @@ def vectorize_sample(dim, idx, sample):
     choice = sample["choice"]
 
     move_set_idx = torch.zeros(2, 6, 4)
-    move_set_x = torch.zeros(2, 6, 4, dim["move_feat"])
+    move_set_x = torch.zeros(2, 6, 4, dim["move_slot"])
 
     move_pool_idx = torch.zeros(2, 6, 10)
-    move_pool_x = torch.zeros(2, 6, 10, dim["move_feat"])
+    move_pool_x = torch.zeros(2, 6, 10, dim["move_slot"])
 
     move_lookup_idx = torch.zeros(2, 6, 5)
-    move_lookup_x = torch.zeros(2, 6, 5, dim["move_feat"])
+    move_lookup_x = torch.zeros(2, 6, 5, dim["move_slot"])
 
     ability_idx = torch.zeros(2, 6)
 
@@ -27,13 +27,13 @@ def vectorize_sample(dim, idx, sample):
 
     item_lookup_idx = torch.zeros(2, 6, 1)
 
-    user_x = torch.zeros(2, 6, dim["user_feat"] + 2 * dim["type"])
+    user_x = torch.zeros(2, 6, dim["user"] + 2 * dim["type"])
     user_mask = torch.ones(2, 6)
 
-    side_x = torch.zeros(2, 100)
+    side_x = torch.zeros(2, dim["side"])
     active_idx = torch.zeros(2)
 
-    battle_x = torch.tensor(battle["x"])
+    battle_x = torch.zeros(dim["battle"])
 
     move_option_idx = torch.zeros(4)
     action_mask = torch.zeros(14)
@@ -41,12 +41,15 @@ def vectorize_sample(dim, idx, sample):
     choice_x = torch.zeros(14)
 
     sides = [sample["ally"], sample["foe"]]
+
+    battle_x = torch.tensor(battle["x"])
+
     for i in range(2):
         side = sides[i]
         team = side["team"]
         species = list(team.keys())
 
-        side_x[i] = side["x"]
+        side_x[i] = torch.tensor(side["x"])
         active_idx[i] = species.index(side["active"])
 
         for j in range(6):
@@ -61,7 +64,7 @@ def vectorize_sample(dim, idx, sample):
 
                 user_x[i][j] = torch.concat(
                     [
-                        user["x"],
+                        torch.tensor(user["x"]),
                         one_hot_types(idx, types),
                         one_hot_types(idx, tera_types),
                     ]
