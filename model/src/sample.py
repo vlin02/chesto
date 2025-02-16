@@ -37,9 +37,9 @@ def to_input(lookup, sample):
     battle_x = torch.zeros(dim["battle"])
 
     move_option_idx = torch.zeros(4)
-    action_mask = torch.zeros(14)
+    action_mask = torch.ones(14)
 
-    choice_x = torch.zeros(14)
+    target = torch.zeros(14)
 
     sides = [sample["ally"], sample["foe"]]
 
@@ -106,25 +106,26 @@ def to_input(lookup, sample):
                     if ref in user:
                         item_lookup_idx[i][j][k] = lookup.item_idx[user[ref]]
             else:
-                user_mask[i][j] = float("-inf")
+                user_mask[i][j] = 0
 
     for i in range(2):
         for j in range(4):
             if not ((options["canTera"] or i == 0) and j < len(options["moves"])):
-                action_mask[i * 4 + j] = float("-inf")
+                action_mask[i * 4 + j] = 0
 
     species = list(sample["ally"]["team"].keys())
     for i in range(6):
         if species[i] not in options["switches"]:
-            action_mask[8 + i] = float("-inf")
+            action_mask[8 + i] = 0
 
     if choice["type"] == "move":
         i = int(options["tera"])
         j = [x["move"] for x in options["moves"]].index(choice["move"])
-        action_mask[i * 4 + j] = 1
+        target[i * 4 + j] = 1
+
     elif choice["type"] == "switch":
         i = species.index(choice["species"])
-        choice_x[8 + i] = 1
+        target[8 + i] = 1
 
     return dict(
         move_set_idx=move_set_idx,
@@ -144,5 +145,5 @@ def to_input(lookup, sample):
         battle_x=battle_x,
         move_option_idx=move_option_idx,
         action_mask=action_mask,
-        choice_x=choice_x,
+        choice_x=target,
     )
