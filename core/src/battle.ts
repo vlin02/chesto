@@ -11,7 +11,7 @@ export type TerrainName = (typeof TERRAIN_NAMES)[number]
 
 export const PSEUDO_WEATHER_NAMES = [
   "Trick Room"
-]
+] as const
 export type PseudoWeatherName = (typeof PSEUDO_WEATHER_NAMES)[number]
 
 export type Gender = "M" | "F" | null

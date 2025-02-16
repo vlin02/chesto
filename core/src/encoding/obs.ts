@@ -20,57 +20,43 @@ import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"
 import { inferMaxPP } from "../client/move.js"
 
-export type FMoveSlot = {
+export type MoveSlotInput = {
   move: string
   x: number[]
 }
 
-type UserLookup = {
-  disabled: FMoveSlot | undefined
-  choice: FMoveSlot | undefined
-  encore: FMoveSlot | undefined
-  locked: FMoveSlot | undefined
-  lastMove: FMoveSlot | undefined
-  lastBerry: string | undefined
-}
-
-type SideLookup = {
-  active: string
-}
-
-type FUser = {
+type UserInput = {
   x: number[]
-  lookup: UserLookup
-  moveSet: FMoveSlot[]
-  movePool: FMoveSlot[]
+  moveSet: MoveSlotInput[]
+  movePool: MoveSlotInput[]
   abilities: string[]
   items: string[] | null
   types: string[]
   teraTypes: string[]
+  disabled: MoveSlotInput | undefined
+  choice: MoveSlotInput | undefined
+  encore: MoveSlotInput | undefined
+  locked: MoveSlotInput | undefined
+  lastMove: MoveSlotInput | undefined
+  lastBerry: string | undefined
 }
 
-type FAlly = {
+type SideInput = {
   x: number[]
-  team: { [k: string]: FUser }
-  lookup: SideLookup
+  team: { [k: string]: UserInput }
+  active: string
 }
 
-type FFoe = {
+export type FBattle = {
   x: number[]
-  team: { [k: string]: FUser }
-  lookup: SideLookup
+  ally: SideInput
+  foe: SideInput
 }
 
-export type FObservation = {
-  x: number[]
-  ally: FAlly
-  foe: FFoe
-}
+export const CHOICE_MODES = ["move", "switch", "revive", "wait"]
+export type ChoiceMode = (typeof CHOICE_MODES)[number]
 
-export const DECISION_MODES = ["move", "switch", "revive", "wait"]
-export type DecisionMode = (typeof DECISION_MODES)[number]
-
-export function encodeMoveSlot(moveSet: MoveSet, move?: string): FMoveSlot | undefined {
+export function encodeMoveSlot(moveSet: MoveSet, move?: string): MoveSlotInput | undefined {
   if (!move) return undefined
 
   if (move in moveSet) {
@@ -120,24 +106,24 @@ function encodeUser({
   boosts: Boosts
   tera: boolean
 }) {
-  const feats: number[] = []
+  const x: number[] = []
 
-  feats.push(revealed ? 1 : 0)
-  feats.push(tera ? 1 : 0)
-  feats.push(scaleStat("hp", hpLeft))
-  feats.push(...encodeStats(stats))
-  feats.push(...encodeStatus(status))
+  x.push(revealed ? 1 : 0)
+  x.push(tera ? 1 : 0)
+  x.push(scaleStat("hp", hpLeft))
+  x.push(...encodeStats(stats))
+  x.push(...encodeStatus(status))
 
-  feats.push(
+  x.push(
     ...(["battleBond", "intrepidSword", "illusionRevealed"] as const).map((k) => (flags[k] ? 1 : 0))
   )
 
-  feats.push(...INTERIM_FORMES.map((k) => (k === forme ? 1 : 0)))
-  feats.push(...BOOST_IDS.map((id) => boosts[id] ?? 0))
+  x.push(...INTERIM_FORMES.map((k) => (k === forme ? 1 : 0)))
+  x.push(...BOOST_IDS.map((id) => boosts[id] ?? 0))
 
-  feats.push(...encodeVolatiles(volatiles))
+  x.push(...encodeVolatiles(volatiles))
 
-  return feats
+  return x
 }
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
@@ -158,7 +144,7 @@ function encodeSide({
   delayedAttack,
   teraUsed
 }: {
-  mode: DecisionMode
+  mode: ChoiceMode
   effects: SideEffects
   wish?: number
   delayedAttack?: DelayedAttack
@@ -170,7 +156,7 @@ function encodeSide({
   x.push(...encodeDelayedAttack(delayedAttack))
   x.push(teraUsed ? 1 : 0)
 
-  x.push(...DECISION_MODES.map((x) => (mode === x ? 1 : 0)))
+  x.push(...CHOICE_MODES.map((x) => (mode === x ? 1 : 0)))
   x.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
   x.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
 
@@ -183,7 +169,7 @@ function getSideLookup({ active }: Side) {
   }
 }
 
-function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
+function extractBattle({ fields, weather }: { fields: Fields; weather?: Weather }) {
   return [
     ...WEATHER_NAMES.map((name) => (weather?.name === name ? 5 - weather.turn : 0)),
     ...[...TERRAIN_NAMES, ...PSEUDO_WEATHER_NAMES].map((name) => {
@@ -193,17 +179,17 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   ]
 }
 
-export function encodeObservation(format: Format, obs: Observer): FObservation {
+export function encodeBattle(format: Format, obs: Observer): FBattle {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
 
-  let fAlly: FAlly
+  let fAlly: SideInput
   {
-    const { team, delayedAttack, effects, teraUsed, wish } = ally
+    const { team, delayedAttack, effects, teraUsed, wish, active } = ally
 
     let fTeam: {
-      [k: string]: FUser
+      [k: string]: UserInput
     } = {}
 
     for (const species in team) {
@@ -238,13 +224,13 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
           forme,
           tera
         }),
-        lookup: getUserLookup(user),
         moveSet: encodeMoveSet(moveSet),
         movePool: [],
         abilities: [ability],
         items: item ? [item] : null,
         types,
-        teraTypes: [teraType]
+        teraTypes: [teraType],
+        ...getUserLookup(user)
       }
     }
 
@@ -256,17 +242,17 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
         effects,
         wish
       }),
-      lookup: getSideLookup(ally),
+      active: active.species,
       team: fTeam
     }
   }
 
-  let fFoe: FFoe
+  let fFoe: FoeInput
   {
-    const { team, delayedAttack, effects, teraUsed, wish } = foe
+    const { team, delayedAttack, effects, teraUsed, wish, active } = foe
 
     let fTeam: {
-      [k: string]: FUser
+      [k: string]: UserInput
     } = {}
 
     for (const species in team) {
@@ -342,7 +328,6 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
           forme,
           tera
         }),
-        lookup: getUserLookup(user),
         moveSet: Object.keys(moveSet).map((k) => encodeMoveSlot(moveSet, k)!),
         movePool: [...validMoves]
           .filter((move) => !(move in moveSet))
@@ -356,11 +341,12 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
         items: item === null ? null : item ? [item] : [...validItems],
         abilities: ability ? [ability] : [...validAbilities],
         types,
-        teraTypes: teraType ? [teraType] : [...validTeraTypes]
+        teraTypes: teraType ? [teraType] : [...validTeraTypes],
+        ...getUserLookup(user)
       }
     }
 
-    let mode: DecisionMode
+    let mode: ChoiceMode
     {
       switch (req.type) {
         case "move":
@@ -383,13 +369,13 @@ export function encodeObservation(format: Format, obs: Observer): FObservation {
         effects,
         wish
       }),
-      lookup: getSideLookup(foe),
+      active: active.species,
       team: fTeam
     }
   }
 
   return {
-    x: encodeBattle({ fields, weather }),
+    x: extractBattle({ fields, weather }),
     ally: fAlly,
     foe: fFoe
   }

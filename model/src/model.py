@@ -6,10 +6,7 @@ from pymongo import MongoClient
 import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.backends.cudnn.benchmark = True
-# print(torch.get_num_threads())
-torch.set_num_threads(1)
-
+torch.set_float32_matmul_precision("high")
 
 
 DIMS = dict(
@@ -50,16 +47,6 @@ def load_dex(db):
     return Dex(items=items, abilities=abilities, moves=moves, types=types)
 
 
-def load_samples(db):
-    return db.replays.aggregate(
-        [
-            {"$limit": 1000},
-            {"$unwind": "$samples"},
-            {"$match": {"samples": {"$ne": None}}},
-            {"$replaceRoot": {"newRoot": "$samples"}},
-        ],
-    )
-
 
 class Net(nn.Module):
     def __init__(self, dex):
@@ -76,7 +63,7 @@ class Net(nn.Module):
 
         self.item_block = nn.Sequential(nn.Linear(item_dim, 128), nn.ReLU())
         self.ability_block = nn.Sequential(nn.Linear(ability_dim, 128), nn.ReLU())
-        self.move_slot_block = nn.Sequential(
+        self.move_block = nn.Sequential(
             nn.Linear(DIMS["move_embed"] + DIMS["move_slot_feat"], 128), nn.ReLU()
         )
         self.user_block = nn.Sequential(
@@ -191,35 +178,42 @@ class Net(nn.Module):
 
         return x, team_x
 
-    def forward(self, obs, opt):
-        ally = obs["ally"]
-        foe = obs["foe"]
+    def forward(self, sample):
+        move_x = torch.zeros(2, 6, 10)
+        slot_x = torch.zeros(2, 6, 10, 2)
+        ability_x = torch.zeros(2, 6, 3)
+        ability_n = torch.zeros(2, 6)
+        item_x = torch.zeros(2, 6, 3)
+        item_n = torch.zeros(2, 6)
 
-        ally_x, ally_team_x = self.side(ally)
-        foe_x, _ = self.side(foe)
-        battle_x = torch.concat([torch.tensor(obs["x"], device=device), ally_x, foe_x])
+        sides = [sample["ally"], sample["foe"]]
+        for i in range(2):
+            side = sides[i]
+            team = side["team"]
+            for j in range(team):
+                user = team[j]
+                move_set = user["moveSet"]
+                move_pool = user["movePool"]
+                abilities = user["abilities"]
+                items = user["items"]
 
-        move_slot_xs = list(map(self.move_slot, opt["moves"]))
-        switches = opt["switches"]
-        logits = []
+                for k in range(min(len(move_set), 4)):
+                    slot = move_set[k]
+                    move_x[i][j][k] = slot["move"]
+                    slot_x[i][j][k] = slot["x"]
 
-        for i in range(4):
-            for tera in [0, 1]:
-                if i < len(move_slot_xs) and (("canTera" in opt) or (not tera)):
-                    logits.append(self.move_opt(battle_x, move_slot_xs[i], tera))
-                else:
-                    logits.append(float("-inf"))
+                for k in range(min(len(move_pool), 6)):
+                    slot = move_pool[k]
+                    move_x[i][j][k + 6] = slot["move"]
+                    slot_x[i][j][k + 6] = slot["x"]
 
-        for i in range(6):
-            if i < len(switches):
-                logits.append(self.switch_opt(battle_x, ally_team_x[switches[i]]))
-            else:
-                logits.append(float("-inf"))
+                for k in range(min(len(abilities), 3)):
+                    ability_x[i][j][k] = abilities[k]
+                ability_n[i][j] = min(len(abilities), 3)
 
-        logits = torch.tensor(logits, device=device)
-        probs = F.softmax(logits, dim=0)
-
-        return probs
+                item_n[i][j] = min(len(items), 3)
+                for k in range(item_n[i][j]):
+                    item_x[i][j][k] = items[k]
 
 
 def to_label(opt, choice):
@@ -244,7 +238,6 @@ def to_label(opt, choice):
 
     return torch.tensor(y, device=device).float()
 
-import time
 
 def main():
     client = MongoClient("mongodb://localhost:27017")
@@ -252,10 +245,10 @@ def main():
     dex = load_dex(db)
 
     model = Net(dex).to(device)
+    model = torch.compile(model, mode="reduce-overhead")
 
     i = 0
     print("loading")
-
 
     v = []
     for sample in load_samples(db):
@@ -274,7 +267,7 @@ def main():
         #     raise result["_id"]
 
         i += 1
-        if i % 1000 == 0:
+        if i % 100 == 0:
             break
         # break
 
@@ -284,7 +277,6 @@ def main():
 
     end_time = time.perf_counter()
     print(end_time - start_time)
-
 
 
 if __name__ == "__main__":

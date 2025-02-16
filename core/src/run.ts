@@ -3,8 +3,9 @@ import { Patch } from "./version.js"
 import { Observer } from "./client/observer.js"
 import { PARTIALLY_TRAPPED_MOVES } from "./battle.js"
 import { User, getDefTyping } from "./client/user.js"
-import { Choice as RawChoice } from "./log.js"
-import { encodeMoveSlot, FMoveSlot } from "./encoding/obs.js"
+import { Input, Choice as RawChoice } from "./log.js"
+import { encodeBattle, encodeMoveSlot, FBattle, MoveSlotInput } from "./encoding/obs.js"
+import { run } from "node:test"
 
 export type Format = {
   gen: Generation
@@ -142,17 +143,17 @@ export function getValidSwitches({
   return opts
 }
 
-export type Option = {
+export type FOptions = {
   canTera: boolean
-  moves: FMoveSlot[]
+  moves: MoveSlotInput[]
   switches: string[]
 }
 
-export function encodeOption(run: Run): Option {
+export function encodeOptions(run: Run): FOptions {
   const { obs } = run
 
   let canTera = false
-  let fMoveSlots: FMoveSlot[] = []
+  let moveSlots: MoveSlotInput[] = []
   let switches: string[] = []
 
   const {
@@ -174,7 +175,7 @@ export function encodeOption(run: Run): Option {
       if (moveOpt.type === "recharge") moves = ["Recharge"]
       if (moveOpt.type === "default") moves = moveOpt.moves
 
-      fMoveSlots = moves.map((x) => encodeMoveSlot(active.moveSet, x)!)
+      moveSlots = moves.map((x) => encodeMoveSlot(active.moveSet, x)!)
       if (!teraUsed && moveOpt.type === "default") canTera = true
       if (!trapped) switches = getValidSwitches(run)
       break
@@ -183,7 +184,7 @@ export function encodeOption(run: Run): Option {
       break
   }
 
-  return { canTera, moves: fMoveSlots, switches }
+  return { canTera, moves: moveSlots, switches }
 }
 
 export type Choice =
@@ -210,6 +211,19 @@ export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
     case "switch": {
       const { i } = raw
       return { type: "switch", species: obs.ally.slots[i - 1].species }
+    }
+  }
+}
+
+function toRefs(battle: FBattle, opt: FOptions) {
+  const moves = new Set()
+  const items = new Set()
+  const abilities = new Set()
+
+  const { ally, foe } = battle
+  for (const { team } of [ally, foe]) {
+    for (const species in team) {
+      const user = team[species]
     }
   }
 }
