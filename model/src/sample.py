@@ -37,6 +37,7 @@ def to_input(lookup, sample):
     battle_x = torch.zeros(dim["battle"])
 
     move_option_idx = torch.zeros(4)
+    move_option_x = torch.zeros(4, dim["slot"])
     action_mask = torch.ones(14)
 
     target = torch.zeros(14)
@@ -110,7 +111,11 @@ def to_input(lookup, sample):
 
     for i in range(2):
         for j in range(4):
-            if not ((options["canTera"] or i == 0) and j < len(options["moves"])):
+            if options["canTera"] or i == 0 and j < len(options["moves"]):
+                slot = options["moves"][j]
+                move_option_idx[i * 4 + j] = lookup.move_idx[slot["move"]]
+                move_option_x[i * 4 + j] = torch.tensor(slot["x"])
+            else:
                 action_mask[i * 4 + j] = 0
 
     species = list(sample["ally"]["team"].keys())
@@ -145,5 +150,5 @@ def to_input(lookup, sample):
         battle_x=battle_x,
         move_option_idx=move_option_idx,
         action_mask=action_mask,
-        choice_x=target,
+        target=target,
     )
