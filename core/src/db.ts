@@ -3,7 +3,8 @@ import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
 import { BattleFeature } from "./encoding/obs.js"
-import { Choice, OptionsInput } from "./run.js"
+import { Choice } from "./run.js"
+import { Options } from "./encoding/options.js"
 
 export type Player = {
   name: string
@@ -12,7 +13,7 @@ export type Player = {
 
 export type Sample = {
   battle: BattleFeature
-  options: OptionsInput
+  options: Options
   choice: Choice
 }
 

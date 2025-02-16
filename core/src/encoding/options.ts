@@ -1,13 +1,13 @@
 import { Run, isTrapped, getMoveOption, getValidSwitches, getValidRevives } from "../run.js"
 import { MoveSlotFeature, extractMoveSlot } from "./obs.js"
 
-export type OptionsInput = {
+export type Options = {
   canTera: boolean
   moves: MoveSlotFeature[]
   switches: string[]
 }
 
-export function encodeOptions(run: Run): OptionsInput {
+export function getOptions(run: Run): Options {
   const { obs } = run
 
   let canTera = false

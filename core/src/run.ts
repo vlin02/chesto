@@ -169,16 +169,3 @@ export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
     }
   }
 }
-
-function toRefs(battle: BattleFeature, opt: OptionsInput) {
-  const moves = new Set()
-  const items = new Set()
-  const abilities = new Set()
-
-  const { ally, foe } = battle
-  for (const { team } of [ally, foe]) {
-    for (const species in team) {
-      const user = team[species]
-    }
-  }
-}
