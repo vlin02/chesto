@@ -6,7 +6,7 @@ def var_max(x, idx):
     return torch.max(
         torch.where(idx.unsqueeze(-1) > 0, x, torch.tensor(float("-inf"))),
         dim=-2,
-    )
+    )[1]
 
 
 def var_mask(idx):
@@ -30,13 +30,14 @@ class Net(nn.Module):
             nn.Linear(dim["ability_embed"], 128), nn.ReLU()
         )
         self.slot_block = nn.Sequential(
-            nn.Linear(dim["move_embed"] + dim["slot"], 128), nn.ReLU()
+            nn.Linear(dim["move_embed"] + dim["slot_feat"], 128), nn.ReLU()
         )
         self.user_block = nn.Sequential(
-            nn.Linear(dim["user_feat"] + 2 * dim["types"] + 10 * 128, 512), nn.ReLU()
+            nn.Linear(dim["user_feat"] + 2 * dim["n_types"] + 10 * 128, 512), nn.ReLU()
         )
         self.battle_block = nn.Sequential(
-            nn.Linear(dim["battle_feat"] + 2 * (dim["side_feat"] + 2 * 1024), nn.ReLU())
+            nn.Linear(dim["battle_feat"] + 2 * (dim["side_feat"] + 2 * 512), 1024),
+            nn.ReLU(),
         )
         self.move_option_block = nn.Sequential(
             nn.Linear(1024 + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
@@ -45,14 +46,14 @@ class Net(nn.Module):
             nn.Linear(1024 + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
 
-    def ability(self, idx):
-        return self.ability_block(self.lookup["item_embed"][idx])
-
     def item(self, idx):
         return self.item_block(self.lookup["item_embed"][idx])
 
+    def ability(self, idx):
+        return self.ability_block(self.lookup["ability_embed"][idx])
+
     def slot(self, idx, x):
-        return self.move_block(torch.cat(self.lookup["move_embed"][idx], x))
+        return self.slot_block(torch.cat([self.lookup["move_embed"][idx], x], dim=-1))
 
     def forward(self, inputs):
         move_set_idx = inputs["move_set_idx"]
@@ -94,13 +95,16 @@ class Net(nn.Module):
                     item_x,
                     move_lookup_x.flatten(start_dim=-2),
                     item_lookup_x.flatten(start_dim=-2),
-                ]
+                ],
+                dim=-1,
             )
         )
         team_x = var_max(user_x, user_mask)
 
-        side_x = torch.cat([side_x, user_x[torch.arange(2), active_idx], team_x])
-        battle_x = self.battle_block(torch.cat([battle_x, side_x]))
+        side_x = torch.cat(
+            [side_x, user_x[torch.arange(2), active_idx], team_x], dim=-1
+        )
+        battle_x = self.battle_block(torch.cat([battle_x, side_x], dim=-1))
 
         move_option_x = (
             self.move_option_block(
@@ -109,7 +113,8 @@ class Net(nn.Module):
                         self.slot(move_option_idx, move_option_x).repeat_interleave(),
                         torch.arange(2).repeat(4),
                         battle_x.unsqueeze(-1),
-                    ]
+                    ],
+                    dim=-1,
                 )
             )
             * move_option_mask

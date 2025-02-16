@@ -11,37 +11,37 @@ def one_hot_types(lookup, types):
 def vectorize_input(lookup, battle, options):
     dim = lookup["dim"]
 
-    move_set_idx = np.zeros((2, 6, 4))
-    move_set_x = np.zeros((2, 6, 4, dim["slot_feat"]))
+    move_set_idx = np.zeros((2, 6, 4), dtype=np.int32)
+    move_set_x = np.zeros((2, 6, 4, dim["slot_feat"]), dtype=np.float32)
 
-    move_pool_idx = np.zeros((2, 6, 10))
-    move_pool_x = np.zeros((2, 6, 10, dim["slot_feat"]))
+    move_pool_idx = np.zeros((2, 6, 10), dtype=np.int32)
+    move_pool_x = np.zeros((2, 6, 10, dim["slot_feat"]), dtype=np.float32)
 
-    move_lookup_idx = np.zeros((2, 6, 5))
-    move_lookup_x = np.zeros((2, 6, 5, dim["slot_feat"]))
+    move_lookup_idx = np.zeros((2, 6, 5), dtype=np.int32)
+    move_lookup_x = np.zeros((2, 6, 5, dim["slot_feat"]), dtype=np.float32)
 
-    ability_idx = np.zeros((2, 6, 3))
+    ability_idx = np.zeros((2, 6, 3), dtype=np.int32)
 
-    item_idx = np.zeros((2, 6, 3))
-    item_mask = np.ones((2, 6))
+    item_idx = np.zeros((2, 6, 3), dtype=np.int32)
+    item_mask = np.ones((2, 6), dtype=np.int32)
 
-    item_lookup_idx = np.zeros((2, 6, 1))
+    item_lookup_idx = np.zeros((2, 6, 1), dtype=np.int32)
 
-    user_x = np.zeros((2, 6, dim["user_feat"] + 2 * dim["types"]))
-    user_mask = np.ones((2, 6))
+    user_x = np.zeros((2, 6, dim["user_feat"] + 2 * dim["n_types"]), dtype=np.float32)
+    user_mask = np.ones((2, 6), dtype=np.int32)
 
-    side_x = np.zeros((2, dim["side_feat"]))
-    active_idx = np.zeros((2))
+    side_x = np.zeros((2, dim["side_feat"]), dtype=np.float32)
+    active_idx = np.zeros(2, dtype=np.int32)
 
-    battle_x = np.zeros((dim["battle_feat"]))
+    battle_x = np.zeros(dim["battle_feat"], dtype=np.float32)
 
-    move_option_idx = np.zeros((4, 2))
-    move_option_x = np.zeros((4, 2, dim["slot_feat"]))
-    move_option_mask = np.ones((4, 2))
+    move_option_idx = np.zeros((4, 2), dtype=np.int32)
+    move_option_x = np.zeros((4, 2, dim["slot_feat"]), dtype=np.float32)
+    move_option_mask = np.ones((4, 2), dtype=np.int32)
 
-    switch_option_mask = np.ones((6))
+    switch_option_mask = np.ones(6, dtype=np.int32)
 
-    battle_x = np.asarray(battle["x"])
+    battle_x = np.asarray(battle["x"], dtype=np.float32)
 
     sides = [battle["ally"], battle["foe"]]
     for i in range(2):
