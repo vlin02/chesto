@@ -1,10 +1,6 @@
 import torch
 
 N_TYPES = 20
-N_ITEMS = 200
-N_MOVES = 1000
-N_ABILITIES = 300
-
 
 def get_lookup(db, device):
     item_embed = torch.zeros(256, 128)
@@ -14,6 +10,7 @@ def get_lookup(db, device):
     item_idx = {}
     ability_idx = {}
     move_idx = {}
+    type_idx = {}
 
     for item in db.items.find():
         item_embed[item["i"]] = torch.tensor(item["desc"]["openai"], device=device)
@@ -31,6 +28,9 @@ def get_lookup(db, device):
         )
         move_idx[move["name"]] = move["i"]
 
+    for type in db.types.find():
+        type_idx[type["name"]] = type["i"]
+
     return dict(
         item_embed=item_embed,
         ability_embed=ability_embed,
@@ -38,4 +38,5 @@ def get_lookup(db, device):
         item_idx=item_idx,
         move_idx=move_idx,
         ability_idx=ability_idx,
+        type_idx=type_idx,
     )
