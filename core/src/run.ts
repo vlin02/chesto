@@ -4,7 +4,6 @@ import { Observer } from "./client/observer.js"
 import { PARTIALLY_TRAPPED_MOVES } from "./battle.js"
 import { User, getDefTyping } from "./client/user.js"
 import { Choice as RawChoice } from "./log.js"
-import { BattleFeature } from "./features/obs.js"
 
 export type Format = {
   gen: Generation

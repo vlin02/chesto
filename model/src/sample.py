@@ -1,17 +1,6 @@
 import torch
 
 
-def load_samples(db):
-    return db.replays.aggregate(
-        [
-            {"$limit": 1000},
-            {"$unwind": "$samples"},
-            {"$match": {"samples": {"$ne": None}}},
-            {"$replaceRoot": {"newRoot": "$samples"}},
-        ],
-    )
-
-
 def one_hot_types(lookup, types):
     x = torch.zeros(lookup.dim["types"])
     x[[lookup.get_type(t) for t in types]] = 1
@@ -20,6 +9,7 @@ def one_hot_types(lookup, types):
 def vectorize_sample(idx, sample):
     battle = sample["battle"]
     options = sample["options"]
+    choice = sample["choice"]
 
     move_idx = torch.zeros(2, 6, 15)
     move_x = torch.zeros(2, 6, 15, 2)
@@ -46,18 +36,20 @@ def vectorize_sample(idx, sample):
     move_option_idx = torch.zeros(4)
     action_mask = torch.zeros(14)
 
+    choice_x = torch.zeros(14)
+
     sides = [sample["ally"], sample["foe"]]
     for i in range(2):
         side = sides[i]
         team = side["team"]
-        team = list(team.values())
+        species = list(team.keys())
 
         side_x[i] = side["x"]
-        active_idx[i] = list(team.keys()).index(side["active"])
+        active_idx[i] = species.index(side["active"])
 
         for j in range(6):
-            if j < len(team):
-                user = team[j]
+            if j < len(species):
+                user = team[species[j]]
                 move_set = user["moveSet"]
                 move_pool = user["movePool"]
                 abilities = user["abilities"]
@@ -132,6 +124,14 @@ def vectorize_sample(idx, sample):
         if species[i] not in options["switches"]:
             action_mask[8 + i] = float("-inf")
 
+    if choice["type"] == "move":
+        i = int(options["tera"])
+        j = [x["move"] for x in options["moves"]].index(choice["move"])
+        action_mask[i * 4 + j] = 1
+    elif choice["type"] == "switch":
+        i = species.index(choice["species"])
+        choice_x[8 + i] = 1
+
     return dict(
         move_base_x=move_idx,
         move_slot_x=move_x,
@@ -151,4 +151,5 @@ def vectorize_sample(idx, sample):
         battle_x=battle_x,
         move_option_idx=move_option_idx,
         action_mask=action_mask,
+        choice_x=choice_x,
     )
