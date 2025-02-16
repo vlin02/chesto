@@ -12,13 +12,13 @@ def vectorize_input(lookup, battle, options):
     dim = lookup["dim"]
 
     move_set_idx = np.zeros((2, 6, 4))
-    move_set_x = np.zeros((2, 6, 4, dim["slot"]))
+    move_set_x = np.zeros((2, 6, 4, dim["slot_feat"]))
 
     move_pool_idx = np.zeros((2, 6, 10))
-    move_pool_x = np.zeros((2, 6, 10, dim["slot"]))
+    move_pool_x = np.zeros((2, 6, 10, dim["slot_feat"]))
 
     move_lookup_idx = np.zeros((2, 6, 5))
-    move_lookup_x = np.zeros((2, 6, 5, dim["slot"]))
+    move_lookup_x = np.zeros((2, 6, 5, dim["slot_feat"]))
 
     ability_idx = np.zeros((2, 6, 3))
 
@@ -27,16 +27,16 @@ def vectorize_input(lookup, battle, options):
 
     item_lookup_idx = np.zeros((2, 6, 1))
 
-    user_x = np.zeros((2, 6, dim["user"] + 2 * dim["types"]))
+    user_x = np.zeros((2, 6, dim["user_feat"] + 2 * dim["types"]))
     user_mask = np.ones((2, 6))
 
-    side_x = np.zeros((2, dim["side"]))
+    side_x = np.zeros((2, dim["side_feat"]))
     active_idx = np.zeros((2))
 
-    battle_x = np.zeros((dim["battle"]))
+    battle_x = np.zeros((dim["battle_feat"]))
 
     move_option_idx = np.zeros((4, 2))
-    move_option_x = np.zeros((4, 2, dim["slot"]))
+    move_option_x = np.zeros((4, 2, dim["slot_feat"]))
     move_option_mask = np.ones((4, 2))
 
     switch_option_mask = np.ones((6))

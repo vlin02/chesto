@@ -12,7 +12,7 @@ export type Player = {
 }
 
 export type Sample = {
-  battle: BattleFeature
+  observation: BattleFeature
   options: Options
   choice: Choice
 }

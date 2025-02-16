@@ -1,8 +1,5 @@
-import torch
 from pymongo import MongoClient
-from sample import vectorize_input
-from lookup import load_lookup
-from pprint import pprint
+from sample import vectorize_input, vectorize_target
 
 
 def load_samples(db: MongoClient):
@@ -20,20 +17,13 @@ client = MongoClient("mongodb://localhost:27017")
 db = client.get_database("chesto")
 
 samples = load_samples(db)
+sample = samples.next()
 
-# device = torch.device("cuda")
-lookup = load_lookup(db, torch.device("cpu"))
-# pprint(sample)
-# print(to_input(lookup, sample))
-print("start")
-i = 0
-for r in samples:
-    print(i)
-    # try:
-    #     to_input(lookup, r["samples"])
-    # except Exception as e:
-    #     pprint(r)
-    #     raise e
+obs = sample["observation"]
+options = sample["options"]
+choice = sample["choice"]
 
-    print(i)
-    i += 1
+input = vectorize_input(obs, options)
+target = vectorize_target(obs, options, choice)
+
+print(input, target)

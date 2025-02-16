@@ -19,7 +19,7 @@ def var_avg(x, idx):
 
 
 class Net(nn.Module):
-    def __init__(self, lookup, device):
+    def __init__(self, lookup):
         super().__init__()
 
         self.lookup = lookup
@@ -33,7 +33,7 @@ class Net(nn.Module):
             nn.Linear(dim["move_embed"] + dim["slot"], 128), nn.ReLU()
         )
         self.user_block = nn.Sequential(
-            nn.Linear(dim["user_feat"] + 9 * 128 + 2 * dim["n_types"], 512), nn.ReLU()
+            nn.Linear(dim["user_feat"] + 2 * dim["types"] + 10 * 128, 512), nn.ReLU()
         )
         self.battle_block = nn.Sequential(
             nn.Linear(dim["battle_feat"] + 2 * (dim["side_feat"] + 2 * 1024), nn.ReLU())
@@ -85,28 +85,29 @@ class Net(nn.Module):
         item_lookup_x = self.item(item_lookup_idx)
 
         user_x = self.user_block(
-            torch.concat(
+            torch.cat(
                 [
                     user_x,
                     move_set_x,
                     move_pool_x,
-                    move_lookup_x,
                     ability_x,
                     item_x,
-                    item_lookup_x,
+                    move_lookup_x.flatten(start_dim=-2),
+                    item_lookup_x.flatten(start_dim=-2),
                 ]
             )
         )
         team_x = var_max(user_x, user_mask)
 
-        side_x = torch.concat([side_x, user_x[active_idx], team_x])
+        side_x = torch.cat([side_x, user_x[torch.arange(2), active_idx], team_x])
         battle_x = self.battle_block(torch.cat([battle_x, side_x]))
 
         move_option_x = (
             self.move_option_block(
-                torch.concat(
+                torch.cat(
                     [
-                        self.slot(move_option_idx, move_option_x).repeat(),
+                        self.slot(move_option_idx, move_option_x).repeat_interleave(),
+                        torch.arange(2).repeat(4),
                         battle_x.unsqueeze(-1),
                     ]
                 )
@@ -117,9 +118,18 @@ class Net(nn.Module):
         ally_user_x = user_x[0]
 
         switch_option_x = (
-            self.switch_option_block(torch.cat([ally_user_x, battle_x.unsquee(-1)]))
+            self.switch_option_block(
+                torch.cat(
+                    [
+                        ally_user_x,
+                        battle_x.unsqueeze(1).expand(-1, ally_user_x.shape[-2], -1),
+                    ],
+                    dim=-1,
+                )
+            )
             * switch_option_mask
         )
 
         logits = torch.cat([move_option_x.flatten(), switch_option_x])
+
         return logits
