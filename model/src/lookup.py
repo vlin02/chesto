@@ -1,10 +1,9 @@
 import torch
 
-
 def load_lookup(db, device):
-    item_embed = torch.zeros(256, 128)
-    ability_embed = torch.zeros(512, 128)
-    move_embed = torch.zeros(1024, 228 + 256)
+    item_embed = torch.zeros(256, 256)
+    ability_embed = torch.zeros(512, 256)
+    move_embed = torch.zeros(1024, 258 + 256)
 
     item_idx = {}
     ability_idx = {}
