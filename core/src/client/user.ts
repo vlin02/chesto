@@ -266,7 +266,11 @@ export class FoeUser {
     this.base = {
       forme,
       moveSet: {},
-      gender
+      gender,
+      ability: {
+        "Calyrex-Ice": "As One (Glastrier)",
+        "Calyrex-Shadow": "As One (Spectrier)"
+      }[forme]
     }
   }
 

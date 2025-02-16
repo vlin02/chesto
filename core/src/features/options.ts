@@ -1,5 +1,5 @@
 import { Run, isTrapped, getMoveOption, getValidSwitches, getValidRevives } from "../run.js"
-import { MoveSlotFeature, extractMoveSlot } from "./obs.js"
+import { MoveSlotFeature, extractMoveSlot } from "./observer.js"
 
 export type Options = {
   canTera: boolean

@@ -22,7 +22,7 @@ def to_input(lookup, sample):
 
     move_lookup_idx = torch.zeros(2, 6, 5)
     move_lookup_x = torch.zeros(2, 6, 5, dim["slot"])
-    
+
     ability_idx = torch.zeros(2, 6, 3)
 
     item_idx = torch.zeros(2, 6, 3)
@@ -114,7 +114,11 @@ def to_input(lookup, sample):
         for j in range(4):
             if (options["canTera"] or i == 0) and j < len(options["moves"]):
                 slot = options["moves"][j]
-                move_option_idx[i * 4 + j] = lookup["move_idx"][slot["move"]]
+                move_option_idx[i * 4 + j] = (
+                    0
+                    if slot["move"] == "Recharge"
+                    else lookup["move_idx"][slot["move"]]
+                )
                 move_option_x[i * 4 + j] = torch.tensor(slot["x"])
             else:
                 action_mask[i * 4 + j] = 0

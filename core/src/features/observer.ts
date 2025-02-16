@@ -74,7 +74,9 @@ export function extractMoveSet(moveSet: MoveSet) {
 
 function extractUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
   return {
-    disabled: volatiles["Disable"] ? extractMoveSlot(moveSet, volatiles["Disable"].move) : undefined,
+    disabled: volatiles["Disable"]
+      ? extractMoveSlot(moveSet, volatiles["Disable"].move)
+      : undefined,
     choice: volatiles["Choice Locked"]
       ? extractMoveSlot(moveSet, volatiles["Choice Locked"].move)
       : undefined,
@@ -180,11 +182,11 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
 
   const { ally, foe, fields, weather, req } = obs
 
-  let fAlly: SideFeature
+  let allyF: SideFeature
   {
     const { team, delayedAttack, effects, teraUsed, wish, active } = ally
 
-    let fTeam: {
+    let teamF: {
       [k: string]: UserFeature
     } = {}
 
@@ -208,7 +210,7 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
         volatiles
       } = user
 
-      fTeam[species] = {
+      teamF[species] = {
         x: extractUser({
           revealed,
           stats: { ...stats, hp: hp[1] },
@@ -230,7 +232,7 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
       }
     }
 
-    fAlly = {
+    allyF = {
       x: extractSide({
         mode: ally.isReviving ? "revive" : req.type,
         delayedAttack,
@@ -239,15 +241,15 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
         wish
       }),
       active: active.species,
-      team: fTeam
+      team: teamF
     }
   }
 
-  let foeInput: SideFeature
+  let foeF: SideFeature
   {
     const { team, delayedAttack, effects, teraUsed, wish, active } = foe
 
-    let fTeam: {
+    let teamF: {
       [k: string]: UserFeature
     } = {}
 
@@ -293,8 +295,8 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
         }
 
         if (v === 0) {
-          console.log(user)
-          console.warn("failed")
+          // console.log(user)
+          // console.warn("failed")
         }
       }
 
@@ -306,13 +308,13 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
       for (const {
         agg: { items, abilities, moves, teraTypes }
       } of presets) {
-        for (const item of items) validItems.add(item)
+        for (const item of items) if (item) validItems.add(item)
         for (const ability of abilities) validAbilities.add(ability)
         for (const type of teraTypes) validTeraTypes.add(type)
         for (const move of moves) validMoves.add(move)
       }
 
-      fTeam[species] = {
+      teamF[species] = {
         x: extractUser({
           revealed: true,
           stats: { ...inferStats(gen, forme, lvl), hp: hp[1] },
@@ -357,7 +359,7 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
       }
     }
 
-    foeInput = {
+    foeF = {
       x: extractSide({
         mode: mode,
         delayedAttack,
@@ -366,13 +368,13 @@ export function extractBattle(format: Format, obs: Observer): BattleFeature {
         wish
       }),
       active: active.species,
-      team: fTeam
+      team: teamF
     }
   }
 
   return {
     x: encodeBattle({ fields, weather }),
-    ally: fAlly,
-    foe: foeInput
+    ally: allyF,
+    foe: foeF
   }
 }

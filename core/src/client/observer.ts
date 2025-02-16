@@ -313,12 +313,6 @@ export class Observer {
           user = team[species]
           if (!user) {
             user = team[species] = new FoeUser(this.gen, species, label)
-
-            const { forme, base } = user
-            base.ability = {
-              "Calyrex-Ice": "As One (Glastrier)",
-              "Calyrex-Shadow": "As One (Spectrier)"
-            }[forme]
           }
 
           if (!this.foe) {
@@ -994,18 +988,17 @@ export class Observer {
         const { pov, species } = this.ref(p.args[0])
 
         if (pov === "foe") {
-          const { team, active: from } = this.foe
-          team[from.species] = from.clone()
+          const { team, active: user } = this.foe
+          team[user.species] = user.clone()
 
           const { forme, lvl, gender } = parseLabel(p.args[1])
-          const { base } = from
 
-          from.lvl = lvl
-          from.species = species
-          base.forme = forme
-          base.gender = gender
+          user.lvl = lvl
+          user.species = species
+          user.base.forme = forme
+          user.base.gender = gender
 
-          team[species] = from
+          team[species] = user
         } else {
           delete this.illusion
         }
