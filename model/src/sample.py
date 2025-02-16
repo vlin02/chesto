@@ -12,20 +12,22 @@ def vectorize_sample(dim, idx, sample):
     choice = sample["choice"]
 
     move_set_idx = torch.zeros(2, 6, 4)
+    move_set_x = torch.zeros(2, 6, 4, dim["move_feat"])
+
     move_pool_idx = torch.zeros(2, 6, 10)
-    move_pool_n = torch.zeros(2, 6)
-    move_mask = torch.ones(2, 6, 5)
-    move_max_mask = torch.zeros(2, 6, 5)
+    move_pool_x = torch.zeros(2, 6, 10, dim["move_feat"])
 
-    ability_x = torch.zeros(2, 6, 3)
-    ability_n = torch.zeros(2, 6)
-    ability_mask = torch.ones(2, 6, 3)
+    move_lookup_idx = torch.zeros(2, 6, 5)
+    move_lookup_x = torch.zeros(2, 6, 5, dim["move_feat"])
 
-    item_x = torch.zeros(2, 6, 4)
-    item_n = torch.zeros(2, 6)
-    item_mask = torch.ones(2, 6, 4)
+    ability_idx = torch.zeros(2, 6)
 
-    user_x = torch.zeros(2, 6, dim["user_embed"] + 2 * dim["type"])
+    item_idx = torch.zeros(2, 6, 3)
+    item_mask = torch.ones(2, 6)
+
+    item_lookup_idx = torch.zeros(2, 6, 1)
+
+    user_x = torch.zeros(2, 6, dim["user_feat"] + 2 * dim["type"])
     user_mask = torch.ones(2, 6)
 
     side_x = torch.zeros(2, 100)
@@ -61,7 +63,7 @@ def vectorize_sample(dim, idx, sample):
                     [
                         user["x"],
                         one_hot_types(idx, types),
-                        one_hot_types(idx, tera_types) / len(tera_types),
+                        one_hot_types(idx, tera_types),
                     ]
                 )
 
@@ -69,48 +71,36 @@ def vectorize_sample(dim, idx, sample):
                     if k < len(move_set):
                         slot = move_set[k]
                         move_set_idx[i][j][k] = idx.moves[slot["move"]]
-                        move_x[i][j][k] = slot["x"]
-                    else:
-                        move_max_mask[i][j][k] = float("-inf")
+                        move_set_x[i][j][k] = torch.tensor(slot["x"])
 
-                move_pool_n[i][j] = min(len(move_pool), 6)
                 for k in range(6):
                     if k < len(move_pool):
                         slot = move_pool[k]
-                        move_set_idx[i][j][4 + k] = idx.moves[slot["move"]]
-                        move_x[i][j][4 + k] = slot["x"]
-                    else:
-                        move_mask[i][j][4 + k] = 0
+                        move_pool_idx[i][j][k] = idx.moves[slot["move"]]
+                        move_pool_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k, ref in enumerate(
                     ["disabled", "choice", "encore", "locked", "lastMove"]
                 ):
                     if ref in user:
                         slot = user[ref]
-                        move_set_idx[i][j][10 + k] = idx.moves[slot["move"]]
-                        move_x[i][j][10 + k] = slot["x"]
-                    else:
-                        move_mask[i][j][10 + k] = 0
+                        move_lookup_idx[i][j][k] = idx.moves[slot["move"]]
+                        move_lookup_x[i][j][k] = torch.tensor(slot["x"])
 
-                ability_n[i][j] = min(len(abilities), 3)
                 for k in range(3):
                     if k < len(abilities):
-                        ability_x[i][j][k] = idx.abilities[abilities[k]]
-                    else:
-                        ability_mask[i][j][k] = 0
+                        ability_idx[i][j][k] = idx.abilities[abilities[k]]
 
-                item_n[i][j] = min(len(items), 3)
                 for k in range(3):
-                    if k < len(items):
-                        item_x[i][j][k] = idx.items[items[k]]
-                    else:
-                        item_mask[i][j][k] = 0
+                    if items and k < len(items):
+                        item_idx[i][j][k] = idx.items[items[k]]
+
+                if not items:
+                    item_mask[i][j] = 0
 
                 for k, ref in enumerate(["lastBerry"]):
                     if ref in user:
-                        item_x[i][j][3 + k] = idx.items[user[ref]]
-                    else:
-                        item_mask[i][j][3 + k] = 0
+                        item_lookup_idx[i][j][k] = idx.items[user[ref]]
             else:
                 user_mask[i][j] = float("-inf")
 
@@ -133,17 +123,16 @@ def vectorize_sample(dim, idx, sample):
         choice_x[8 + i] = 1
 
     return dict(
-        move_base_x=move_set_idx,
-        move_slot_x=move_x,
-        move_pool_n=move_pool_n,
-        move_mask=move_mask,
-        move_max_mask=move_max_mask,
-        ability_x=ability_x,
-        ability_n=ability_n,
-        ability_mask=ability_mask,
-        item_x=item_x,
-        item_n=item_n,
+        move_set_idx=move_set_idx,
+        move_set_x=move_set_x,
+        move_pool_idx=move_pool_idx,
+        move_pool_x=move_pool_x,
+        move_lookup_idx=move_lookup_idx,
+        move_lookup_x=move_lookup_x,
+        ability_idx=ability_idx,
+        item_idx=item_idx,
         item_mask=item_mask,
+        item_lookup_idx=item_lookup_idx,
         user_x=user_x,
         user_mask=user_mask,
         side_x=side_x,
