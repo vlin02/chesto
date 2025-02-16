@@ -3,11 +3,9 @@ from torch import nn
 from dataclasses import dataclass
 from typing import Dict, List
 from pymongo import MongoClient
-import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_float32_matmul_precision("high")
-
 
 DIMS = dict(
     move_slot_feat=2,

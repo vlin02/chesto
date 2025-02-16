@@ -2,8 +2,9 @@ import { parseInput, split } from "./log.js"
 import { Observer } from "./client/observer.js"
 import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format, encodeOptions, isTrapped, Run, toChoice } from "./run.js"
+import { Format, isTrapped, Run, toChoice } from "./run.js"
 import { Replay } from "./db.js"
+import { extractOptions } from "./features/options.js"
 
 export function testSide(fmt: Format, replay: Replay, side: Side) {
   const { gen } = fmt
@@ -25,7 +26,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
       const choice = toChoice(run, input.choice)
 
       if (input.side === side) {
-        const opt = encodeOptions(run)
+        const opt = extractOptions(run)
 
         switch (choice.type) {
           case "move": {
@@ -81,7 +82,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = encodeOptions(run)
+        const movesA = extractOptions(run)
           .moves!.map((x) => x.move)
           .sort()
         const movesB = moveSlots

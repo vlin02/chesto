@@ -7,7 +7,7 @@ export type Options = {
   switches: string[]
 }
 
-export function getOptions(run: Run): Options {
+export function extractOptions(run: Run): Options {
   const { obs } = run
 
   let canTera = false

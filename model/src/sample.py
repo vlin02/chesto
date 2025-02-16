@@ -6,13 +6,13 @@ def one_hot_types(lookup, types):
     x[[lookup.get_type(t) for t in types]] = 1
 
 
-def vectorize_sample(idx, sample):
+def vectorize_sample(dim, idx, sample):
     battle = sample["battle"]
     options = sample["options"]
     choice = sample["choice"]
 
-    move_idx = torch.zeros(2, 6, 15)
-    move_x = torch.zeros(2, 6, 15, 2)
+    move_set_idx = torch.zeros(2, 6, 4)
+    move_pool_idx = torch.zeros(2, 6, 10)
     move_pool_n = torch.zeros(2, 6)
     move_mask = torch.ones(2, 6, 5)
     move_max_mask = torch.zeros(2, 6, 5)
@@ -25,7 +25,7 @@ def vectorize_sample(idx, sample):
     item_n = torch.zeros(2, 6)
     item_mask = torch.ones(2, 6, 4)
 
-    user_x = torch.zeros(2, 6)
+    user_x = torch.zeros(2, 6, dim["user_embed"] + 2 * dim["type"])
     user_mask = torch.ones(2, 6)
 
     side_x = torch.zeros(2, 100)
@@ -68,7 +68,7 @@ def vectorize_sample(idx, sample):
                 for k in range(4):
                     if k < len(move_set):
                         slot = move_set[k]
-                        move_idx[i][j][k] = idx.moves[slot["move"]]
+                        move_set_idx[i][j][k] = idx.moves[slot["move"]]
                         move_x[i][j][k] = slot["x"]
                     else:
                         move_max_mask[i][j][k] = float("-inf")
@@ -77,7 +77,7 @@ def vectorize_sample(idx, sample):
                 for k in range(6):
                     if k < len(move_pool):
                         slot = move_pool[k]
-                        move_idx[i][j][4 + k] = idx.moves[slot["move"]]
+                        move_set_idx[i][j][4 + k] = idx.moves[slot["move"]]
                         move_x[i][j][4 + k] = slot["x"]
                     else:
                         move_mask[i][j][4 + k] = 0
@@ -87,7 +87,7 @@ def vectorize_sample(idx, sample):
                 ):
                     if ref in user:
                         slot = user[ref]
-                        move_idx[i][j][10 + k] = idx.moves[slot["move"]]
+                        move_set_idx[i][j][10 + k] = idx.moves[slot["move"]]
                         move_x[i][j][10 + k] = slot["x"]
                     else:
                         move_mask[i][j][10 + k] = 0
@@ -133,7 +133,7 @@ def vectorize_sample(idx, sample):
         choice_x[8 + i] = 1
 
     return dict(
-        move_base_x=move_idx,
+        move_base_x=move_set_idx,
         move_slot_x=move_x,
         move_pool_n=move_pool_n,
         move_mask=move_mask,
