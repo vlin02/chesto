@@ -2,7 +2,7 @@ import { Collection, Db } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
-import { BattleFeature } from "./features/observer.js"
+import { BattleFeature } from "./features/obs.js"
 import { Choice } from "./run.js"
 import { Options } from "./features/options.js"
 
