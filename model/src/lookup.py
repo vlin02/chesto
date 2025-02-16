@@ -1,8 +1,7 @@
 import torch
 
-N_TYPES = 20
 
-def get_lookup(db, device):
+def load_lookup(db, device):
     item_embed = torch.zeros(256, 128)
     ability_embed = torch.zeros(512, 128)
     move_embed = torch.zeros(1024, 228 + 256)
@@ -39,4 +38,5 @@ def get_lookup(db, device):
         move_idx=move_idx,
         ability_idx=ability_idx,
         type_idx=type_idx,
+        dim=dict(types=20, slot=2, user=89, side=17, battle=9),
     )

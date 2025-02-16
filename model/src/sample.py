@@ -2,25 +2,25 @@ import torch
 
 
 def one_hot_types(lookup, types):
-    x = torch.zeros(lookup["dim"]["types"])
-    x[[lookup.get_type(t) for t in types]] = 1
+    x = torch.zeros(lookup["n_types"])
+    x[[lookup.type_idx[k] for k in types]] = 1
 
 
 def to_input(lookup, sample):
     dim = lookup["dim"]
     battle = sample["battle"]
+
     options = sample["options"]
     choice = sample["choice"]
 
     move_set_idx = torch.zeros(2, 6, 4)
-    move_set_x = torch.zeros(2, 6, 4, dim["move_slot"])
+    move_set_x = torch.zeros(2, 6, 4, dim["slot"])
 
     move_pool_idx = torch.zeros(2, 6, 10)
-    move_pool_x = torch.zeros(2, 6, 10, dim["move_slot"])
+    move_pool_x = torch.zeros(2, 6, 10, dim["slot"])
 
     move_lookup_idx = torch.zeros(2, 6, 5)
-    move_lookup_x = torch.zeros(2, 6, 5, dim["move_slot"])
-
+    move_lookup_x = torch.zeros(2, 6, 5, dim["slot"])
     ability_idx = torch.zeros(2, 6)
 
     item_idx = torch.zeros(2, 6, 3)
@@ -28,7 +28,7 @@ def to_input(lookup, sample):
 
     item_lookup_idx = torch.zeros(2, 6, 1)
 
-    user_x = torch.zeros(2, 6, dim["user"] + 2 * dim["type_index"])
+    user_x = torch.zeros(2, 6, dim["user"] + 2 * dim["types"])
     user_mask = torch.ones(2, 6)
 
     side_x = torch.zeros(2, dim["side"])
