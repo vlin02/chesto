@@ -99,8 +99,20 @@ class Net(nn.Module):
                 dim=-1,
             )
         )
+        print(torch.cat(
+                [
+                    user_x,
+                    move_set_x,
+                    move_pool_x,
+                    ability_x,
+                    item_x,
+                    move_lookup_x.flatten(start_dim=-2),
+                    item_lookup_x.flatten(start_dim=-2),
+                ],
+                dim=-1,
+            ).shape)
         team_x = var_max(user_x, user_mask)
-
+        
         side_x = torch.cat(
             [side_x, user_x[torch.arange(2), active_idx], team_x], dim=-1
         )
