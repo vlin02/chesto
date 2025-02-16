@@ -71,7 +71,8 @@ class Net(nn.Module):
         battle_x = inputs["battle_x"]
         move_option_idx = inputs["move_option_idx"]
         move_option_x = inputs["move_option_x"]
-        action_mask = inputs["action_mask"]
+        move_option_mask = inputs["move_option_mask"]
+        switch_option_mask = inputs["switch_option_mask"]
 
         move_set_x = var_max(self.slot(move_set_idx, move_set_x), move_set_idx)
         move_pool_x = var_avg(self.slot(move_pool_idx, move_pool_x), move_pool_idx)
