@@ -6,170 +6,38 @@ from pymongo import MongoClient
 class Net(nn.Module):
     def __init__(self, lookup, device):
         super().__init__()
+
         self.lookup = lookup
+        dim = lookup["dim"]
 
-        item_dim = DIMS["item_embed"]
-        ability_dim = DIMS["ability_embed"]
-        battle_dim = DIMS["battle_feat"] + 2 * (DIMS["side_feat"] + 2 * 512)
-
-        self.no_item = torch.zeros(128, device=device)
-        self.no_ability = torch.zeros(128, device=device)
-        self.no_move_slot = torch.zeros(128, device=device)
-
-        self.item_block = nn.Sequential(nn.Linear(item_dim, 128), nn.ReLU())
-        self.ability_block = nn.Sequential(nn.Linear(ability_dim, 128), nn.ReLU())
-        self.move_block = nn.Sequential(
-            nn.Linear(DIMS["move_embed"] + DIMS["move_slot_feat"], 128), nn.ReLU()
+        self.item_block = nn.Sequential(nn.Linear(dim["item_embed"], 128), nn.ReLU())
+        self.ability_block = nn.Sequential(
+            nn.Linear(dim["ability_embed"], 128), nn.ReLU()
+        )
+        self.slot_block = nn.Sequential(
+            nn.Linear(dim["move_embed"] + dim["slot"], 128), nn.ReLU()
         )
         self.user_block = nn.Sequential(
-            nn.Linear(DIMS["user_feat"] + 9 * 128 + 2 * DIMS["types"], 512), nn.ReLU()
+            nn.Linear(dim["user_feat"] + 9 * 128 + 2 * dim["n_types"], 512), nn.ReLU()
+        )
+        self.battle_block = nn.Sequential(
+            nn.Linear(dim["battle_feat"] + 2 * (dim["side_feat"] + 2 * 1024), nn.ReLU())
         )
         self.move_opt_block = nn.Sequential(
-            nn.Linear(battle_dim + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
+            nn.Linear(1024 + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
         )
         self.switch_opt_block = nn.Sequential(
-            nn.Linear(battle_dim + 512, 512), nn.ReLU(), nn.Linear(512, 1)
+            nn.Linear(1024 + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
 
-    def move_slot(self, slot):
-        if not slot:
-            return self.no_move_slot
-
-        move = slot["move"]
-        x = torch.concat(
-            [
-                torch.tensor(slot["x"], device=device),
-                torch.zeros(DIMS["move_embed"], device=device)
-                if move == "Recharge"
-                else self.lookup.moves[slot["move"]],
-            ]
-        )
-
-        return self.move_slot_block(x)
-
-    def item(self, name):
-        if not name:
-            return self.no_item
-        return self.item_block(self.lookup.items[name])
-
-    def ability(self, name):
-        if not name:
-            return self.no_ability
-        return self.ability_block(self.lookup.abilities[name])
-
-    def types(self, names):
-        x = torch.zeros(20, device=device)
-        for name in names:
-            x[self.lookup.types[name]["num"]] = 1
-        return x
-
-    def user(self, user):
-        lookup = user["lookup"]
-        items = user["items"]
-
-        move_slot_xs = [self.move_slot(slot) for slot in user["moveSet"]]
-        if len(user["movePool"]):
-            move_slot_xs.append(
-                torch.stack([self.move_slot(slot) for slot in user["movePool"]]).mean(
-                    dim=0
-                )
-            )
-        move_set_x, _ = torch.stack(move_slot_xs).max(dim=0)
-
-        item_x = (
-            torch.stack([self.item(name) for name in items]).mean(dim=0)
-            if items
-            else self.item(None)
-        )
-        ability_x = torch.stack(
-            [self.ability(name) for name in user["abilities"]]
-        ).mean(dim=0)
-
-        types_x = self.types(user["types"])
-        tera_type_x = self.types(user["teraTypes"])
-
-        x = torch.concat(
-            [
-                torch.tensor(user["x"], device=device),
-                self.move_slot(lookup["disabled"]),
-                self.move_slot(lookup["choice"]),
-                self.move_slot(lookup["encore"]),
-                self.move_slot(lookup["locked"]),
-                self.move_slot(lookup["lastMove"]),
-                self.item(lookup["lastBerry"]),
-                move_set_x,
-                item_x,
-                ability_x,
-                types_x,
-                tera_type_x,
-            ]
-        )
-
-        return self.user_block(x)
-
-    def move_opt(self, battle_x, slot_x, tera):
-        x = torch.concat([battle_x, slot_x, torch.tensor([tera], device=device)])
-        return self.move_opt_block(x)
-
-    def switch_opt(self, battle_x, user_x):
-        x = torch.concat([battle_x, user_x])
-        return self.switch_opt_block(x)
-
-    def side(self, side):
-        lookup = side["lookup"]
-        team = side["team"]
-
-        team_x = {}
-        for k in team.keys():
-            team_x[k] = self.user(team[k])
-
-        x = torch.concat(
-            [
-                torch.tensor(side["x"], device=device),
-                team_x[lookup["active"]],
-                torch.stack(list(team_x.values())).max(dim=0)[0],
-            ]
-        )
-
-        return x, team_x
+    def slot(self, idx, x):
+        lookup = self.lookup
+        
+        lookup["move_embed"][idx]
 
     def forward(self, inputs):
-        move_x = torch.zeros(2, 6, 10)
-        slot_x = torch.zeros(2, 6, 10, 2)
-        ability_x = torch.zeros(2, 6, 3)
-        ability_n = torch.zeros(2, 6)
-        item_x = torch.zeros(2, 6, 3)
-        item_n = torch.zeros(2, 6)
-
-        sides = [sample["ally"], sample["foe"]]
-        for i in range(2):
-            side = sides[i]
-            team = side["team"]
-            for j in range(team):
-                user = team[j]
-                move_set = user["moveSet"]
-                move_pool = user["movePool"]
-                abilities = user["abilities"]
-                items = user["items"]
-
-                for k in range(min(len(move_set), 4)):
-                    slot = move_set[k]
-                    move_x[i][j][k] = slot["move"]
-                    slot_x[i][j][k] = slot["x"]
-
-                for k in range(min(len(move_pool), 6)):
-                    slot = move_pool[k]
-                    move_x[i][j][k + 6] = slot["move"]
-                    slot_x[i][j][k + 6] = slot["x"]
-
-                for k in range(min(len(abilities), 3)):
-                    ability_x[i][j][k] = abilities[k]
-                ability_n[i][j] = min(len(abilities), 3)
-
-                item_n[i][j] = min(len(items), 3)
-                for k in range(item_n[i][j]):
-                    item_x[i][j][k] = items[k]
-
+        
+        
 
 def to_label(opt, choice):
     moves = opt["moves"]

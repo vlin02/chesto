@@ -3,7 +3,7 @@ import torch
 
 
 def one_hot_types(lookup, types):
-    x = np.zeros(lookup["dim"]["types"])
+    x = np.zeros(lookup["dim"]["n_types"])
     x[[lookup["type_idx"][k] for k in types]] = 1
     return x
 

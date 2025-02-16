@@ -1,9 +1,21 @@
 import torch
 
+
 def load_lookup(db, device):
-    item_embed = torch.zeros(256, 256)
-    ability_embed = torch.zeros(512, 256)
-    move_embed = torch.zeros(1024, 258 + 256)
+    dim = dict(
+        n_types=20,
+        item_embed=256,
+        ability_embed=256,
+        move_embed=258 + 256,
+        slot_feat=2,
+        user_feat=89,
+        side_feat=17,
+        battle_feat=9,
+    )
+
+    item_embed = torch.zeros(256, dim["item_embed"])
+    ability_embed = torch.zeros(512, dim["ability_embed"])
+    move_embed = torch.zeros(1024, dim["move_embed"])
 
     item_idx = {}
     ability_idx = {}
@@ -37,5 +49,5 @@ def load_lookup(db, device):
         move_idx=move_idx,
         ability_idx=ability_idx,
         type_idx=type_idx,
-        dim=dict(types=20, slot=2, user=89, side=17, battle=9),
+        dim=dim,
     )
