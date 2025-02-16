@@ -11,11 +11,14 @@ def load_lookup(db, device):
         user_feat=89,
         side_feat=17,
         battle_feat=9,
+        n_items=256,
+        n_abilities=512,
+        n_moves=1204,
     )
 
-    item_embed = torch.zeros(256, dim["item_embed"])
-    ability_embed = torch.zeros(512, dim["ability_embed"])
-    move_embed = torch.zeros(1024, dim["move_embed"])
+    item_embed = torch.zeros(dim["n_items"], dim["item_embed"])
+    ability_embed = torch.zeros(dim["n_abilities"], dim["ability_embed"])
+    move_embed = torch.zeros(dim["n_moves"], dim["move_embed"])
 
     item_idx = {}
     ability_idx = {}

@@ -1,6 +1,6 @@
 import torch
 from pymongo import MongoClient
-from sample import to_input
+from sample import vectorize_input
 from lookup import load_lookup
 from pprint import pprint
 

@@ -1,6 +1,21 @@
 import torch
 from torch import nn
-from pymongo import MongoClient
+
+
+def var_max(x, idx):
+    return torch.max(
+        torch.where(idx.unsqueeze(-1) > 0, x, torch.tensor(float("-inf"))),
+        dim=-2,
+    )
+
+
+def var_mask(idx):
+    return idx.clamp(max=1).unsqueeze(-1)
+
+
+def var_avg(x, idx):
+    mask = var_mask(idx)
+    return torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2).clamp(min=1)
 
 
 class Net(nn.Module):
@@ -23,84 +38,87 @@ class Net(nn.Module):
         self.battle_block = nn.Sequential(
             nn.Linear(dim["battle_feat"] + 2 * (dim["side_feat"] + 2 * 1024), nn.ReLU())
         )
-        self.move_opt_block = nn.Sequential(
+        self.move_option_block = nn.Sequential(
             nn.Linear(1024 + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
         )
-        self.switch_opt_block = nn.Sequential(
+        self.switch_option_block = nn.Sequential(
             nn.Linear(1024 + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
 
+    def ability(self, idx):
+        return self.ability_block(self.lookup["item_embed"][idx])
+
+    def item(self, idx):
+        return self.item_block(self.lookup["item_embed"][idx])
+
     def slot(self, idx, x):
-        lookup = self.lookup
-        
-        lookup["move_embed"][idx]
+        return self.move_block(torch.cat(self.lookup["move_embed"][idx], x))
 
     def forward(self, inputs):
-        
-        
+        move_set_idx = inputs["move_set_idx"]
+        move_set_x = inputs["move_set_x"]
+        move_pool_idx = inputs["move_pool_idx"]
+        move_pool_x = inputs["move_pool_x"]
+        move_lookup_idx = inputs["move_lookup_idx"]
+        move_lookup_x = inputs["move_lookup_x"]
+        ability_idx = inputs["ability_idx"]
+        item_idx = inputs["item_idx"]
+        item_lookup_idx = inputs["item_lookup_idx"]
+        user_x = inputs["user_x"]
+        user_mask = inputs["user_mask"]
+        side_x = inputs["side_x"]
+        active_idx = inputs["active_idx"]
+        battle_x = inputs["battle_x"]
+        move_option_idx = inputs["move_option_idx"]
+        move_option_x = inputs["move_option_x"]
+        action_mask = inputs["action_mask"]
 
-def to_label(opt, choice):
-    moves = opt["moves"]
-    switches = opt["switches"]
-
-    y = []
-    for i in range(4):
-        for tera in [0, 1]:
-            y.append(
-                choice["type"] == "move"
-                and i < len(moves)
-                and choice["move"] == moves[i]
-                and int(choice["tera"]) == tera
-            )
-    for i in range(6):
-        y.append(
-            choice["type"] == "switch"
-            and i < len(switches)
-            and switches[i] == choice["species"]
+        move_set_x = var_max(self.slot(move_set_idx, move_set_x), move_set_idx)
+        move_pool_x = var_avg(self.slot(move_pool_idx, move_pool_x), move_pool_idx)
+        move_lookup_x = self.slot(move_lookup_idx, move_lookup_x) * var_mask(
+            move_lookup_idx
         )
 
-    return torch.tensor(y, device=device).float()
+        ability_x = var_avg(self.ability(ability_idx), ability_idx)
+        item_x = var_avg(self.item(item_idx), item_idx)
+        item_lookup_x = self.item(item_lookup_idx)
 
+        user_x = self.user_block(
+            torch.concat(
+                [
+                    user_x,
+                    move_set_x,
+                    move_pool_x,
+                    move_lookup_x,
+                    ability_x,
+                    item_x,
+                    item_lookup_x,
+                ]
+            )
+        )
+        team_x = var_max(user_x, user_mask)
 
-def main():
-    client = MongoClient("mongodb://localhost:27017")
-    db = client.get_database("chesto")
-    dex = load_dex(db)
+        side_x = torch.concat([side_x, user_x[active_idx], team_x])
+        battle_x = self.battle_block(torch.cat([battle_x, side_x]))
 
-    model = Net(dex).to(device)
-    model = torch.compile(model, mode="reduce-overhead")
+        move_option_x = (
+            self.move_option_block(
+                torch.concat(
+                    [
+                        self.slot(move_option_idx, move_option_x).repeat(),
+                        battle_x.unsqueeze(-1),
+                    ]
+                )
+            )
+            * move_option_mask
+        )
 
-    i = 0
-    print("loading")
+        ally_user_x = user_x[0]
 
-    v = []
-    for sample in load_samples(db):
-        v.append(sample)
-        # print(sample)
-        # obs = sample["obs"]
-        # opt = sample["opt"]
-        # model(obs, opt)
-        # break
+        switch_option_x = (
+            self.switch_option_block(torch.cat([ally_user_x, battle_x.unsquee(-1)]))
+            * switch_option_mask
+        )
 
-        # print(result["sample"].keys())
-        # break
-        # opt = sample["option"]
-        # choice = sample["choice"]
-        # if to_label(opt, choice).sum() != 1:
-        #     raise result["_id"]
-
-        i += 1
-        if i % 100 == 0:
-            break
-        # break
-
-    start_time = time.perf_counter()
-    for s in v:
-        model(s["obs"], s["opt"])
-
-    end_time = time.perf_counter()
-    print(end_time - start_time)
-
-
-if __name__ == "__main__":
-    main()
+        logits = torch.cat([move_option_x.flatten(), switch_option_x])
+        return logits

@@ -8,12 +8,8 @@ def one_hot_types(lookup, types):
     return x
 
 
-def to_input(lookup, sample):
+def vectorize_input(lookup, battle, options):
     dim = lookup["dim"]
-    battle = sample["battle"]
-
-    options = sample["options"]
-    choice = sample["choice"]
 
     move_set_idx = np.zeros((2, 6, 4))
     move_set_x = np.zeros((2, 6, 4, dim["slot"]))
@@ -39,11 +35,11 @@ def to_input(lookup, sample):
 
     battle_x = np.zeros((dim["battle"]))
 
-    move_option_idx = np.zeros((8))
-    move_option_x = np.zeros((8, dim["slot"]))
+    move_option_idx = np.zeros((4, 2))
+    move_option_x = np.zeros((4, 2, dim["slot"]))
+    move_option_mask = np.ones((4, 2))
 
-    action_mask = np.ones((14))
-    target = np.zeros((14))
+    switch_option_mask = np.ones((6))
 
     battle_x = np.asarray(battle["x"])
 
@@ -115,34 +111,23 @@ def to_input(lookup, sample):
             else:
                 user_mask[i, j] = 0
 
-    for i in range(2):
-        for j in range(4):
-            if (options["canTera"] or i == 0) and j < len(options["moves"]):
+    for i in range(4):
+        for j in range(2):
+            if (options["canTera"] or j == 0) and i < len(options["moves"]):
                 slot = options["moves"][j]
                 move_option_idx[i * 4 + j] = (
-                    0
+                    dim["n_moves"] - 1
                     if slot["move"] == "Recharge"
                     else lookup["move_idx"][slot["move"]]
                 )
                 move_option_x[i * 4 + j] = np.asarray(slot["x"])
             else:
-                action_mask[i * 4 + j] = 0
+                move_option_mask[i][j] = 0
 
     species = list(battle["ally"]["team"].keys())
     for i in range(6):
         if species[i] not in options["switches"]:
-            action_mask[8 + i] = 0
-
-    if choice["type"] == "move":
-        i = int(choice["tera"])
-        j = [x["move"] for x in options["moves"]].index(choice["move"])
-        target[i * 4 + j] = 1
-
-    elif choice["type"] == "switch":
-        i = species.index(choice["species"])
-        target[8 + i] = 1
-    else:
-        raise "unknown choice" + choice["type"]
+            switch_option_mask[8 + i] = 0
 
     return dict(
         move_set_idx=torch.from_numpy(move_set_idx),
@@ -161,6 +146,25 @@ def to_input(lookup, sample):
         active_idx=torch.from_numpy(active_idx),
         battle_x=torch.from_numpy(battle_x),
         move_option_idx=torch.from_numpy(move_option_idx),
-        action_mask=torch.from_numpy(action_mask),
-        target=torch.from_numpy(target),
+        move_option_x=torch.from_numpy(move_option_x),
+        move_option_mask=torch.from_numpy(move_option_mask),
+        switch_option_mask=torch.from_numpy(switch_option_mask),
     )
+
+
+def vectorize_target(options, choice):
+    move_choice = torch.zeros((4, 2))
+    switch_choice = torch.zeros((6))
+
+    if choice["type"] == "move":
+        i = [x["move"] for x in options["moves"]].index(choice["move"])
+        j = int(choice["tera"])
+        move_choice[i][j] = 1
+
+    elif choice["type"] == "switch":
+        i = [x["species"] for x in options["switches"]]
+        switch_choice[i] = 1
+    else:
+        raise "unknown choice" + choice["type"]
+
+    return torch.cat([move_choice, switch_choice])
