@@ -2,11 +2,12 @@ import torch
 
 
 def one_hot_types(lookup, types):
-    x = torch.zeros(lookup.dim["types"])
+    x = torch.zeros(lookup["dim"]["types"])
     x[[lookup.get_type(t) for t in types]] = 1
 
 
-def vectorize_sample(dim, idx, sample):
+def to_input(lookup, sample):
+    dim = lookup["dim"]
     battle = sample["battle"]
     options = sample["options"]
     choice = sample["choice"]
@@ -27,7 +28,7 @@ def vectorize_sample(dim, idx, sample):
 
     item_lookup_idx = torch.zeros(2, 6, 1)
 
-    user_x = torch.zeros(2, 6, dim["user"] + 2 * dim["type"])
+    user_x = torch.zeros(2, 6, dim["user"] + 2 * dim["type_index"])
     user_mask = torch.ones(2, 6)
 
     side_x = torch.zeros(2, dim["side"])
@@ -65,21 +66,21 @@ def vectorize_sample(dim, idx, sample):
                 user_x[i][j] = torch.concat(
                     [
                         torch.tensor(user["x"]),
-                        one_hot_types(idx, types),
-                        one_hot_types(idx, tera_types),
+                        one_hot_types(lookup, types),
+                        one_hot_types(lookup, tera_types),
                     ]
                 )
 
                 for k in range(4):
                     if k < len(move_set):
                         slot = move_set[k]
-                        move_set_idx[i][j][k] = idx.moves[slot["move"]]
+                        move_set_idx[i][j][k] = lookup.moves[slot["move"]]["num"]
                         move_set_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k in range(6):
                     if k < len(move_pool):
                         slot = move_pool[k]
-                        move_pool_idx[i][j][k] = idx.moves[slot["move"]]
+                        move_pool_idx[i][j][k] = lookup.moves[slot["move"]]["num"]
                         move_pool_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k, ref in enumerate(
@@ -87,23 +88,23 @@ def vectorize_sample(dim, idx, sample):
                 ):
                     if ref in user:
                         slot = user[ref]
-                        move_lookup_idx[i][j][k] = idx.moves[slot["move"]]
+                        move_lookup_idx[i][j][k] = lookup.moves[slot["move"]]["num"]
                         move_lookup_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k in range(3):
                     if k < len(abilities):
-                        ability_idx[i][j][k] = idx.abilities[abilities[k]]
+                        ability_idx[i][j][k] = lookup.abilities[abilities[k]]["num"]
 
                 for k in range(3):
                     if items and k < len(items):
-                        item_idx[i][j][k] = idx.items[items[k]]
+                        item_idx[i][j][k] = lookup.items[items[k]]["num"]
 
                 if not items:
                     item_mask[i][j] = 0
 
                 for k, ref in enumerate(["lastBerry"]):
                     if ref in user:
-                        item_lookup_idx[i][j][k] = idx.items[user[ref]]
+                        item_lookup_idx[i][j][k] = lookup.items[user[ref]]["num"]
             else:
                 user_mask[i][j] = float("-inf")
 

@@ -1,55 +1,12 @@
 import torch
 from torch import nn
-from dataclasses import dataclass
-from typing import Dict, List
 from pymongo import MongoClient
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.set_float32_matmul_precision("high")
-
-DIMS = dict(
-    move_slot_feat=2,
-    item_embed=256,
-    ability_embed=256,
-    move_embed=258 + 256,
-    side_feat=17,
-    battle_feat=9,
-    user_feat=89,
-    types=20,
-)
-
-
-@dataclass
-class Dex:
-    items: Dict[str, List[float]]
-    abilities: Dict[str, List[float]]
-    moves: Dict[str, List[float]]
-    types: Dict[str, List[float]]
-
-
-def load_dex(db):
-    items = {
-        f["name"]: torch.tensor(f["desc"]["openai"], device=device)
-        for f in db.items.find()
-    }
-    abilities = {
-        f["name"]: torch.tensor(f["desc"]["openai"], device=device)
-        for f in db.abilities.find()
-    }
-    moves = {
-        f["name"]: torch.tensor(f["x"] + f["desc"]["openai"], device=device)
-        for f in db.moves.find()
-    }
-    types = {f["name"]: f for f in db.types.find()}
-
-    return Dex(items=items, abilities=abilities, moves=moves, types=types)
-
 
 
 class Net(nn.Module):
-    def __init__(self, dex):
+    def __init__(self, lookup, device):
         super().__init__()
-        self.dex = dex
+        self.lookup = lookup
 
         item_dim = DIMS["item_embed"]
         ability_dim = DIMS["ability_embed"]
@@ -84,7 +41,7 @@ class Net(nn.Module):
                 torch.tensor(slot["x"], device=device),
                 torch.zeros(DIMS["move_embed"], device=device)
                 if move == "Recharge"
-                else self.dex.moves[slot["move"]],
+                else self.lookup.moves[slot["move"]],
             ]
         )
 
@@ -93,17 +50,17 @@ class Net(nn.Module):
     def item(self, name):
         if not name:
             return self.no_item
-        return self.item_block(self.dex.items[name])
+        return self.item_block(self.lookup.items[name])
 
     def ability(self, name):
         if not name:
             return self.no_ability
-        return self.ability_block(self.dex.abilities[name])
+        return self.ability_block(self.lookup.abilities[name])
 
     def types(self, names):
         x = torch.zeros(20, device=device)
         for name in names:
-            x[self.dex.types[name]["num"]] = 1
+            x[self.lookup.types[name]["num"]] = 1
         return x
 
     def user(self, user):
@@ -176,7 +133,7 @@ class Net(nn.Module):
 
         return x, team_x
 
-    def forward(self, sample):
+    def forward(self, inputs):
         move_x = torch.zeros(2, 6, 10)
         slot_x = torch.zeros(2, 6, 10, 2)
         ability_x = torch.zeros(2, 6, 3)
