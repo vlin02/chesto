@@ -121,7 +121,7 @@ export type DB = {
   types: Collection<Type>
 }
 
-export function toDB(db: Db): DB {
+export function withSchema(db: Db): DB {
   return {
     replays: db.collection("replays"),
     versions: db.collection("versions"),

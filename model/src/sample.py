@@ -74,13 +74,13 @@ def to_input(lookup, sample):
                 for k in range(4):
                     if k < len(move_set):
                         slot = move_set[k]
-                        move_set_idx[i][j][k] = lookup.moves[slot["move"]]["num"]
+                        move_set_idx[i][j][k] = lookup.move_idx[slot["move"]]
                         move_set_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k in range(6):
                     if k < len(move_pool):
                         slot = move_pool[k]
-                        move_pool_idx[i][j][k] = lookup.moves[slot["move"]]["num"]
+                        move_pool_idx[i][j][k] = lookup.move_idx[slot["move"]]
                         move_pool_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k, ref in enumerate(
@@ -88,23 +88,23 @@ def to_input(lookup, sample):
                 ):
                     if ref in user:
                         slot = user[ref]
-                        move_lookup_idx[i][j][k] = lookup.moves[slot["move"]]["num"]
+                        move_lookup_idx[i][j][k] = lookup.move_idx[slot["move"]]
                         move_lookup_x[i][j][k] = torch.tensor(slot["x"])
 
                 for k in range(3):
                     if k < len(abilities):
-                        ability_idx[i][j][k] = lookup.abilities[abilities[k]]["num"]
+                        ability_idx[i][j][k] = lookup.ability_idx[abilities[k]]
 
                 for k in range(3):
                     if items and k < len(items):
-                        item_idx[i][j][k] = lookup.items[items[k]]["num"]
+                        item_idx[i][j][k] = lookup.item_idx[items[k]]
 
                 if not items:
                     item_mask[i][j] = 0
 
                 for k, ref in enumerate(["lastBerry"]):
                     if ref in user:
-                        item_lookup_idx[i][j][k] = lookup.items[user[ref]]["num"]
+                        item_lookup_idx[i][j][k] = lookup.item_idx[user[ref]]
             else:
                 user_mask[i][j] = float("-inf")
 
