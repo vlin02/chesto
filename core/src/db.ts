@@ -2,8 +2,8 @@ import { Collection, Db } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
-import { FBattle } from "./encoding/obs.js"
-import { Choice, FOptions } from "./run.js"
+import { BattleFeature } from "./encoding/obs.js"
+import { Choice, OptionsInput } from "./run.js"
 
 export type Player = {
   name: string
@@ -11,8 +11,8 @@ export type Player = {
 }
 
 export type Sample = {
-  battle: FBattle
-  options: FOptions
+  battle: BattleFeature
+  options: OptionsInput
   choice: Choice
 }
 

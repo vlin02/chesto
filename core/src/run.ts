@@ -3,9 +3,8 @@ import { Patch } from "./version.js"
 import { Observer } from "./client/observer.js"
 import { PARTIALLY_TRAPPED_MOVES } from "./battle.js"
 import { User, getDefTyping } from "./client/user.js"
-import { Input, Choice as RawChoice } from "./log.js"
-import { encodeBattle, encodeMoveSlot, FBattle, MoveSlotInput } from "./encoding/obs.js"
-import { run } from "node:test"
+import { Choice as RawChoice } from "./log.js"
+import { BattleFeature } from "./encoding/obs.js"
 
 export type Format = {
   gen: Generation
@@ -143,50 +142,6 @@ export function getValidSwitches({
   return opts
 }
 
-export type FOptions = {
-  canTera: boolean
-  moves: MoveSlotInput[]
-  switches: string[]
-}
-
-export function encodeOptions(run: Run): FOptions {
-  const { obs } = run
-
-  let canTera = false
-  let moveSlots: MoveSlotInput[] = []
-  let switches: string[] = []
-
-  const {
-    req,
-    ally: { active, isReviving, teraUsed }
-  } = obs
-
-  switch (req.type) {
-    case "move":
-      const trapped = isTrapped(active)
-
-      encodeMoveSlot
-
-      const moveOpt = getMoveOption(run, active)
-
-      let moves: string[] = []
-
-      if (moveOpt.type === "struggle") moves = ["Struggle"]
-      if (moveOpt.type === "recharge") moves = ["Recharge"]
-      if (moveOpt.type === "default") moves = moveOpt.moves
-
-      moveSlots = moves.map((x) => encodeMoveSlot(active.moveSet, x)!)
-      if (!teraUsed && moveOpt.type === "default") canTera = true
-      if (!trapped) switches = getValidSwitches(run)
-      break
-    case "switch":
-      switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
-      break
-  }
-
-  return { canTera, moves: moveSlots, switches }
-}
-
 export type Choice =
   | {
       type: "move"
@@ -215,7 +170,7 @@ export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
   }
 }
 
-function toRefs(battle: FBattle, opt: FOptions) {
+function toRefs(battle: BattleFeature, opt: OptionsInput) {
   const moves = new Set()
   const items = new Set()
   const abilities = new Set()
