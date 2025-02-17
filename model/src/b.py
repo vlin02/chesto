@@ -19,6 +19,8 @@ def load_samples(db: MongoClient):
 client = MongoClient("mongodb://localhost:27017")
 db = client.get_database("chesto")
 
+torch.manual_seed(42)
+
 lookup = load_lookup(db, torch.get_default_device())
 
 results = load_samples(db)

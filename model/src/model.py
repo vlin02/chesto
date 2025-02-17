@@ -4,19 +4,19 @@ from torch import nn
 
 def var_max(x, idx):
     _, x = torch.max(
-        torch.where(idx.unsqueeze(-1) > 0, x, torch.tensor(float("-inf"))),
+        x.masked_fill((idx == 0).unsqueeze(-1), float("-inf")),
         dim=-2,
     )
 
-    return x
+    return x.masked_fill(x == float("-inf"), 0)
 
 
 def var_avg(x, idx):
-    mask = idx.clamp(max=1).unsqueeze(-1)
+    mask = (idx != 0).unsqueeze(-1)
     return torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2).clamp(min=1)
 
 
-def mask(x, idx):
+def var_mask(x, idx):
     return x * idx.clamp(max=1).unsqueeze(-1)
 
 
@@ -77,11 +77,15 @@ class Net(nn.Module):
         move_option_mask = inputs["move_option_mask"]
         switch_option_mask = inputs["switch_option_mask"]
 
+        batch_dim = battle_x.shape[0]
+
         move_set_x = var_max(self.slot(move_set_idx, move_set_x), move_set_idx)
         move_pool_x = var_avg(self.slot(move_pool_idx, move_pool_x), move_pool_idx)
         item_x = var_avg(self.item(item_idx), item_idx)
         ability_x = var_avg(self.ability(ability_idx), ability_idx)
-        move_lookup_x = mask(self.slot(move_lookup_idx, move_lookup_x), move_lookup_idx)
+        move_lookup_x = var_mask(
+            self.slot(move_lookup_idx, move_lookup_x), move_lookup_idx
+        )
         item_lookup_x = self.item(item_lookup_idx)
 
         user_x = self.user_block(
@@ -95,7 +99,7 @@ class Net(nn.Module):
                     move_lookup_x.flatten(start_dim=3),
                     item_lookup_x.flatten(start_dim=3),
                 ],
-                dim=-1,
+                dim=3,
             )
         )
         team_x = var_max(user_x, user_mask)
@@ -105,17 +109,17 @@ class Net(nn.Module):
                 side_x,
                 user_x.gather(
                     2,
-                    active_idx.reshape(*active_idx.shape, 1, 1).expand(
+                    active_idx.reshape(batch_dim, 2, 1, 1).expand(
                         -1, -1, -1, user_x.shape[-1]
                     ),
                 ).squeeze(2),
                 team_x,
             ],
-            dim=-1,
+            dim=2,
         )
 
         battle_x = self.battle_block(
-            torch.cat([battle_x, side_x.flatten(start_dim=-2)], dim=-1)
+            torch.cat([battle_x, side_x.flatten(start_dim=-2)], dim=1)
         )
 
         move_option_x = (
@@ -127,10 +131,10 @@ class Net(nn.Module):
                         .expand(-1, -1, 2, -1),
                         torch.arange(2)
                         .reshape(1, 1, 2, 1)
-                        .expand(move_lookup_idx.shape[0], 4, -1, -1),
-                        battle_x.reshape(
-                            battle_x.shape[0], 1, 1, battle_x.shape[1]
-                        ).expand(battle_x.shape[0], 4, 2, battle_x.shape[1]),
+                        .expand(batch_dim, 4, -1, -1),
+                        battle_x.reshape(batch_dim, 1, 1, battle_x.shape[1]).expand(
+                            batch_dim, 4, 2, battle_x.shape[1]
+                        ),
                     ],
                     dim=3,
                 )
@@ -146,9 +150,9 @@ class Net(nn.Module):
                 torch.cat(
                     [
                         ally_user_x,
-                        battle_x.reshape(
-                            battle_x.shape[0], 1, battle_x.shape[1]
-                        ).expand(battle_x.shape[0], 6, battle_x.shape[1]),
+                        battle_x.reshape(batch_dim, 1, battle_x.shape[1]).expand(
+                            batch_dim, 6, battle_x.shape[1]
+                        ),
                     ],
                     dim=2,
                 )
