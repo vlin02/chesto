@@ -3,19 +3,21 @@ from torch import nn
 
 
 def var_max(x, idx):
-    return torch.max(
+    _, x = torch.max(
         torch.where(idx.unsqueeze(-1) > 0, x, torch.tensor(float("-inf"))),
         dim=-2,
-    )[1]
+    )
 
-
-def var_mask(idx):
-    return idx.clamp(max=1).unsqueeze(-1)
+    return x
 
 
 def var_avg(x, idx):
-    mask = var_mask(idx)
+    mask = idx.clamp(max=1).unsqueeze(-1)
     return torch.sum(x * mask, dim=-2) / torch.sum(mask, dim=-2).clamp(min=1)
+
+
+def mask(x, idx):
+    return x * idx.clamp(max=1).unsqueeze(-1)
 
 
 class Net(nn.Module):
@@ -77,12 +79,9 @@ class Net(nn.Module):
 
         move_set_x = var_max(self.slot(move_set_idx, move_set_x), move_set_idx)
         move_pool_x = var_avg(self.slot(move_pool_idx, move_pool_x), move_pool_idx)
-        move_lookup_x = self.slot(move_lookup_idx, move_lookup_x) * var_mask(
-            move_lookup_idx
-        )
-
-        ability_x = var_avg(self.ability(ability_idx), ability_idx)
         item_x = var_avg(self.item(item_idx), item_idx)
+        ability_x = var_avg(self.ability(ability_idx), ability_idx)
+        move_lookup_x = mask(self.slot(move_lookup_idx, move_lookup_x), move_lookup_idx)
         item_lookup_x = self.item(item_lookup_idx)
 
         user_x = self.user_block(
@@ -93,60 +92,71 @@ class Net(nn.Module):
                     move_pool_x,
                     ability_x,
                     item_x,
-                    move_lookup_x.flatten(start_dim=-2),
-                    item_lookup_x.flatten(start_dim=-2),
+                    move_lookup_x.flatten(start_dim=3),
+                    item_lookup_x.flatten(start_dim=3),
                 ],
                 dim=-1,
             )
         )
-        print(torch.cat(
-                [
-                    user_x,
-                    move_set_x,
-                    move_pool_x,
-                    ability_x,
-                    item_x,
-                    move_lookup_x.flatten(start_dim=-2),
-                    item_lookup_x.flatten(start_dim=-2),
-                ],
-                dim=-1,
-            ).shape)
         team_x = var_max(user_x, user_mask)
-        
+
         side_x = torch.cat(
-            [side_x, user_x[torch.arange(2), active_idx], team_x], dim=-1
+            [
+                side_x,
+                user_x.gather(
+                    2,
+                    active_idx.reshape(*active_idx.shape, 1, 1).expand(
+                        -1, -1, -1, user_x.shape[-1]
+                    ),
+                ).squeeze(2),
+                team_x,
+            ],
+            dim=-1,
         )
-        battle_x = self.battle_block(torch.cat([battle_x, side_x], dim=-1))
+
+        battle_x = self.battle_block(
+            torch.cat([battle_x, side_x.flatten(start_dim=-2)], dim=-1)
+        )
 
         move_option_x = (
             self.move_option_block(
                 torch.cat(
                     [
-                        self.slot(move_option_idx, move_option_x).repeat_interleave(),
-                        torch.arange(2).repeat(4),
-                        battle_x.unsqueeze(-1),
+                        self.slot(move_option_idx, move_option_x)
+                        .unsqueeze(2)
+                        .expand(-1, -1, 2, -1),
+                        torch.arange(2)
+                        .reshape(1, 1, 2, 1)
+                        .expand(move_lookup_idx.shape[0], 4, -1, -1),
+                        battle_x.reshape(
+                            battle_x.shape[0], 1, 1, battle_x.shape[1]
+                        ).expand(battle_x.shape[0], 4, 2, battle_x.shape[1]),
                     ],
-                    dim=-1,
+                    dim=3,
                 )
             )
-            * move_option_mask
+            .squeeze(3)
+            .masked_fill(move_option_mask == 0, float("-inf"))
         )
 
-        ally_user_x = user_x[0]
+        ally_user_x = user_x[:, 0]
 
         switch_option_x = (
             self.switch_option_block(
                 torch.cat(
                     [
                         ally_user_x,
-                        battle_x.unsqueeze(1).expand(-1, ally_user_x.shape[-2], -1),
+                        battle_x.reshape(
+                            battle_x.shape[0], 1, battle_x.shape[1]
+                        ).expand(battle_x.shape[0], 6, battle_x.shape[1]),
                     ],
-                    dim=-1,
+                    dim=2,
                 )
             )
-            * switch_option_mask
+            .squeeze(2)
+            .masked_fill(switch_option_mask == 0, float("-inf"))
         )
 
-        logits = torch.cat([move_option_x.flatten(), switch_option_x])
+        logits = torch.cat([move_option_x.flatten(start_dim=1), switch_option_x], dim=1)
 
         return logits

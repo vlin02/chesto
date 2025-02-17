@@ -12,3 +12,5 @@ mask = torch.randint(0, 5, (2, 6, 4), device='cuda')
 print(mask.clamp(max=1))
 
 print(torch.arange(2).repeat(4))
+x = torch.tensor([[1],[2],[3]])
+print(x.unsqueeze(2).expand(-1,-1,2))

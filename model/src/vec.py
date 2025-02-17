@@ -11,35 +11,35 @@ def one_hot_types(lookup, types):
 def vectorize_input(lookup, battle, options):
     dim = lookup["dim"]
 
-    move_set_idx = np.zeros((2, 6, 4), dtype=np.int32)
+    move_set_idx = np.zeros((2, 6, 4), dtype=np.int64)
     move_set_x = np.zeros((2, 6, 4, dim["slot_feat"]), dtype=np.float32)
 
-    move_pool_idx = np.zeros((2, 6, 10), dtype=np.int32)
+    move_pool_idx = np.zeros((2, 6, 10), dtype=np.int64)
     move_pool_x = np.zeros((2, 6, 10, dim["slot_feat"]), dtype=np.float32)
 
-    move_lookup_idx = np.zeros((2, 6, 5), dtype=np.int32)
+    move_lookup_idx = np.zeros((2, 6, 5), dtype=np.int64)
     move_lookup_x = np.zeros((2, 6, 5, dim["slot_feat"]), dtype=np.float32)
 
-    ability_idx = np.zeros((2, 6, 3), dtype=np.int32)
+    ability_idx = np.zeros((2, 6, 3), dtype=np.int64)
 
-    item_idx = np.zeros((2, 6, 3), dtype=np.int32)
-    item_mask = np.ones((2, 6), dtype=np.int32)
+    item_idx = np.zeros((2, 6, 3), dtype=np.int64)
+    item_mask = np.ones((2, 6), dtype=np.int64)
 
-    item_lookup_idx = np.zeros((2, 6, 1), dtype=np.int32)
+    item_lookup_idx = np.zeros((2, 6, 1), dtype=np.int64)
 
     user_x = np.zeros((2, 6, dim["user_feat"] + 2 * dim["n_types"]), dtype=np.float32)
-    user_mask = np.ones((2, 6), dtype=np.int32)
+    user_mask = np.ones((2, 6), dtype=np.int64)
 
     side_x = np.zeros((2, dim["side_feat"]), dtype=np.float32)
-    active_idx = np.zeros(2, dtype=np.int32)
+    active_idx = np.zeros(2, dtype=np.int64)
 
     battle_x = np.zeros(dim["battle_feat"], dtype=np.float32)
 
-    move_option_idx = np.zeros((4, 2), dtype=np.int32)
-    move_option_x = np.zeros((4, 2, dim["slot_feat"]), dtype=np.float32)
-    move_option_mask = np.ones((4, 2), dtype=np.int32)
+    move_option_idx = np.zeros((4), dtype=np.int64)
+    move_option_x = np.zeros((4, dim["slot_feat"]), dtype=np.float32)
+    move_option_mask = np.ones((4, 2), dtype=np.int64)
 
-    switch_option_mask = np.ones(6, dtype=np.int32)
+    switch_option_mask = np.ones(6, dtype=np.int64)
 
     battle_x = np.asarray(battle["x"], dtype=np.float32)
 
@@ -112,16 +112,18 @@ def vectorize_input(lookup, battle, options):
                 user_mask[i, j] = 0
 
     for i in range(4):
+        if i < len(options["moves"]):
+            slot = options["moves"][i]
+            move_option_idx[i] = (
+                dim["n_moves"] - 1
+                if slot["move"] == "Recharge"
+                else lookup["move_idx"][slot["move"]]
+            )
+            move_option_x[i] = np.asarray(slot["x"])
+
+    for i in range(4):
         for j in range(2):
-            if (options["canTera"] or j == 0) and i < len(options["moves"]):
-                slot = options["moves"][j]
-                move_option_idx[i][j] = (
-                    dim["n_moves"] - 1
-                    if slot["move"] == "Recharge"
-                    else lookup["move_idx"][slot["move"]]
-                )
-                move_option_x[i][j] = np.asarray(slot["x"])
-            else:
+            if not (options["canTera"] or j == 0) and i < len(options["moves"]):
                 move_option_mask[i][j] = 0
 
     species = list(battle["ally"]["team"].keys())
