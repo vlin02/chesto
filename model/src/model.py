@@ -127,7 +127,7 @@ class Net(nn.Module):
                 torch.cat(
                     [
                         self.slot(move_option_idx, move_option_x)
-                        .unsqueeze(2)
+                        .unsqueeze(batch_dim, 4, 1, 1)
                         .expand(-1, -1, 2, -1),
                         torch.arange(2)
                         .reshape(1, 1, 2, 1)
