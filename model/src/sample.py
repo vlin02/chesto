@@ -175,8 +175,7 @@ def vectorize_target(obs, options, choice):
 
 def batch_inputs(inputs, device = None):
     def to_batch(k):
-        x = np.stack([x[k] for x in inputs])
-        x = torch.from_numpy(x)
+        x = torch.from_numpy(np.stack([x[k] for x in inputs]))
         if device: 
             x = x.to(device)
         return x

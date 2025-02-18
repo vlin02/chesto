@@ -2,7 +2,7 @@ import { Collection, Db } from "mongodb"
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
-import { BattleFeature } from "./features/observer.js"
+import { Observation } from "./features/observation.js"
 import { Choice } from "./run.js"
 import { Options } from "./features/options.js"
 import { Side } from "./client/protocol.js"
@@ -12,17 +12,11 @@ export type Player = {
   team: Build[]
 }
 
-export type Sample = {
+export type Step = {
   side: Side
-  observation: BattleFeature
+  observation: Observation
   options: Options
   choice: Choice
-}
-
-export type Step = {
-  input: string
-  logs: Log[]
-  sample: Sample | null
 }
 
 export type Replay = {
@@ -34,8 +28,7 @@ export type Replay = {
   password: string | null
   inputs: string[]
   outputs: Log[][]
-  samples: (Sample | null)[]
-  steps: Step[]
+  steps: (Step | null)[]
   p1: Player
   p2: Player
 }
@@ -48,7 +41,8 @@ export type Version = {
 
 type Move = {
   name: string
-  f: number[]
+  i: number
+  x: number[]
   desc: {
     mistral: number[]
   }
@@ -56,6 +50,7 @@ type Move = {
 
 type Ability = {
   name: string
+  i: number
   desc: {
     mistral: number[]
   }
@@ -63,55 +58,16 @@ type Ability = {
 
 type Item = {
   name: string
+  i: number
   desc: {
     mistral: number[]
-  }
-}
-
-export async function createReplays(db: Db, name: string) {
-  await db.createCollection(name, {
-    storageEngine: { wiredTiger: { configString: "block_compressor=zstd" } }
-  })
-
-  const col = db.collection(name)
-  await col.createIndex({ rating: 1 })
-  await col.createIndex({ uploadtime: 1 })
-  await col.createIndex({ id: 1 })
-  await col.createIndex({ format: 1 })
-
-  return col
-}
-
-export async function createVersions(db: Db, name: string) {
-  await db.createCollection(name, {
-    storageEngine: { wiredTiger: { configString: "block_compressor=zstd" } }
-  })
-
-  const col = db.collection(name)
-  return col
-}
-
-export class VersionCache {
-  cache: Map<string, Version>
-
-  constructor(public db: DB) {
-    this.cache = new Map()
-  }
-
-  async load(hash: string) {
-    let ver = this.cache.get(hash)
-    if (!ver) {
-      ver = (await this.db.versions.findOne({ hash }))!
-      this.cache.set(hash, ver)
-    }
-    return ver
   }
 }
 
 type Type = {
   name: string
   x: number[]
-  num: number
+  i: number
 }
 
 export type DB = {
@@ -131,5 +87,22 @@ export function withSchema(db: Db): DB {
     items: db.collection("items"),
     abilities: db.collection("abilities"),
     types: db.collection("types")
+  }
+}
+
+export class VersionCache {
+  cache: Map<string, Version>
+
+  constructor(public db: DB) {
+    this.cache = new Map()
+  }
+
+  async load(hash: string) {
+    let ver = this.cache.get(hash)
+    if (!ver) {
+      ver = (await this.db.versions.findOne({ hash }))!
+      this.cache.set(hash, ver)
+    }
+    return ver
   }
 }

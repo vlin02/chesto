@@ -47,7 +47,7 @@ type SideFeature = {
   active: string
 }
 
-export type BattleFeature = {
+export type Observation = {
   x: number[]
   ally: SideFeature
   foe: SideFeature
@@ -177,7 +177,7 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   ]
 }
 
-export function extractBattle(format: Format, obs: Observer): BattleFeature {
+export function extractBattle(format: Format, obs: Observer): Observation {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
