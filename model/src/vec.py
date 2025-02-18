@@ -132,33 +132,33 @@ def vectorize_input(lookup, battle, options):
             switch_option_mask[i] = 0
 
     return dict(
-        move_set_idx=torch.from_numpy(move_set_idx),
-        move_set_x=torch.from_numpy(move_set_x),
-        move_pool_idx=torch.from_numpy(move_pool_idx),
-        move_pool_x=torch.from_numpy(move_pool_x),
-        move_lookup_idx=torch.from_numpy(move_lookup_idx),
-        move_lookup_x=torch.from_numpy(move_lookup_x),
-        ability_idx=torch.from_numpy(ability_idx),
-        item_idx=torch.from_numpy(item_idx),
-        item_mask=torch.from_numpy(item_mask),
-        item_lookup_idx=torch.from_numpy(item_lookup_idx),
-        user_x=torch.from_numpy(user_x),
-        user_mask=torch.from_numpy(user_mask),
-        side_x=torch.from_numpy(side_x),
-        active_idx=torch.from_numpy(active_idx),
-        battle_x=torch.from_numpy(battle_x),
-        move_option_idx=torch.from_numpy(move_option_idx),
-        move_option_x=torch.from_numpy(move_option_x),
-        move_option_mask=torch.from_numpy(move_option_mask),
-        switch_option_mask=torch.from_numpy(switch_option_mask),
+        move_set_idx=move_set_idx,
+        move_set_x=move_set_x,
+        move_pool_idx=move_pool_idx,
+        move_pool_x=move_pool_x,
+        move_lookup_idx=move_lookup_idx,
+        move_lookup_x=move_lookup_x,
+        ability_idx=ability_idx,
+        item_idx=item_idx,
+        item_mask=item_mask,
+        item_lookup_idx=item_lookup_idx,
+        user_x=user_x,
+        user_mask=user_mask,
+        side_x=side_x,
+        active_idx=active_idx,
+        battle_x=battle_x,
+        move_option_idx=move_option_idx,
+        move_option_x=move_option_x,
+        move_option_mask=move_option_mask,
+        switch_option_mask=switch_option_mask,
     )
 
 
-def vectorize_target(battle, options, choice):
-    move_choice = torch.zeros((4, 2))
-    switch_choice = torch.zeros((6))
+def vectorize_target(obs, options, choice):
+    move_choice = np.zeros((4, 2), dtype=np.int64)
+    switch_choice = np.zeros((6), dtype=np.int64)
 
-    team = battle["ally"]["team"]
+    team = obs["ally"]["team"]
     species = list(team.keys())
 
     if choice["type"] == "move":
@@ -170,4 +170,35 @@ def vectorize_target(battle, options, choice):
         i = species.index(choice["species"])
         switch_choice[i] = 1
 
-    return torch.cat([move_choice.flatten(), switch_choice])
+    return np.concatenate([move_choice.flatten(), switch_choice])
+
+
+def batch_inputs(inputs, device = None):
+    def to_batch(k):
+        x = np.stack([x[k] for x in inputs])
+        x = torch.from_numpy(x)
+        if device: 
+            x = x.to(device)
+        return x
+
+    return dict(
+        move_set_idx=to_batch("move_set_idx"),
+        move_set_x=to_batch("move_set_x"),
+        move_pool_idx=to_batch("move_pool_idx"),
+        move_pool_x=to_batch("move_pool_x"),
+        move_lookup_idx=to_batch("move_lookup_idx"),
+        move_lookup_x=to_batch("move_lookup_x"),
+        ability_idx=to_batch("ability_idx"),
+        item_idx=to_batch("item_idx"),
+        item_mask=to_batch("item_mask"),
+        item_lookup_idx=to_batch("item_lookup_idx"),
+        user_x=to_batch("user_x"),
+        user_mask=to_batch("user_mask"),
+        side_x=to_batch("side_x"),
+        active_idx=to_batch("active_idx"),
+        battle_x=to_batch("battle_x"),
+        move_option_idx=to_batch("move_option_idx"),
+        move_option_x=to_batch("move_option_x"),
+        move_option_mask=to_batch("move_option_mask"),
+        switch_option_mask=to_batch("switch_option_mask"),
+    )

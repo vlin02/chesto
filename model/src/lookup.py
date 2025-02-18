@@ -16,9 +16,9 @@ def load_lookup(db, device):
         n_moves=1204,
     )
 
-    item_embed = torch.zeros(dim["n_items"], dim["item_embed"])
-    ability_embed = torch.zeros(dim["n_abilities"], dim["ability_embed"])
-    move_embed = torch.zeros(dim["n_moves"], dim["move_embed"])
+    item_embed = torch.zeros(dim["n_items"], dim["item_embed"],device=device)
+    ability_embed = torch.zeros(dim["n_abilities"], dim["ability_embed"],device=device)
+    move_embed = torch.zeros(dim["n_moves"], dim["move_embed"],device=device)
 
     item_idx = {}
     ability_idx = {}
@@ -26,19 +26,15 @@ def load_lookup(db, device):
     type_idx = {}
 
     for item in db.items.find():
-        item_embed[item["i"]] = torch.tensor(item["desc"]["openai"], device=device)
+        item_embed[item["i"]] = torch.tensor(item["desc"]["openai"])
         item_idx[item["name"]] = item["i"]
 
     for ability in db.abilities.find():
-        ability_embed[ability["i"]] = torch.tensor(
-            ability["desc"]["openai"], device=device
-        )
+        ability_embed[ability["i"]] = torch.tensor(ability["desc"]["openai"])
         ability_idx[ability["name"]] = ability["i"]
 
     for move in db.moves.find():
-        move_embed[move["i"]] = torch.tensor(
-            move["x"] + move["desc"]["openai"], device=device
-        )
+        move_embed[move["i"]] = torch.tensor(move["x"] + move["desc"]["openai"])
         move_idx[move["name"]] = move["i"]
 
     for type in db.types.find():

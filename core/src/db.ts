@@ -5,6 +5,7 @@ import { Build } from "./build.js"
 import { BattleFeature } from "./features/observer.js"
 import { Choice } from "./run.js"
 import { Options } from "./features/options.js"
+import { Side } from "./client/protocol.js"
 
 export type Player = {
   name: string
@@ -12,6 +13,7 @@ export type Player = {
 }
 
 export type Sample = {
+  side: Side
   observation: BattleFeature
   options: Options
   choice: Choice

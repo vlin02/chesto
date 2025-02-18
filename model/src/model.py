@@ -48,14 +48,19 @@ class Net(nn.Module):
             nn.Linear(1024 + 512, 512), nn.ReLU(), nn.Linear(512, 1)
         )
 
+        self.register_buffer("move_embed", lookup["move_embed"])
+        self.register_buffer("item_embed", lookup["item_embed"])
+        self.register_buffer("ability_embed", lookup["ability_embed"])
+        self.register_buffer("tera_x", torch.arange(2))
+
     def item(self, idx):
-        return self.item_block(self.lookup["item_embed"][idx])
+        return self.item_block(self.item_embed[idx])
 
     def ability(self, idx):
-        return self.ability_block(self.lookup["ability_embed"][idx])
+        return self.ability_block(self.ability_embed[idx])
 
     def slot(self, idx, x):
-        return self.slot_block(torch.cat([self.lookup["move_embed"][idx], x], dim=-1))
+        return self.slot_block(torch.cat([self.move_embed[idx], x], dim=-1))
 
     def forward(self, inputs):
         move_set_idx = inputs["move_set_idx"]
@@ -109,9 +114,7 @@ class Net(nn.Module):
                 side_x,
                 user_x.gather(
                     2,
-                    active_idx.reshape(batch_dim, 2, 1, 1).expand(
-                        -1, -1, -1, user_x.shape[-1]
-                    ),
+                    active_idx.reshape(batch_dim, 2, 1, 1).expand(-1, -1, -1, 512),
                 ).squeeze(2),
                 team_x,
             ],
@@ -127,11 +130,9 @@ class Net(nn.Module):
                 torch.cat(
                     [
                         self.slot(move_option_idx, move_option_x)
-                        .unsqueeze(batch_dim, 4, 1, 1)
+                        .unsqueeze(2)
                         .expand(-1, -1, 2, -1),
-                        torch.arange(2)
-                        .reshape(1, 1, 2, 1)
-                        .expand(batch_dim, 4, -1, -1),
+                        self.tera_x.reshape(1, 1, 2, 1).expand(batch_dim, 4, -1, -1),
                         battle_x.reshape(batch_dim, 1, 1, battle_x.shape[1]).expand(
                             batch_dim, 4, 2, battle_x.shape[1]
                         ),
