@@ -9,7 +9,7 @@ device = torch.device("cpu")
 
 results = db.replays.aggregate(
     [
-        {"$match": {"uploadtime": {"$mod": [1000, 0]}}},
+        {"$match": {"uploadtime": {"$mod": [1000, 999]}}},
         {"$project": {"steps": 1}},
         {"$unwind": "$steps"},
         {"$match": {"steps": {"$ne": None}}},
