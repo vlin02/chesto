@@ -1,12 +1,12 @@
 import { Worker } from "worker_threads"
 import { resolve } from "path"
 
-const count = 100
+const count = 60
 
 await Promise.all(
   [...Array(count).keys()].map(async (i) => {
-    const w = new Worker(resolve(import.meta.dirname, "v3-w.js"), {
-      workerData: {count, i},
+    const w = new Worker(resolve(import.meta.dirname, "a0.js"), {
+      workerData: { count, i },
       resourceLimits: {
         maxOldGenerationSizeMb: 4096
       }

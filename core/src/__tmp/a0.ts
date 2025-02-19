@@ -11,7 +11,7 @@ import { extractObservation } from "../features/observation.js"
 import { extractOptions } from "../features/options.js"
 import { DB_URL } from "./db.js"
 
-const {id, count} = workerData
+const { i, count } = workerData
 
 const mongo = new MongoClient(DB_URL)
 await mongo.connect()
@@ -22,10 +22,12 @@ const vc = new VersionCache(db)
 let j = 0
 const gen = new Generations(Dex).get(9)
 
-for await (const { _id, inputs, outputs, version } of db.collection<Replay>("replays").find({
-  uploadtime: { $mod: [count, id] }
-  // id: "gen9randombattle-2003211807"
-})) {
+for await (const { _id, inputs, outputs, version } of db.collection<Replay>("replays").find(
+  {
+    uploadtime: { $mod: [count, i] }
+  },
+  { projection: { inputs: 1, outputs: 1, version: 1 } }
+)) {
   const obs = { p1: new Observer(gen), p2: new Observer(gen) }
 
   const { patch } = await vc.load(version)
