@@ -5,76 +5,78 @@ import { Dex } from "@pkmn/dex"
 import { parseInput, split } from "../log.js"
 import { SIDES } from "../client/protocol.js"
 import { workerData } from "worker_threads"
-import { VersionCache, Step, withSchema } from "../db.js"
+import { VersionCache, Step, Replay } from "../db.js"
 import { Format, Run, toChoice } from "../run.js"
+import { extractObservation } from "../features/observation.js"
+import { extractOptions } from "../features/options.js"
+import { DB_URL } from "./db.js"
 
-const workerId = workerData as number
+const {id, count} = workerData
 
-const mongo = new MongoClient("mongodb://172.31.30.235:27017")
+const mongo = new MongoClient(DB_URL)
 await mongo.connect()
+const db = mongo.db("chesto")
 
-// const db = withSchema(mongo.db("chesto"))
-// const vc = new VersionCache(db)
+const vc = new VersionCache(db)
 
-// let j = 0
-// const gen = new Generations(Dex).get(9)
-// for await (const { _id, inputs, outputs, version } of db.replays.find({
-//   uploadtime: { $mod: [7, workerId] }
-//   // id: "gen9randombattle-2003211807"
-// })) {
-//   const obs = { p1: new Observer(gen), p2: new Observer(gen) }
+let j = 0
+const gen = new Generations(Dex).get(9)
 
-//   const { patch } = await vc.load(version)
-//   const fmt: Format = { gen, patch }
+for await (const { _id, inputs, outputs, version } of db.collection<Replay>("replays").find({
+  uploadtime: { $mod: [count, id] }
+  // id: "gen9randombattle-2003211807"
+})) {
+  const obs = { p1: new Observer(gen), p2: new Observer(gen) }
 
-//   const steps: Step[] = []
+  const { patch } = await vc.load(version)
+  const fmt: Format = { gen, patch }
 
-//   for (let i = 0; i < inputs.length; i++) {
-//     const j = i + outputs.length - inputs.length
+  const steps: (Step | null)[] = []
 
-//     const line = inputs[i]
-//     const input = parseInput(line)
+  for (let i = 0; i < inputs.length; i++) {
+    const j = i + outputs.length - inputs.length
 
-//     const logs = j < 0 ? [] : outputs[j]
+    const line = inputs[i]
+    const input = parseInput(line)
 
-//     let sample: Sample | null = null
-//     if (input.type === "choose") {
-//       const { side } = input
-//       const run: Run = { fmt, obs: obs[side] }
+    const logs = j < 0 ? [] : outputs[j]
 
-//       sample = {
-//         observer: encodeObserver(fmt, obs[side]),
-//         option: encodeOption(run),
-//         choice: toChoice(run, input.choice)
-//       }
-//     }
+    let step: Step | null = null
 
-//     for (const log of logs) {
-//       const ch = split(log)
-//       for (const side of SIDES) {
-//         for (const msg of ch[side]) {
-//           obs[side].read(msg)
-//         }
-//       }
-//     }
+    if (input.type === "choose") {
+      const { side } = input
+      const run: Run = { fmt, obs: obs[side] }
 
-//     const step = {
-//       input: inputs[i],
-//       logs,
-//       sample
-//     }
+      step = {
+        side,
+        observation: extractObservation(fmt, obs[side]),
+        options: extractOptions(run),
+        choice: toChoice(run, input.choice)
+      }
+    }
 
-//     steps.push(step)
-//   }
+    for (const log of logs) {
+      const ch = split(log)
+      for (const side of SIDES) {
+        for (const msg of ch[side]) {
+          obs[side].read(msg)
+        }
+      }
+    }
 
-//   await db.replays.updateOne(
-//     { _id },
-//     {
-//       $set: {
-//         steps
-//       }
-//     }
-//   )
+    steps.push(step)
+  }
 
-//   if (++j % 1000 === 0) console.log(j)
-// }
+  await db.collection("replays").updateOne(
+    { _id },
+    {
+      $set: {
+        steps
+      }
+    }
+  )
+
+  if (++j % 100 === 0) console.log(j)
+}
+
+await mongo.close()
