@@ -177,7 +177,7 @@ function encodeBattle({ fields, weather }: { fields: Fields; weather?: Weather }
   ]
 }
 
-export function extractBattle(format: Format, obs: Observer): Observation {
+export function extractObservation(format: Format, obs: Observer): Observation {
   const { gen } = format
 
   const { ally, foe, fields, weather, req } = obs
