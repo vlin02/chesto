@@ -8,7 +8,9 @@ def one_hot_types(lookup, types):
     return x
 
 
-def vectorize_input(lookup, battle, options):
+def vectorize_input(step, lookup):
+    obs = step["observation"]
+    options = step["options"]
     dim = lookup["dim"]
 
     move_set_idx = np.zeros((2, 6, 4), dtype=np.int64)
@@ -41,9 +43,9 @@ def vectorize_input(lookup, battle, options):
 
     switch_option_mask = np.ones(6, dtype=np.int64)
 
-    battle_x = np.asarray(battle["x"], dtype=np.float32)
+    battle_x = np.asarray(obs["x"], dtype=np.float32)
 
-    sides = [battle["ally"], battle["foe"]]
+    sides = [obs["ally"], obs["foe"]]
     for i in range(2):
         side = sides[i]
         team = side["team"]
@@ -126,7 +128,7 @@ def vectorize_input(lookup, battle, options):
             if not (options["canTera"] or j == 0) and i < len(options["moves"]):
                 move_option_mask[i][j] = 0
 
-    species = list(battle["ally"]["team"].keys())
+    species = list(obs["ally"]["team"].keys())
     for i in range(6):
         if species[i] not in options["switches"]:
             switch_option_mask[i] = 0
@@ -154,7 +156,11 @@ def vectorize_input(lookup, battle, options):
     )
 
 
-def vectorize_target(obs, options, choice):
+def vectorize_target(step):
+    obs = step["observation"]
+    options = step["options"]
+    choice = step["choice"]
+
     move_choice = np.zeros((4, 2), dtype=np.int64)
     switch_choice = np.zeros((6), dtype=np.int64)
 
@@ -173,10 +179,10 @@ def vectorize_target(obs, options, choice):
     return np.concatenate([move_choice.flatten(), switch_choice])
 
 
-def batch_inputs(inputs, device = None):
+def batch_inputs(inputs, device=None):
     def to_batch(k):
         x = torch.from_numpy(np.stack([x[k] for x in inputs]))
-        if device: 
+        if device:
             x = x.to(device)
         return x
 
