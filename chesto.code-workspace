@@ -1,15 +1,12 @@
 {
   "folders": [
     {
-      "name": "core",
       "path": "core"
     },
     {
-      "name": "model",
       "path": "model"
     },
     {
-      "name": "chesto",
       "path": "."
     }
   ]
