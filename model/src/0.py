@@ -5,11 +5,11 @@ from pymongo import MongoClient
 
 client = MongoClient("mongodb://172.31.30.235:27017")
 db = client.get_database("chesto")
-device = torch.device("cuda")
+device = torch.device("cpu")
 
 results = db.replays.aggregate(
     [
-        {"$limit": 1000},
+        {"$match": {"uploadtime": {"$mod": [1000, 0]}}},
         {"$project": {"steps": 1}},
         {"$unwind": "$steps"},
         {"$match": {"steps": {"$ne": None}}},
@@ -18,9 +18,13 @@ results = db.replays.aggregate(
 
 lookup = load_lookup(db, device)
 
+inputs = []
+targets = []
 for x in results:
     step = x["steps"]
 
-    input = vectorize_input(step, lookup)
-    target = vectorize_target(step)
-    print(target)
+    inputs.append(vectorize_input(step, lookup))
+    targets.append(vectorize_target(step))
+
+
+print(len(inputs))
