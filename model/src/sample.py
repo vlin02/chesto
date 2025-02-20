@@ -8,9 +8,7 @@ def one_hot_types(lookup, types):
     return x
 
 
-def vectorize_input(step, lookup):
-    obs = step["observation"]
-    options = step["options"]
+def vectorize_input(obs, options, lookup):
     dim = lookup["dim"]
 
     move_set_idx = np.zeros((2, 6, 4), dtype=np.int64)
@@ -179,31 +177,32 @@ def vectorize_target(step):
     return np.concatenate([move_choice.flatten(), switch_choice])
 
 
-def batch_inputs(inputs, device=None):
-    def to_batch(k):
-        x = torch.from_numpy(np.stack([x[k] for x in inputs]))
-        if device:
-            x = x.to(device)
-        return x
+KEYS = [
+    "move_set_idx"
+    "move_set_x"
+    "move_pool_idx"
+    "move_pool_x"
+    "move_lookup_idx"
+    "move_lookup_x"
+    "ability_idx"
+    "item_idx"
+    "item_mask"
+    "item_lookup_idx"
+    "user_x"
+    "user_mask"
+    "side_x"
+    "active_idx"
+    "battle_x"
+    "move_option_idx"
+    "move_option_x"
+    "move_option_mask"
+    "switch_option_mask"
+]
 
-    return dict(
-        move_set_idx=to_batch("move_set_idx"),
-        move_set_x=to_batch("move_set_x"),
-        move_pool_idx=to_batch("move_pool_idx"),
-        move_pool_x=to_batch("move_pool_x"),
-        move_lookup_idx=to_batch("move_lookup_idx"),
-        move_lookup_x=to_batch("move_lookup_x"),
-        ability_idx=to_batch("ability_idx"),
-        item_idx=to_batch("item_idx"),
-        item_mask=to_batch("item_mask"),
-        item_lookup_idx=to_batch("item_lookup_idx"),
-        user_x=to_batch("user_x"),
-        user_mask=to_batch("user_mask"),
-        side_x=to_batch("side_x"),
-        active_idx=to_batch("active_idx"),
-        battle_x=to_batch("battle_x"),
-        move_option_idx=to_batch("move_option_idx"),
-        move_option_x=to_batch("move_option_x"),
-        move_option_mask=to_batch("move_option_mask"),
-        switch_option_mask=to_batch("switch_option_mask"),
-    )
+
+def batch_inputs(inputs):
+    return {k: torch.from_numpy(np.stack([x[k] for x in inputs])) for k in KEYS}
+
+
+def slice_batch(batch, i, j):
+    return {k: batch[k][i:j] for k in KEYS}
