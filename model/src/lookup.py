@@ -16,9 +16,9 @@ def load_lookup(db, device):
         n_moves=1204,
     )
 
-    item_embed = torch.zeros(dim["n_items"], dim["item_embed"],device=device)
-    ability_embed = torch.zeros(dim["n_abilities"], dim["ability_embed"],device=device)
-    move_embed = torch.zeros(dim["n_moves"], dim["move_embed"],device=device)
+    item_embed = torch.zeros(dim["n_items"], dim["item_embed"], device=device)
+    ability_embed = torch.zeros(dim["n_abilities"], dim["ability_embed"], device=device)
+    move_embed = torch.zeros(dim["n_moves"], dim["move_embed"], device=device)
 
     item_idx = {}
     ability_idx = {}

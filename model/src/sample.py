@@ -1,6 +1,28 @@
 import numpy as np
 import torch
 
+KEYS = [
+    "move_set_idx"
+    "move_set_x"
+    "move_pool_idx"
+    "move_pool_x"
+    "move_lookup_idx"
+    "move_lookup_x"
+    "ability_idx"
+    "item_idx"
+    "item_mask"
+    "item_lookup_idx"
+    "user_x"
+    "user_mask"
+    "side_x"
+    "active_idx"
+    "battle_x"
+    "move_option_idx"
+    "move_option_x"
+    "move_option_mask"
+    "switch_option_mask"
+]
+
 
 def one_hot_types(lookup, types):
     x = np.zeros(lookup["dim"]["n_types"])
@@ -175,29 +197,6 @@ def vectorize_target(step):
         switch_choice[i] = 1
 
     return np.concatenate([move_choice.flatten(), switch_choice])
-
-
-KEYS = [
-    "move_set_idx"
-    "move_set_x"
-    "move_pool_idx"
-    "move_pool_x"
-    "move_lookup_idx"
-    "move_lookup_x"
-    "ability_idx"
-    "item_idx"
-    "item_mask"
-    "item_lookup_idx"
-    "user_x"
-    "user_mask"
-    "side_x"
-    "active_idx"
-    "battle_x"
-    "move_option_idx"
-    "move_option_x"
-    "move_option_mask"
-    "switch_option_mask"
-]
 
 
 def batch_inputs(inputs):
