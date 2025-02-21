@@ -26,15 +26,19 @@ def load_lookup(db, device):
     type_idx = {}
 
     for item in db.items.find():
-        item_embed[item["i"]] = torch.tensor(item["desc"]["openai"])
+        item_embed[item["i"]] = torch.tensor(item["desc"]["openai"], device=device)
         item_idx[item["name"]] = item["i"]
 
     for ability in db.abilities.find():
-        ability_embed[ability["i"]] = torch.tensor(ability["desc"]["openai"])
+        ability_embed[ability["i"]] = torch.tensor(
+            ability["desc"]["openai"], device=device
+        )
         ability_idx[ability["name"]] = ability["i"]
 
     for move in db.moves.find():
-        move_embed[move["i"]] = torch.tensor(move["x"] + move["desc"]["openai"])
+        move_embed[move["i"]] = torch.tensor(
+            move["x"] + move["desc"]["openai"], device=device
+        )
         move_idx[move["name"]] = move["i"]
 
     for type in db.types.find():

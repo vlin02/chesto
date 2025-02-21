@@ -1,23 +1,14 @@
-import numpy as np
 from pymongo import MongoClient
 from io import BytesIO
-from lookup import load_lookup
-from net import Net
-import time
-import torch
+import numpy as np
 
-client = MongoClient("mongodb://172.31.30.235:27017")
-db = client.get_database("chesto")
-device = torch.device("cuda")
+mongo = MongoClient("mongodb://172.31.30.235:27017")
+db = mongo.get_database("chesto")
 
-start_time = time.time()
-lookup = load_lookup(db, )
-
-net = Net(lookup)
-
-for block in db.samples.find():
-    x = np.load(BytesIO(block["bin"]))
-    print(x["target"])
-    net(x)
-
-print(time.time() - start_time)
+batches = [[]]
+for x in db.samples.find({}):
+    x["_id"]
+    x1 = np.load(BytesIO(x["bin"]))
+    n = x1["battle_x"].shape[0]
+    print(n)
+    db.samples.update_one({"_id": x["_id"]}, {"$set": {"n": n}})
