@@ -21,11 +21,10 @@ def process_samples(chunk):
         {"uploadtime": {"$mod": [tot, n]}, "rating": {"$gt": 2000}}, {"steps": 1}
     ):
         steps = x["steps"]
-
-        v = .7 * len(steps)
+        min_i = .5 * len(steps)
 
         for i, step in enumerate(steps):
-            if i < v or not step:
+            if i < min_i or not step:
                 continue
 
             sample = {}
@@ -46,7 +45,7 @@ def run():
         chunks = pool.map(process_samples, [(N, i) for i in range(N)])
         samples = [sample for chunk in chunks for sample in chunk]
 
-        with h5py.File("sample7.hdf5", "w") as f:
+        with h5py.File("__tmp/sample7.hdf5", "w") as f:
             for k in SCHEMA.keys():
                 print(k)
                 f[k] = np.stack([sample[k] for sample in samples])
