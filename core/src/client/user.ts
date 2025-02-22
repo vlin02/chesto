@@ -316,7 +316,7 @@ export function getDefTyping({ types, tera, teraType }: User) {
 
 export type User = AllyUser | FoeUser
 
-type Temp = {
+type Actives = {
   volatiles: Volatiles
   boosts: Boosts
   lastBerry: undefined
@@ -324,7 +324,10 @@ type Temp = {
   formeChange: FormeChange | undefined
 }
 
-export function recover(user: User, { volatiles, boosts, lastBerry, lastMove, formeChange }: Temp) {
+export function restore(
+  user: User,
+  { volatiles, boosts, lastBerry, lastMove, formeChange }: Actives
+) {
   user.volatiles = volatiles
   user.boosts = boosts
   user.lastBerry = lastBerry
