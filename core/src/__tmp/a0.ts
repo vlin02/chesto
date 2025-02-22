@@ -5,9 +5,11 @@ import { Dex } from "@pkmn/dex"
 import { parseInput, split } from "../log.js"
 import { SIDES } from "../client/protocol.js"
 import { VersionCache, Step, Replay } from "../db.js"
-import { Format, Run } from "../run.js"
+import { Format, Run, toChoice } from "../run.js"
 import { DB_URL } from "./db.js"
 import { randomAgent } from "../arena/agents.js"
+import { extractObservation } from "../features/observation.js"
+import { extractOptions } from "../features/options.js"
 
 // const { i, count } = workerData
 
@@ -42,14 +44,13 @@ for await (const { _id, inputs, outputs, version } of db.collection<Replay>("rep
     if (input.type === "choose") {
       const { side } = input
       const run: Run = { fmt, obs: obs[side] }
-      console.log(randomAgent(run))
 
-      // step = {
-      //   side,
-      //   observation: extractObservation(fmt, obs[side]),
-      //   options: extractOptions(run),
-      //   choice: toChoice(run, input.choice)
-      // }
+      step = {
+        side,
+        observation: extractObservation(fmt, obs[side]),
+        options: extractOptions(run),
+        choice: toChoice(run, input.choice)
+      }
     }
 
     for (const log of logs) {

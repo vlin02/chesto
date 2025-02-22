@@ -29,3 +29,5 @@ export function scale(n: number, lo: number, hi: number, neg = false) {
   }
   return (n - lo) / (hi - lo)
 }
+
+

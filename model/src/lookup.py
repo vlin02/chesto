@@ -1,5 +1,5 @@
 import torch
-
+N_TYPES = 20
 
 def load_lookup(db, device):
     dim = dict(

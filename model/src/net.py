@@ -1,9 +1,12 @@
 import torch
 from torch import nn
 
+from lookup import N_TYPES
+from sample import SCHEMA
+
 
 def var_max(x, idx):
-    _, x = torch.max(
+    x, _ = torch.max(
         x.masked_fill((idx == 0).unsqueeze(-1), float("-inf")),
         dim=-2,
     )
@@ -24,21 +27,28 @@ class Net(nn.Module):
     def __init__(self, lookup):
         super().__init__()
 
-        self.lookup = lookup
-        dim = lookup["dim"]
+        user_encode_dim = 1024
 
-        self.item_block = nn.Sequential(nn.Linear(dim["item_embed"], 128), nn.ReLU())
+        self.lookup = lookup
+        self.item_embed_dim = lookup["item_embed"].shape[1]
+        self.ability_embed_dim = lookup["ability_embed"].shape[1]
+        self.move_embed_dim = lookup["move_embed"].shape[1]
+        self.user_x_dim = SCHEMA["user_x"]["shape"][2]
+        self.battle_x_dim = SCHEMA["battle_x"]["shape"][0]
+        self.side_x_dim = SCHEMA["side_x"]["shape"][1]
+
+        self.item_block = nn.Sequential(nn.Linear(self.item_embed_dim, 128), nn.ReLU())
         self.ability_block = nn.Sequential(
-            nn.Linear(dim["ability_embed"], 128), nn.ReLU()
+            nn.Linear(self.ability_embed_dim, 128), nn.ReLU()
         )
         self.slot_block = nn.Sequential(
-            nn.Linear(dim["move_embed"] + dim["slot_feat"], 128), nn.ReLU()
+            nn.Linear(self.move_embed_dim + 2, 128), nn.ReLU()
         )
         self.user_block = nn.Sequential(
-            nn.Linear(dim["user_feat"] + 2 * dim["n_types"] + 10 * 128, 512), nn.ReLU()
+            nn.Linear(self.user_x_dim + 10 * 128, user_encode_dim), nn.ReLU()
         )
         self.battle_block = nn.Sequential(
-            nn.Linear(dim["battle_feat"] + 2 * (dim["side_feat"] + 2 * 512), 1024),
+            nn.Linear(self.battle_x_dim + 2 * (self.side_x_dim + 2 * user_encode_dim), 1024),
             nn.ReLU(),
         )
         self.move_option_block = nn.Sequential(
@@ -59,8 +69,8 @@ class Net(nn.Module):
     def ability(self, idx):
         return self.ability_block(self.ability_embed[idx])
 
-    def slot(self, idx, x):
-        return self.slot_block(torch.cat([self.move_embed[idx], x], dim=-1))
+    def slot(self, x, idx):
+        return self.slot_block(torch.cat([x, self.move_embed[idx]], dim=-1))
 
     def forward(self, inputs):
         move_set_idx = inputs["move_set_idx"]
@@ -82,14 +92,13 @@ class Net(nn.Module):
         move_option_mask = inputs["move_option_mask"]
         switch_option_mask = inputs["switch_option_mask"]
 
-        batch_dim = battle_x.shape[0]
+        move_set_x = var_max(self.slot(move_set_x, move_set_idx), move_set_idx)
 
-        move_set_x = var_max(self.slot(move_set_idx, move_set_x), move_set_idx)
-        move_pool_x = var_avg(self.slot(move_pool_idx, move_pool_x), move_pool_idx)
+        move_pool_x = var_avg(self.slot(move_pool_x, move_pool_idx), move_pool_idx)
         item_x = var_avg(self.item(item_idx), item_idx)
         ability_x = var_avg(self.ability(ability_idx), ability_idx)
         move_lookup_x = var_mask(
-            self.slot(move_lookup_idx, move_lookup_x), move_lookup_idx
+            self.slot(move_lookup_x, move_lookup_idx), move_lookup_idx
         )
         item_lookup_x = self.item(item_lookup_idx)
 
@@ -107,6 +116,7 @@ class Net(nn.Module):
                 dim=3,
             )
         )
+        
         team_x = var_max(user_x, user_mask)
 
         side_x = torch.cat(
@@ -114,7 +124,7 @@ class Net(nn.Module):
                 side_x,
                 user_x.gather(
                     2,
-                    active_idx.reshape(batch_dim, 2, 1, 1).expand(-1, -1, -1, 512),
+                    active_idx[..., None, None].expand(-1, -1, -1, user_x.shape[3]),
                 ).squeeze(2),
                 team_x,
             ],
@@ -129,13 +139,13 @@ class Net(nn.Module):
             self.move_option_block(
                 torch.cat(
                     [
-                        self.slot(move_option_idx, move_option_x)
+                        self.slot(move_option_x, move_option_idx)
                         .unsqueeze(2)
                         .expand(-1, -1, 2, -1),
-                        self.tera_x.reshape(1, 1, 2, 1).expand(batch_dim, 4, -1, -1),
-                        battle_x.reshape(batch_dim, 1, 1, battle_x.shape[1]).expand(
-                            batch_dim, 4, 2, battle_x.shape[1]
+                        self.tera_x[None, None, :, None].expand(
+                            battle_x.shape[0], 4, -1, -1
                         ),
+                        battle_x[:, None, None, :].expand(-1, 4, 2, -1),
                     ],
                     dim=3,
                 )
@@ -149,12 +159,7 @@ class Net(nn.Module):
         switch_option_x = (
             self.switch_option_block(
                 torch.cat(
-                    [
-                        ally_user_x,
-                        battle_x.reshape(batch_dim, 1, battle_x.shape[1]).expand(
-                            batch_dim, 6, battle_x.shape[1]
-                        ),
-                    ],
+                    [ally_user_x, battle_x.unsqueeze(1).expand(-1, 6, -1)],
                     dim=2,
                 )
             )

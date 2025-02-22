@@ -56,6 +56,8 @@ def one_hot_types(lookup, types):
 def vectorize_input(obs, options, lookup):
     dim = lookup["dim"]
 
+    slot_dim = 2
+
     ability_idx = np.zeros((2, 6, 3), dtype=np.int64)
     active_idx = np.zeros(2, dtype=np.int64)
     battle_x = np.zeros(dim["battle_feat"], dtype=np.float32)
@@ -63,14 +65,14 @@ def vectorize_input(obs, options, lookup):
     item_lookup_idx = np.zeros((2, 6, 1), dtype=np.int64)
     item_mask = np.ones((2, 6), dtype=np.int64)
     move_lookup_idx = np.zeros((2, 6, 5), dtype=np.int64)
-    move_lookup_x = np.zeros((2, 6, 5, dim["slot_feat"]), dtype=np.float32)
+    move_lookup_x = np.zeros((2, 6, 5, slot_dim), dtype=np.float32)
     move_option_idx = np.zeros((4), dtype=np.int64)
+    move_option_x = np.zeros((4, slot_dim), dtype=np.float32)
     move_option_mask = np.ones((4, 2), dtype=np.int64)
-    move_option_x = np.zeros((4, dim["slot_feat"]), dtype=np.float32)
     move_pool_idx = np.zeros((2, 6, 10), dtype=np.int64)
-    move_pool_x = np.zeros((2, 6, 10, dim["slot_feat"]), dtype=np.float32)
+    move_pool_x = np.zeros((2, 6, 10, slot_dim), dtype=np.float32)
     move_set_idx = np.zeros((2, 6, 4), dtype=np.int64)
-    move_set_x = np.zeros((2, 6, 4, dim["slot_feat"]), dtype=np.float32)
+    move_set_x = np.zeros((2, 6, 4, slot_dim), dtype=np.float32)
     side_x = np.zeros((2, dim["side_feat"]), dtype=np.float32)
     switch_option_mask = np.ones(6, dtype=np.int64)
     user_mask = np.ones((2, 6), dtype=np.int64)
@@ -108,8 +110,6 @@ def vectorize_input(obs, options, lookup):
                 for k in range(4):
                     if k < len(move_set):
                         slot = move_set[k]
-                        a = ["a"]
-                        a[0] = lookup["move_idx"][slot["move"]]
                         move_set_idx[i, j, k] = lookup["move_idx"][slot["move"]]
                         v = np.asarray(slot["x"])
 
@@ -128,7 +128,7 @@ def vectorize_input(obs, options, lookup):
                         slot = user[ref]
                         move_lookup_idx[i, j, k] = lookup["move_idx"][slot["move"]]
                         move_lookup_x[i, j, k] = np.asarray(slot["x"])
-                
+
                 for k in range(3):
                     if k < len(abilities):
                         ability_idx[i, j, k] = lookup["ability_idx"][abilities[k]]
@@ -213,7 +213,10 @@ def vectorize_target(step):
 
 
 def batch_inputs(inputs, device):
-    return {k: torch.from_numpy(np.stack([x[k] for x in inputs])).to(device) for k in INPUT_KEYS}
+    return {
+        k: torch.from_numpy(np.stack([x[k] for x in inputs])).to(device)
+        for k in INPUT_KEYS
+    }
 
 
 def slice_batch(batch, i, j):
