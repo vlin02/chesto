@@ -122,7 +122,7 @@ class Net(nn.Module):
         )
 
         battle_x = self.battle_block(
-            torch.cat([battle_x, side_x.flatten(start_dim=-2)], dim=1)
+            torch.cat([battle_x, side_x.flatten(start_dim=1)], dim=1)
         )
 
         move_option_x = (

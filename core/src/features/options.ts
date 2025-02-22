@@ -1,4 +1,4 @@
-import { Run, isTrapped, getMoveOption, getValidSwitches, getValidRevives } from "../run.js"
+import { Run, isTrapped, getMoveOptions, getValidSwitches, getValidRevives } from "../run.js"
 import { MoveSlotFeature, extractMoveSlot } from "./observation.js"
 
 export type Options = {
@@ -23,9 +23,7 @@ export function extractOptions(run: Run): Options {
     case "move":
       const trapped = isTrapped(active)
 
-      extractMoveSlot
-
-      const moveOpt = getMoveOption(run, active)
+      const moveOpt = getMoveOptions(run, active)
 
       let moves: string[] = []
 

@@ -1,7 +1,7 @@
 import { Generation } from "@pkmn/data"
 import { Patch } from "./version.js"
 import { Observer } from "./client/observer.js"
-import { PARTIALLY_TRAPPED_MOVES } from "./battle.js"
+import { Choice, PARTIALLY_TRAPPED_MOVES } from "./battle.js"
 import { User, getDefTyping } from "./client/user.js"
 import { Choice as RawChoice } from "./log.js"
 
@@ -15,7 +15,7 @@ export type Run = {
   obs: Observer
 }
 
-type MoveOption =
+type MoveOptions =
   | {
       type: "struggle" | "recharge"
     }
@@ -25,7 +25,7 @@ type MoveOption =
       stuck?: boolean
     }
 
-export function getMoveOption({ fmt: { gen } }: Run, user: User): MoveOption {
+export function getMoveOptions({ fmt: { gen } }: Run, user: User): MoveOptions {
   let {
     volatiles: {
       "Encore": encore,
@@ -141,17 +141,6 @@ export function getValidSwitches({
   return opts
 }
 
-export type Choice =
-  | {
-      type: "move"
-      move: string
-      tera: boolean
-    }
-  | {
-      type: "switch"
-      species: string
-    }
-
 export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
   switch (raw.type) {
     case "move": {
@@ -167,4 +156,50 @@ export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
       return { type: "switch", species: obs.ally.slots[i - 1].species }
     }
   }
+}
+
+export type Choice =
+  | {
+      type: "move"
+      move: string
+      tera: boolean
+    }
+  | {
+      type: "switch"
+      species: string
+    }
+
+export type Options = {
+  canTera: boolean
+  moves: MoveOptions | null
+  switches: string[]
+}
+
+export function getAllOptions(run: Run): Options {
+  const { obs } = run
+
+  let canTera = false
+  let switches: string[] = []
+  let moves: MoveOptions | null = null
+
+  const {
+    req,
+    ally: { active, isReviving, teraUsed }
+  } = obs
+
+  switch (req.type) {
+    case "move":
+      const trapped = isTrapped(active)
+
+      moves = getMoveOptions(run, active)
+
+      if (!teraUsed && moves.type === "default") canTera = true
+      if (!trapped) switches = getValidSwitches(run)
+      break
+    case "switch":
+      switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
+      break
+  }
+
+  return { canTera, moves, switches }
 }

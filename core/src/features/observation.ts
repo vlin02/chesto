@@ -33,12 +33,12 @@ type UserFeature = {
   items: string[] | null
   types: string[]
   teraTypes: string[]
-  disabled: MoveSlotFeature | undefined
-  choice: MoveSlotFeature | undefined
-  encore: MoveSlotFeature | undefined
-  locked: MoveSlotFeature | undefined
-  lastMove: MoveSlotFeature | undefined
-  lastBerry: string | undefined
+  disabled: MoveSlotFeature | null
+  choice: MoveSlotFeature | null
+  encore: MoveSlotFeature | null
+  locked: MoveSlotFeature | null
+  lastMove: MoveSlotFeature | null
+  lastBerry: string | null
 }
 
 type SideFeature = {
@@ -56,7 +56,7 @@ export type Observation = {
 export const CHOICE_MODES = ["move", "switch", "revive", "wait"]
 export type ChoiceMode = (typeof CHOICE_MODES)[number]
 
-export function extractMoveSlot(moveSet: MoveSet, move: string): MoveSlotFeature | undefined {
+export function extractMoveSlot(moveSet: MoveSet, move: string): MoveSlotFeature {
   if (move in moveSet) {
     const { used, max } = moveSet[move]
     return { move, x: [scalePP(Math.max(0, max - used)), scalePP(max)] }
@@ -74,18 +74,16 @@ export function extractMoveSet(moveSet: MoveSet) {
 
 function extractUserLookup({ moveSet, volatiles, lastBerry, lastMove }: User) {
   return {
-    disabled: volatiles["Disable"]
-      ? extractMoveSlot(moveSet, volatiles["Disable"].move)
-      : undefined,
+    disabled: volatiles["Disable"] ? extractMoveSlot(moveSet, volatiles["Disable"].move) : null,
     choice: volatiles["Choice Locked"]
       ? extractMoveSlot(moveSet, volatiles["Choice Locked"].move)
-      : undefined,
-    encore: volatiles["Encore"] ? extractMoveSlot(moveSet, volatiles["Encore"].move) : undefined,
+      : null,
+    encore: volatiles["Encore"] ? extractMoveSlot(moveSet, volatiles["Encore"].move) : null,
     locked: volatiles["Locked Move"]
       ? extractMoveSlot(moveSet, volatiles["Locked Move"].move)
-      : undefined,
-    lastMove: lastMove ? extractMoveSlot(moveSet, lastMove) : undefined,
-    lastBerry: lastBerry?.name
+      : null,
+    lastMove: lastMove ? extractMoveSlot(moveSet, lastMove) : null,
+    lastBerry: lastBerry?.name ?? null
   }
 }
 

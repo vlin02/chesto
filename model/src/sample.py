@@ -212,8 +212,8 @@ def vectorize_target(step):
     return np.concatenate([move_choice.flatten(), switch_choice])
 
 
-def batch_inputs(inputs):
-    return {k: torch.from_numpy(np.stack([x[k] for x in inputs])) for k in INPUT_KEYS}
+def batch_inputs(inputs, device):
+    return {k: torch.from_numpy(np.stack([x[k] for x in inputs])).to(device) for k in INPUT_KEYS}
 
 
 def slice_batch(batch, i, j):

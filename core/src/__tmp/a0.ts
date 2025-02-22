@@ -4,12 +4,10 @@ import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { parseInput, split } from "../log.js"
 import { SIDES } from "../client/protocol.js"
-import { workerData } from "worker_threads"
 import { VersionCache, Step, Replay } from "../db.js"
-import { Format, Run, toChoice } from "../run.js"
-import { extractObservation } from "../features/observation.js"
-import { extractOptions } from "../features/options.js"
+import { Format, Run } from "../run.js"
 import { DB_URL } from "./db.js"
+import { randomAgent } from "../arena/agents.js"
 
 // const { i, count } = workerData
 
@@ -34,25 +32,24 @@ for await (const { _id, inputs, outputs, version } of db.collection<Replay>("rep
   const steps: (Step | null)[] = []
 
   for (let i = 0; i < inputs.length; i++) {
-    const j = i + outputs.length - inputs.length
-
+    
     const line = inputs[i]
     const input = parseInput(line)
-
-    const logs = j < 0 ? [] : outputs[j]
+    const logs = outputs[j]
 
     let step: Step | null = null
 
     if (input.type === "choose") {
       const { side } = input
       const run: Run = { fmt, obs: obs[side] }
+      console.log(randomAgent(run))
 
-      step = {
-        side,
-        observation: extractObservation(fmt, obs[side]),
-        options: extractOptions(run),
-        choice: toChoice(run, input.choice)
-      }
+      // step = {
+      //   side,
+      //   observation: extractObservation(fmt, obs[side]),
+      //   options: extractOptions(run),
+      //   choice: toChoice(run, input.choice)
+      // }
     }
 
     for (const log of logs) {

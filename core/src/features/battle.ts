@@ -111,6 +111,9 @@ export function encodeVolatiles(volatiles: Volatiles) {
         if (name in volatiles) {
           const { turn } = volatiles[name]!
           const turnsLeft = Math.max(duration! - turn!, 1)
+        if (name === "Magnet Rise") {
+          console.log(turnsLeft)
+        }
           feats.push(turnsLeft)
         } else {
           feats.push(0)
