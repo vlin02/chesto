@@ -1,4 +1,9 @@
 import torch
+logits = torch.tensor([[float('-inf'), float('1'), float('-inf')]])
+criterion = torch.nn.CrossEntropyLoss()
+print(criterion(logits, torch.tensor([0])).item())
+# probs = torch.softmax(logits, dim=0)  # Can produce NaN
+# print(probs)
 
 # user_x = torch.tensor([[[[1, -1], [2, -1], [3, -1]], [[4, -1], [5, -1], [6, -1]]]])
 # active_idx = torch.tensor([[1, 2]])
@@ -34,7 +39,6 @@ import torch
 
 
 
-# criterion = torch.nn.CrossEntropyLoss()
 
 # print(criterion(torch.tensor([[0,0,100,0]], dtype=torch.float64), torch.tensor([2])).item())
 

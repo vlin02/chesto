@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 
-from lookup import N_TYPES
 from sample import SCHEMA
 
 
@@ -27,35 +26,52 @@ class Net(nn.Module):
     def __init__(self, lookup):
         super().__init__()
 
-        user_encode_dim = 1024
-
         self.lookup = lookup
         self.item_embed_dim = lookup["item_embed"].shape[1]
         self.ability_embed_dim = lookup["ability_embed"].shape[1]
         self.move_embed_dim = lookup["move_embed"].shape[1]
         self.user_x_dim = SCHEMA["user_x"]["shape"][2]
         self.battle_x_dim = SCHEMA["battle_x"]["shape"][0]
-        self.side_x_dim = SCHEMA["side_x"]["shape"][1]
+        side_x_dim = 17
+        user_encode_dim = 512
 
-        self.item_block = nn.Sequential(nn.Linear(self.item_embed_dim, 128), nn.ReLU())
-        self.ability_block = nn.Sequential(
-            nn.Linear(self.ability_embed_dim, 128), nn.ReLU()
-        )
-        self.slot_block = nn.Sequential(
-            nn.Linear(self.move_embed_dim + 2, 128), nn.ReLU()
-        )
-        self.user_block = nn.Sequential(
-            nn.Linear(self.user_x_dim + 10 * 128, user_encode_dim), nn.ReLU()
-        )
-        self.battle_block = nn.Sequential(
-            nn.Linear(self.battle_x_dim + 2 * (self.side_x_dim + 2 * user_encode_dim), 1024),
+        self.item_block = nn.Sequential(
+            nn.Linear(self.item_embed_dim, 128),
             nn.ReLU(),
         )
-        self.move_option_block = nn.Sequential(
-            nn.Linear(1024 + 128 + 1, 512), nn.ReLU(), nn.Linear(512, 1)
+
+        self.ability_block = nn.Sequential(
+            nn.Linear(self.ability_embed_dim, 128),
+            nn.ReLU(),
         )
+
+        self.slot_block = nn.Sequential(
+            nn.Linear(self.move_embed_dim + 2, 128),
+            nn.ReLU(),
+        )
+
+        self.user_block = nn.Sequential(
+            nn.Linear(self.user_x_dim + 10 * 128, user_encode_dim),
+            nn.ReLU(),
+        )
+
+        self.battle_block = nn.Sequential(
+            nn.Linear(
+                self.battle_x_dim + 2 * (self.side_x_dim + 2 * user_encode_dim), 1024
+            ),
+            nn.ReLU(),
+        )
+
+        self.move_option_block = nn.Sequential(
+            nn.Linear(1024 + 128 + 1, 256),
+            nn.ReLU(),
+            nn.Linear(256, 1),
+        )
+
         self.switch_option_block = nn.Sequential(
-            nn.Linear(1024 + 512, 512), nn.ReLU(), nn.Linear(512, 1)
+            nn.Linear(1024 + user_encode_dim, 512),
+            nn.ReLU(),
+            nn.Linear(512, 1),
         )
 
         self.register_buffer("move_embed", lookup["move_embed"])
@@ -116,7 +132,7 @@ class Net(nn.Module):
                 dim=3,
             )
         )
-        
+
         team_x = var_max(user_x, user_mask)
 
         side_x = torch.cat(
@@ -149,9 +165,8 @@ class Net(nn.Module):
                     ],
                     dim=3,
                 )
-            )
-            .squeeze(3)
-            .masked_fill(move_option_mask == 0, float("-inf"))
+            ).squeeze(3)
+            # .masked_fill(move_option_mask == 0, float("-inf"))
         )
 
         ally_user_x = user_x[:, 0]
@@ -162,9 +177,8 @@ class Net(nn.Module):
                     [ally_user_x, battle_x.unsqueeze(1).expand(-1, 6, -1)],
                     dim=2,
                 )
-            )
-            .squeeze(2)
-            .masked_fill(switch_option_mask == 0, float("-inf"))
+            ).squeeze(2)
+            # .masked_fill(switch_option_mask != -1, float("-inf"))
         )
 
         logits = torch.cat([move_option_x.flatten(start_dim=1), switch_option_x], dim=1)

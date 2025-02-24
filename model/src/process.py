@@ -17,7 +17,8 @@ def process_samples(chunk):
 
     samples = []
     for x in db.replays.find(
-        {"uploadtime": {"$mod": [tot, n]}, "rating": {"$gt": 2100}}, {"steps": 1}
+        {"uploadtime": {"$mod": [tot, n]}, "rating": {"$gt": 1850, "$lt": 1900}},
+        {"steps": 1},
     ):
         steps = x["steps"]
 
@@ -32,7 +33,9 @@ def process_samples(chunk):
 
             sample["target"] = vectorize_target(step)
             samples.append(sample)
+
     print(chunk)
+
     return samples
 
 
@@ -42,11 +45,12 @@ def run():
         chunks = pool.map(process_samples, [(N, i) for i in range(N)])
         samples = [sample for chunk in chunks for sample in chunk]
 
-        with h5py.File("__tmp/sample8.hdf5", "w") as f:
+        with h5py.File("__tmp/val-1850-1900.hdf5", "w") as f:
             for k in SCHEMA.keys():
                 print(k)
                 f[k] = np.stack([sample[k] for sample in samples])
             print("finishing")
         print(len(samples))
+
 
 run()

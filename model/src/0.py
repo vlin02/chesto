@@ -17,36 +17,48 @@ def train():
     device = torch.device("cuda:0")
     lookup = load_lookup(db, device)
     net = Net(lookup).to(device)
-    # net.load_state_dict(torch.load("__tmp/net-7M-8"))
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.001)
+    net.load_state_dict(torch.load("__tmp/net-1900-drop"))
+    optimizer = torch.optim.AdamW(net.parameters(), lr=1e-3, weight_decay=1e-3)
     criterion = torch.nn.CrossEntropyLoss()
 
-    lo, hi = 0, 100000
-    batch_size = 2000
-    tot_batches = (hi - lo) // batch_size
+    lo, hi = 0, 2359987
 
-    with h5py.File("__tmp/sample8.hdf5", "r") as f:
-        if True:
-            for batch_i in range(100):
-                print("BATCH", batch_i)
-                for j in range(tot_batches):
-                    x = {
-                        k: torch.from_numpy(
-                            f[k][lo + j * batch_size : lo + (j + 1) * batch_size]
-                        ).to(device)
+    with h5py.File("__tmp/sample10.hdf5", "r") as f:
+        if False:
+            batch_size = 500
+            tot_batches = (hi - lo) // batch_size
+            loaded = {}
+            for k in KEYS:
+                print(k)
+                loaded[k] = torch.from_numpy(f[k][:]).to(device)
+
+            batches = []
+            for j in range(tot_batches):
+                batches.append(
+                    {
+                        k: loaded[k][lo + j * batch_size : lo + (j + 1) * batch_size]
                         for k in KEYS
                     }
+                )
+
+            for batch_i in range(10000):
+                print("BATCH", batch_i)
+                for j in range(tot_batches):
+                    x = batches[j]
 
                     optimizer.zero_grad()
                     logits = net(x)
                     loss = criterion(logits, torch.argmax(x["target"], axis=1))
                     loss.backward()
                     optimizer.step()
-                    print(j, loss.item())
+                    if j % 100 == 0:
+                        print(j, loss.item())
 
-                torch.save(net.state_dict(), "__tmp/net-7M-8")
+                torch.save(net.state_dict(), "__tmp/net-1900-drop")
 
         else:
+            batch_size = 5000
+            tot_batches = (hi - lo) // batch_size
             net.eval()
             with torch.no_grad():
                 for i in range(tot_batches):
