@@ -10,7 +10,6 @@ export const STAT_MAX = {
 } as const
 
 export function scaleStat(_: StatID, n: number) {
-  // max stat is 714 (hp)
   return n / 714
 }
 

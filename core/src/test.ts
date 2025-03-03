@@ -4,7 +4,7 @@ import { FOE, Side } from "./client/protocol.js"
 import { getPotentialPresets, matchesPreset } from "./version.js"
 import { Format, isTrapped, Run, toChoice } from "./run.js"
 import { Replay } from "./db.js"
-import { extractOptions } from "./features/options.js"
+import { extractOptions } from "./encoder/options.js"
 
 export function testSide(fmt: Format, replay: Replay, side: Side) {
   const { gen } = fmt

@@ -8,8 +8,8 @@ import { VersionCache, Step, Replay } from "../db.js"
 import { Format, Run, toChoice } from "../run.js"
 import { DB_URL } from "./db.js"
 import { randomAgent } from "../arena/agents.js"
-import { extractObservation } from "../features/observation.js"
-import { extractOptions } from "../features/options.js"
+import { extractObservation } from "../encoder/observation.js"
+import { extractOptions } from "../encoder/options.js"
 
 // const { i, count } = workerData
 
