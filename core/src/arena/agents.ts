@@ -1,4 +1,4 @@
-import { Choice, getValidActions, Actions, Run } from "../run.js"
+import { Decision as Choice, getValidActions, Actions, Run } from "../run.js"
 
 function optionsListed({ tera: canTera, move: moves, switch: switches }: Actions): Choice[] {
   const choices: Choice[] = []
@@ -43,7 +43,7 @@ export function randomAgent(run: Run) {
   return choices[i]
 }
 
-export function chioceToMessage(choice: Choice) {
+export function formatChoice(choice: Choice) {
   switch (choice.type) {
     case "move":
       const pfx = `move ${choice.move}`

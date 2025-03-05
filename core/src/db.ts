@@ -2,7 +2,7 @@ import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Build } from "./build.js"
 import { Observation } from "./encoder/observation.js"
-import { Choice } from "./run.js"
+import { Decision } from "./run.js"
 import { Options } from "./encoder/options.js"
 import { Side } from "./client/protocol.js"
 import { Db } from "mongodb"
@@ -16,7 +16,7 @@ export type Step = {
   side: Side
   observation: Observation
   options: Options
-  choice: Choice
+  choice: Decision
 }
 
 export type Replay = {

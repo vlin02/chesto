@@ -1,7 +1,7 @@
 import { Generation } from "@pkmn/data"
 import { Patch } from "./version.js"
 import { Observer } from "./parser/observer.js"
-import { Choice as RawChoice } from "./log.js"
+import { InputChoice as RawChoice } from "./log.js"
 
 export type Format = {
   gen: Generation
@@ -130,7 +130,7 @@ export function getValidSwitches({
   return opts
 }
 
-export function toChoice({ gen, obs }: Run, raw: RawChoice): Choice {
+export function toChoice({ gen, obs }: Run, raw: RawChoice): Decision {
   switch (raw.type) {
     case "move": {
       const { move, tera } = raw
@@ -147,7 +147,7 @@ export function toChoice({ gen, obs }: Run, raw: RawChoice): Choice {
   }
 }
 
-export type Choice =
+export type Decision =
   | {
       type: "move"
       move: string

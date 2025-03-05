@@ -1,24 +1,5 @@
 import WebSocket from "ws"
 import { piped } from "../parse.js"
-import { Observer } from "../parser/observer.js"
-import { Generations } from "@pkmn/data"
-import { Dex } from "@pkmn/dex"
-import { Run } from "../run.js"
-import { randomAgent, chioceToMessage as choiceToMessage } from "./agents.js"
-
-const WS_URL = "ws://localhost:8001/showdown/websocket"
-const SERVER_URL = "https://play.pokemonshowdown.com/"
-
-async function assertAnon(name: string, challstr: string) {
-  let res = await fetch(
-    new URL(`api/getassertion?userid=${name}&challstr=${challstr}`, SERVER_URL),
-    {
-      method: "GET"
-    }
-  )
-
-  return await res.text()
-}
 
 type Event =
   | {
@@ -32,7 +13,7 @@ type Event =
       format: string
     }
 
-class Session {
+export class Session {
   challstr!: string
   username!: string
   ws: WebSocket
@@ -154,43 +135,3 @@ class Session {
     this.ws.send(`${roomId}|${msg}`)
   }
 }
-
-const s1 = new Session(new WebSocket(WS_URL))
-await s1.start()
-await s1.login("chest20", await assertAnon("chest20", s1.challstr))
-
-// const s2 = new Session(new WebSocket(WS_URL))
-// await s2.start()
-// await s2.login("chest21", await assertAnon("chest21", s2.challstr))
-
-const find = await s1.challenge("chest17", "gen9randombattle")
-
-const id = await find()
-const gen = new Generations(Dex).get(9)
-const obs = new Observer(gen)
-
-const run: Run = {
-  obs,
-  gen
-}
-
-let pendingReq = false
-
-s1.on((event) => {
-  
-})
-
-// .set(id!, (logs) => {
-//   console.log(logs)
-//   for (const log of logs) {
-//     obs.read(log)
-//   }
-
-//   if (pendingReq) {
-//     const choice = randomAgent(run)
-//     s1.send(id!, "/" + choiceToMessage(choice))
-//     pendingReq = false
-//   }
-
-//   pendingReq = logs[0].startsWith("|request")
-// })

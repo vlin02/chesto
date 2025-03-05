@@ -1,5 +1,5 @@
-import { FOE, Side, SIDES } from "./client/protocol.js"
 import { piped, spaced } from "./parse.js"
+import { FOE, SIDES, Side } from "./parser/protocol.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 
@@ -54,7 +54,7 @@ export function split(log: Log) {
   return chs
 }
 
-export type Choice =
+export type InputChoice =
   | {
       type: "move"
       move: string
@@ -78,7 +78,7 @@ export type Input =
   | {
       type: "choose"
       side: Side
-      choice: Choice
+      choice: InputChoice
     }
   | {
       type: "end"
@@ -107,7 +107,7 @@ export function parseInput(line: string): Input {
     case ">p2": {
       p = spaced(line, p.i, -1)
 
-      let choice: Choice
+      let choice: InputChoice
       switch (p.args[0]) {
         case "move":
           choice = { type: "move", move: p.args[1], tera: p.args[2] === "terastallize" }
@@ -119,7 +119,7 @@ export function parseInput(line: string): Input {
           throw Error()
       }
 
-      return { type: "choose", side: pfx.slice(1) as Side, choice }
+      return { type: "choose", side: pfx.slice(1) as Side, choice: choice }
     }
     case ">forcelose": {
       p = spaced(line, p.i)
