@@ -1,18 +1,13 @@
 import { parseInput, split } from "./log.js"
-import { Observer } from "./client/observer.js"
-import { FOE, Side } from "./client/protocol.js"
-import { getPotentialPresets, matchesPreset } from "./version.js"
-import { Format, isTrapped, Run, toChoice } from "./run.js"
+import { Observer } from "./parser/observer.js"
+import { FOE, Side } from "./parser/protocol.js"
+import { getPotentialPresets, matchesPreset, Patch } from "./version.js"
+import { Run, toChoice } from "./run.js"
 import { Replay } from "./db.js"
 import { extractOptions } from "./encoder/options.js"
 
-export function testSide(fmt: Format, replay: Replay, side: Side) {
-  const { gen } = fmt
-
+export function testSide(patch: Patch, obs: Observer, replay: Replay, side: Side) {
   const { inputs, outputs } = replay
-  const obs = new Observer(gen)
-
-  const run: Run = { fmt, obs }
 
   const opp = replay[FOE[side]]
 
@@ -23,7 +18,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
     const logs = outputs[i]
 
     if (input.type === "choose") {
-      const choice = toChoice(run, input.choice)
+      const choice = toChoice(obs, input.choice)
 
       if (input.side === side) {
         const opt = extractOptions(run)
@@ -120,7 +115,7 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
         const user = ally.team[species]
 
         for (const id of ["atk", "def", "spa", "spd", "spe"] as const) {
-          if (user.stats[id] !== stats[id]) throw Error()
+          if (user.stats![id] !== stats[id]) throw Error()
         }
 
         if ((user === ally.active) !== active) throw Error()
@@ -140,11 +135,11 @@ export function testSide(fmt: Format, replay: Replay, side: Side) {
           if (user.hp[0] !== 0) throw Error()
         }
 
-        if (user.base.gender !== gender) throw Error()
+        if (user.init.gender !== gender) throw Error()
 
         if (user.lvl !== lvl) throw Error()
 
-        if (user.tera !== !!terastallized) throw Error()
+        if (user.isTera !== !!terastallized) throw Error()
       }
     }
   }

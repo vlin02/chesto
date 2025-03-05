@@ -151,76 +151,78 @@ export class User {
       return new User(gen, option)
     }
 
-    if (option.pov === "ally") {
-      const { member } = option
+    this.flags = {}
+    this.volatiles = {}
+    this.boosts = {}
+    this.isTera = false
 
-      let {
-        health,
-        species,
-        label: { forme, gender, lvl },
-        stats,
-        baseAbility,
-        item,
-        moves,
-        teraType
-      } = member
-      item = item ? gen.items.get(item)!.name : null
+    switch (option.pov) {
+      case "ally": {
+        const { member } = option
 
-      const { hp } = health!
+        let {
+          health,
+          species,
+          label: { forme, gender, lvl },
+          stats,
+          baseAbility,
+          item,
+          moves,
+          teraType
+        } = member
+        item = item ? gen.items.get(item)!.name : null
 
-      if (species === "Ditto") {
-        moves = ["transform"]
-        baseAbility = "Imposter"
+        const { hp } = health!
+
+        if (species === "Ditto") {
+          moves = ["transform"]
+          baseAbility = "Imposter"
+        }
+
+        this.species = species
+        this.pov = "ally"
+        this.lvl = lvl
+        this.revealed = false
+        this.teraType = teraType!
+        this.item = item
+        this.init = {
+          item,
+          forme,
+          moveSet: Object.fromEntries(
+            moves.map((id) => {
+              const { name } = gen.moves.get(id)!
+              return [name, { used: 0, max: getMaxPP(gen, name) }]
+            })
+          ),
+          gender,
+          ability: gen.abilities.get(baseAbility)!.name
+        }
+        this.gen = gen
+        this.hp = hp!
+        this.stats = stats
+        break
       }
+      case "foe": {
+        const { species, label } = option
+        const { forme, lvl, gender } = label
 
-      this.species = species
-      this.pov = "ally"
-      this.flags = {}
-      this.lvl = lvl
-      this.revealed = false
-      this.teraType = teraType!
-      this.item = item
-      this.init = {
-        item,
-        forme,
-        moveSet: Object.fromEntries(
-          moves.map((id) => {
-            const { name } = gen.moves.get(id)!
-            return [name, { used: 0, max: getMaxPP(gen, name) }]
-          })
-        ),
-        gender,
-        ability: gen.abilities.get(baseAbility)!.name
-      }
-      this.gen = gen
-      this.hp = hp!
-      this.volatiles = {}
-      this.boosts = {}
-      this.isTera = false
-      this.stats = stats
-    } else {
-      const { species, label } = option
-      const { forme, lvl, gender } = label
-
-      this.revealed = true
-      this.item = null
-      this.species = species
-      this.pov = "foe"
-      this.lvl = lvl
-      this.hp = [100, 100]
-      this.volatiles = {}
-      this.boosts = {}
-      this.flags = {}
-      this.isTera = false
-      this.gen = gen
-      this.init = {
-        forme,
-        moveSet: {},
-        gender,
-        ability: {
-          "Calyrex-Ice": "As One (Glastrier)",
-          "Calyrex-Shadow": "As One (Spectrier)"
-        }[forme]
+        this.revealed = true
+        this.item = null
+        this.species = species
+        this.pov = "foe"
+        this.lvl = lvl
+        this.hp = [100, 100]
+        this.gen = gen
+        this.init = {
+          forme,
+          moveSet: {},
+          gender,
+          ability: {
+            "Calyrex-Ice": "As One (Glastrier)",
+            "Calyrex-Shadow": "As One (Spectrier)"
+          }[forme]
+        }
+        break
       }
     }
   }

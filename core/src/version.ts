@@ -1,7 +1,7 @@
-import { FoeUser } from "./client/user.js"
 import { Stats } from "fs"
 import { TypeName } from "./battle.js"
-import { Format } from "./run.js"
+import { Generation } from "@pkmn/data"
+import { User } from "./parser/user.js"
 
 export type Preset = {
   role: string
@@ -28,13 +28,16 @@ export type Patch = {
   }
 }
 
-export function getInitialForme({ gen, patch }: Format, forme: string) {
+export type Version = {
+  gen: Generation
+  patch: Patch
+}
+
+export function inferInitialForme({ gen, patch }: Version, forme: string) {
   return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
 }
 
-export function getPotentialPresets(format: Format, initialForme: string) {
-  const { patch } = format
-
+export function getPotentialPresets({ gen, patch }: Version, initialForme: string) {
   const presets = [...patch[initialForme].presets]
 
   if (initialForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
@@ -42,9 +45,9 @@ export function getPotentialPresets(format: Format, initialForme: string) {
   return presets
 }
 
-export function matchesPreset(preset: Preset, user: FoeUser) {
+export function matchesPreset(preset: Preset, user: User) {
   const {
-    base: { ability, item, moveSet },
+    init: { ability, item, moveSet },
     teraType
   } = user
 

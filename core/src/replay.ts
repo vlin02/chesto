@@ -1,6 +1,6 @@
 import { ID, toID } from "@pkmn/data"
 import { PRNGSeed } from "@pkmn/sim"
-import { Side, FOE } from "./client/protocol.js"
+import { Side, FOE } from "./parser/protocol.js"
 
 export type Header = {
   formatId: ID

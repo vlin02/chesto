@@ -1,4 +1,4 @@
-import { Decision as Choice, getValidActions, Actions, Run } from "../run.js"
+import { Choice as Choice, getValidActions, Actions, Run } from "../run.js"
 
 function optionsListed({ tera: canTera, move: moves, switch: switches }: Actions): Choice[] {
   const choices: Choice[] = []

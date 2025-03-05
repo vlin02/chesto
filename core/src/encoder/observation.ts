@@ -16,7 +16,7 @@ import {
 } from "../battle.js"
 import { Flags, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, SideEffects } from "../client/side.js"
-import { getInitialForme, getPotentialPresets, matchesPreset } from "../version.js"
+import { inferInitialForme, getPotentialPresets, matchesPreset } from "../version.js"
 import { Format } from "../run.js"
 import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"
@@ -419,7 +419,7 @@ export function extractObservation(format: Format, obs: Observer): Observation {
         volatiles
       } = user
 
-      const initialForme = getInitialForme(format, base.forme)
+      const initialForme = inferInitialForme(format, base.forme)
       let presets = getPotentialPresets(format, initialForme)
       let filtered = presets.filter((x) => matchesPreset(x, user))
 

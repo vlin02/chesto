@@ -25,6 +25,8 @@ import {
   PARTIAL_TRAPPING_MOVES
 } from "../battle.js"
 import { piped } from "../parse.js"
+import { InputChoice } from "../log.js"
+import { ActionSelection, MoveSelection } from "./action.js"
 
 type Ref = {
   species: string
@@ -73,7 +75,7 @@ export class Observer {
     to: User
   }
 
-  private gen: Generation
+  gen: Generation
   private prevLine?: Line
 
   req!: Request
@@ -1125,5 +1127,157 @@ export class Observer {
 
     this.prevLine = currLine
     return event
+  }
+
+  getValidMoves() {
+    const {
+      gen,
+      ally: { active }
+    } = this
+
+    let {
+      volatiles: {
+        "Encore": encore,
+        "Taunt": taunt,
+        "Heal Block": healBlock,
+        "Locked Move": locked,
+        "Disable": disable,
+        "Throat Chop": throatChop,
+        "Recharge": recharge,
+        "Choice Locked": choiceLocked
+      },
+      item,
+      lastMove
+    } = active
+
+    if (recharge)
+      return {
+        type: "recharge"
+      }
+
+    const { moveSet } = active
+    const moves = []
+
+    if (locked?.move) return { type: "default", moves: [locked.move] }
+
+    let stuck = [choiceLocked?.move, encore?.move].some((x) => x && !(x in moveSet))
+
+    for (const move in moveSet) {
+      const {
+        category,
+        flags: { heal, sound }
+      } = gen.moves.get(move)!
+
+      const { used, max } = moveSet[move]
+      if (used >= max) continue
+
+      switch (move) {
+        case "Stuff Cheeks": {
+          if (!item?.endsWith("Berry")) continue
+          break
+        }
+        case "Gigaton Hammer":
+        case "Blood Moon": {
+          if (lastMove === move) continue
+        }
+      }
+
+      if (!stuck) {
+        if (choiceLocked && choiceLocked.move !== move) continue
+        if (encore && encore.move !== move) continue
+      }
+
+      if (disable?.move === move) continue
+      if (taunt && category === "Status") continue
+      if (healBlock && heal) continue
+      if (throatChop && sound) continue
+      if (item === "Assault Vest" && category === "Status") continue
+
+      moves.push(move)
+    }
+
+    if (!moves.length)
+      return {
+        type: "struggle"
+      }
+
+    return { type: "default", moves, stuck }
+  }
+
+  listRevivable() {
+    const {
+      ally: { team }
+    } = this
+
+    const opts: string[] = []
+    for (const species in team) {
+      if (team[species].hp[0] !== 0) continue
+      opts.push(species)
+    }
+    return opts
+  }
+
+  listSwitches() {
+    const {
+      ally: { team, active, isReviving }
+    } = this
+
+    const opts: string[] = []
+
+    for (const species in team) {
+      const member = team[species]
+      if (isReviving) {
+        if (team[species].hp[0] !== 0) continue
+      } else {
+        if (member === active || member.hp[0] === 0) continue
+      }
+      opts.push(species)
+    }
+
+    return opts
+  }
+
+  getValidActions(): ActionSelection {
+    let canTera = false
+    let switches: string[] = []
+    let moves: MoveSelection | null = null
+
+    const {
+      req,
+      ally: { active, isReviving, teraUsed }
+    } = this
+
+    switch (req.type) {
+      case "move":
+        const moves = this.getValidMoves()
+
+        if (!teraUsed && moves.type === "default") canTera = true
+        if (!active.trapped) switches = this.listSwitches()
+        break
+      case "switch":
+        switches = isReviving ? this.listRevivable() : this.listSwitches()
+        break
+    }
+
+    return { tera: canTera, move: moves, switch: switches }
+  }
+
+  derefChoice(choice: InputChoice) {
+    const { gen, ally } = this
+
+    switch (choice.type) {
+      case "move": {
+        const { move, tera } = choice
+        return {
+          type: "move",
+          move: move === "recharge" ? "Recharge" : gen.moves.get(move)!.name,
+          tera
+        }
+      }
+      case "switch": {
+        const { i } = choice
+        return { type: "switch", species: ally.slots[i - 1].species }
+      }
+    }
   }
 }
