@@ -1,8 +1,8 @@
 import { Generation, TypeName } from "@pkmn/data"
-import { Label } from "./protocol.js"
 import { inferMaxPP } from "./move.js"
-import { Boosts, Gender, StatId, StatusId } from "../battle.js"
+import { Boosts, Gender, PARTIAL_TRAPPING_MOVES, StatId, StatusId } from "../battle.js"
 import { Member } from "./request.js"
+import { Label } from "./protocol.js"
 
 export type MoveSlot = {
   used: number
@@ -114,182 +114,129 @@ export type FormeChange = {
   ability?: string
 }
 
-function getTypes({ volatiles: { "Type Change": typeChange }, gen, forme }: User) {
-  const { types } = typeChange ?? gen.species.get(forme)!
-
-  return types
-}
-
-export class AllyUser {
-  pov: "ally"
-  gen: Generation
-  revealed: boolean
+export class User {
+  pov: "ally" | "foe"
   lvl: number
   hp: [number, number]
-  formeChange?: FormeChange
   item: string | null
+  gen: Generation
+  revealed: boolean
+  status?: Status
+  formeChange?: FormeChange
   species: string
-  base: {
+  stats?: {
+    [k in "atk" | "def" | "spa" | "spd" | "spe"]: number
+  }
+  init: {
+    item?: string | null
+    ability?: string
     forme: string
     moveSet: MoveSet
     gender: Gender
-    ability: string
   }
-  stats: {
-    [k in "atk" | "def" | "spa" | "spd" | "spe"]: number
-  }
-  status?: Status
-  teraType: TypeName
+  teraType?: TypeName
   flags: Flags
   lastMove?: string
   lastBerry?: LastBerry
   volatiles: Volatiles
   boosts: Boosts
   tera: boolean
+  clone: () => User
 
   constructor(
     gen: Generation,
-    {
-      health,
-      species,
-      label: { forme, gender, lvl },
-      stats,
-      baseAbility,
-      item,
-      moves,
-      teraType
-    }: Member
+    option: { pov: "ally"; member: Member } | { pov: "foe"; species: string; label: Label }
   ) {
-    const { hp } = health!
-
-    if (species === "Ditto") {
-      moves = ["transform"]
-      baseAbility = "Imposter"
-    }
-
-    this.species = species
-    this.pov = "ally"
-    this.flags = {}
-    this.lvl = lvl
-    this.revealed = false
-    this.teraType = teraType!
-    this.base = {
-      forme,
-      moveSet: Object.fromEntries(
-        moves.map((id) => {
-          const { name } = gen.moves.get(id)!
-          return [name, { used: 0, max: inferMaxPP(gen, name) }]
-        })
-      ),
-      gender,
-      ability: gen.abilities.get(baseAbility)!.name
-    }
-    this.gen = gen
-    this.item = item ? gen.items.get(item)!.name : null
-    this.stats = stats
-    this.hp = hp!
-    this.volatiles = {}
-    this.boosts = {}
-    this.tera = false
-  }
-
-  get types() {
-    return getTypes(this)
-  }
-
-  get moveSet() {
-    const { volatiles, base } = this
-    return (volatiles["Transform"] ?? base).moveSet
-  }
-
-  get forme() {
-    const { formeChange, base } = this
-    return formeChange?.forme ?? base.forme
-  }
-
-  get ability() {
-    const { volatiles, base, formeChange } = this
-    return (
-      (volatiles["Trace"] ?? volatiles["Transform"])?.ability ??
-      formeChange?.ability ??
-      base.ability
-    )
-  }
-
-  get gender() {
-    const { volatiles, base } = this
-    return (volatiles["Transform"] ?? base).gender
-  }
-}
-
-export class FoeUser {
-  pov: "foe"
-  lvl: number
-  hp: [number, number]
-  item?: string | null
-  formeChange?: FormeChange
-  status?: Status
-  flags: Flags
-  species: string
-  gen: Generation
-  base: {
-    item?: string | null
-    ability?: string | null
-    forme: string
-    moveSet: MoveSet
-    gender: Gender
-  }
-  lastMove?: string
-  lastBerry?: LastBerry
-  volatiles: Volatiles
-  boosts: Boosts
-  clone: () => FoeUser
-  tera: boolean
-  teraType?: TypeName
-
-  constructor(gen: Generation, species: string, traits: Label) {
     this.clone = () => {
-      return new FoeUser(gen, species, traits)
+      return new User(gen, option)
     }
 
-    const { forme, lvl, gender } = traits
+    if (option.pov === "ally") {
+      const { member } = option
 
-    this.species = species
-    this.pov = "foe"
-    this.lvl = lvl
-    this.hp = [100, 100]
-    this.volatiles = {}
-    this.boosts = {}
-    this.flags = {}
-    this.tera = false
-    this.gen = gen
-    this.base = {
-      forme,
-      moveSet: {},
-      gender,
-      ability: {
-        "Calyrex-Ice": "As One (Glastrier)",
-        "Calyrex-Shadow": "As One (Spectrier)"
-      }[forme]
+      let {
+        health,
+        species,
+        label: { forme, gender, lvl },
+        stats,
+        baseAbility,
+        item,
+        moves,
+        teraType
+      } = member
+      item = item ? gen.items.get(item)!.name : null
+
+      const { hp } = health!
+
+      if (species === "Ditto") {
+        moves = ["transform"]
+        baseAbility = "Imposter"
+      }
+
+      this.species = species
+      this.pov = "ally"
+      this.flags = {}
+      this.lvl = lvl
+      this.revealed = false
+      this.teraType = teraType!
+      this.item = item
+      this.init = {
+        item,
+        forme,
+        moveSet: Object.fromEntries(
+          moves.map((id) => {
+            const { name } = gen.moves.get(id)!
+            return [name, { used: 0, max: inferMaxPP(gen, name) }]
+          })
+        ),
+        gender,
+        ability: gen.abilities.get(baseAbility)!.name
+      }
+      this.gen = gen
+      this.hp = hp!
+      this.volatiles = {}
+      this.boosts = {}
+      this.tera = false
+      this.stats = stats
+    } else {
+      const { species, label } = option
+      const { forme, lvl, gender } = label
+
+      this.revealed = true
+      this.item = null
+      this.species = species
+      this.pov = "foe"
+      this.lvl = lvl
+      this.hp = [100, 100]
+      this.volatiles = {}
+      this.boosts = {}
+      this.flags = {}
+      this.tera = false
+      this.gen = gen
+      this.init = {
+        forme,
+        moveSet: {},
+        gender,
+        ability: {
+          "Calyrex-Ice": "As One (Glastrier)",
+          "Calyrex-Shadow": "As One (Spectrier)"
+        }[forme]
+      }
     }
-  }
-
-  get types() {
-    return getTypes(this)
   }
 
   get moveSet() {
-    const { volatiles, base } = this
+    const { volatiles, init: base } = this
     return (volatiles["Transform"] ?? base).moveSet
   }
 
   get forme() {
-    const { formeChange, base } = this
+    const { formeChange, init: base } = this
     return formeChange?.forme ?? base.forme
   }
 
   get ability() {
-    const { volatiles, base, formeChange } = this
+    const { volatiles, init: base, formeChange } = this
     return (
       (volatiles["Trace"] ?? volatiles["Transform"])?.ability ??
       formeChange?.ability ??
@@ -298,39 +245,51 @@ export class FoeUser {
   }
 
   get gender() {
-    const { volatiles, base } = this
+    const { volatiles, init: base } = this
     return (volatiles["Transform"] ?? base).gender
   }
-}
 
-export function getOffTyping({ types, tera, teraType }: User) {
-  const typing: { [k in TypeName]?: number } = Object.fromEntries(types.map((t) => [t, 1]))
-  if (tera) typing[teraType!] = (typing[teraType!] ?? 0) + 1
+  get trapped() {
+    const { volatiles, defensiveTyping: types } = this
 
-  return typing
-}
+    if (volatiles["Recharge"] || volatiles["Prepare"] || volatiles["Locked Move"]) return true
 
-export function getDefTyping({ types, tera, teraType }: User) {
-  return tera ? [teraType!] : types
-}
+    if (types.includes("Ghost")) return false
 
-export type User = AllyUser | FoeUser
+    if (
+      volatiles["Trapped"] ||
+      volatiles["No Retreat"] ||
+      PARTIAL_TRAPPING_MOVES.some((k) => volatiles[k])
+    )
+      return true
 
-type Actives = {
-  volatiles: Volatiles
-  boosts: Boosts
-  lastBerry: undefined
-  lastMove: string | undefined
-  formeChange: FormeChange | undefined
-}
+    return false
+  }
 
-export function restore(
-  user: User,
-  { volatiles, boosts, lastBerry, lastMove, formeChange }: Actives
-) {
-  user.volatiles = volatiles
-  user.boosts = boosts
-  user.lastBerry = lastBerry
-  user.lastMove = lastMove
-  user.formeChange = formeChange
+  get types() {
+    const {
+      volatiles: { "Type Change": typeChange },
+      gen,
+      forme
+    } = this
+    const { types } = typeChange ?? gen.species.get(forme)!
+
+    return types
+  }
+
+  get defensiveTyping() {
+    const { tera, teraType, types } = this
+    return tera ? [teraType!] : types
+  }
+
+  get offensiveTyping() {
+    const { tera, types, teraType } = this
+
+    const typing: { [k in TypeName]?: number } = Object.fromEntries(types.map((t) => [t, 1]))
+    if (tera) {
+      typing[teraType!] = (typing[teraType!] ?? 0) + 1
+    }
+
+    return typing
+  }
 }

@@ -1,71 +1,196 @@
-import { format } from "url"
 import WebSocket from "ws"
+import { piped } from "../parse.js"
+import { Observer } from "../parser/observer.js"
+import { Generations } from "@pkmn/data"
+import { Dex } from "@pkmn/dex"
+import { Run } from "../run.js"
+import { randomAgent, chioceToMessage as choiceToMessage } from "./agents.js"
 
-// Get username and password from command line arguments
-const username = process.argv[2]
-const password = process.argv[3]
+const WS_URL = "ws://localhost:8001/showdown/websocket"
+const SERVER_URL = "https://play.pokemonshowdown.com/"
 
-if (!username || !password) {
-  console.log("Usage: node login.js USERNAME PASSWORD")
-  process.exit(1)
+async function assertAnon(name: string, challstr: string) {
+  let res = await fetch(
+    new URL(`api/getassertion?userid=${name}&challstr=${challstr}`, SERVER_URL),
+    {
+      method: "GET"
+    }
+  )
+
+  return await res.text()
 }
 
-// Connect to Pokémon Showdown server
-const ws = new WebSocket("wss://sim3.psim.us/showdown/websocket")
+type Event =
+  | {
+      type: "message"
+      roomId: string
+      logs: string[]
+    }
+  | {
+      type: "request"
+      username: string
+      format: string
+    }
 
-ws.on("open", () => {
-  console.log("Connected to server")
-})
+class Session {
+  challstr!: string
+  username!: string
+  ws: WebSocket
+  loggingIn?: () => void
+  challenging?:
+    | { status: "pending"; next: (v: Promise<string | null>) => void }
+    | {
+        status: "waiting"
+        next: (id: string | null) => void
+      }
 
-ws.on("message", async (data) => {
-  const message = data.toString()
+  on: (event: Event) => void
 
-  // Parse the challstr
-  if (message.includes("|challstr|")) {
-    const challstr = message.split("|challstr|")[1]
-    console.log(challstr)
-    console.log("Received challstr, logging in...")
+  constructor(ws: WebSocket) {
+    this.ws = ws
+    this.on = () => {}
+  }
 
-    const loginUrl = "https://play.pokemonshowdown.com/api/login"
-    const params = new URLSearchParams()
-    params.append("name", username)
-    params.append("pass", password)
-    params.append("challstr", challstr)
+  start() {
+    let onReady
 
-    const response = await fetch(format({
-      u
-    }), {
-      method: "POST",
-      body: params.toString()
+    this.ws.on("message", async (data: WebSocket.RawData) => {
+      const msg = data.toString()
+
+      let p = piped(msg, 1)
+
+      if (msg.startsWith(">")) {
+        const [roomId, ...logs] = msg.slice(1).split("\n")
+        this.on({
+          type: "message",
+          roomId,
+          logs
+        })
+      }
+
+      switch (p.args[0]) {
+        case "challstr":
+          onReady!()
+          this.challstr = msg.slice(p.i)
+          break
+        case "updateuser":
+          p = piped(msg, p.i)
+
+          this.loggingIn?.()
+          this.username = p.args[0]
+
+          break
+        case "updatechallenges":
+          break
+        case "pm":
+          p = piped(msg, p.i, 3)
+
+          if (
+            p.args[0] === this.username &&
+            p.args[2].startsWith("/challenge") &&
+            !p.args[2].endsWith("/challenge")
+          ) {
+            if (this.challenging?.status !== "pending") throw ""
+            let done
+            const v = new Promise<string | null>((res) => {
+              done = res
+            })
+            this.challenging!.next(v)
+            this.challenging = {
+              status: "waiting",
+              next: done!
+            }
+          }
+
+          if (p.args[1] == this.username) {
+            if (p.args[2].includes("rejected the challenge")) {
+              if (this.challenging?.status !== "waiting") throw ""
+              this.challenging.next(null)
+              delete this.challenging
+            } else if (p.args[2].includes("accepted the challenge")) {
+              if (this.challenging?.status !== "waiting") throw ""
+              const i = p.args[2].indexOf(`href="/`) + 7
+              const j = p.args[2].indexOf(`"`, i)
+              this.challenging.next(p.args[2].slice(i, j))
+              delete this.challenging
+            }
+          }
+          break
+        case "updatesearch":
+          break
+      }
     })
 
-    const responseText = await response.text()
-    // Parse response (which starts with '])
-    const jsonResponse = JSON.parse(responseText.substring(1))
-    const assertion = jsonResponse.assertion
-
-    // Send the trn command to complete login
-    ws.send(`|/trn ${username},0,${assertion}`)
+    return new Promise<void>((res) => {
+      onReady = res
+    })
   }
 
-  // Check for successful login
-  if (message.includes("|updateuser|")) {
-    const parts = message.split("|")
-    const loggedInName = parts[2]
-    const isGuest = parts[3] === "0"
-
-    if (!isGuest && loggedInName.toLowerCase().startsWith(username.toLowerCase())) {
-      console.log(`Successfully logged in as ${loggedInName}`)
-      // Now you can send commands like joining rooms, sending messages, etc.
-      // Example: ws.send('|/join lobby');
-    }
+  login(name: string, assertion: string) {
+    this.ws.send(`|/trn ${name},0,${assertion}`)
+    return new Promise<void>((res) => {
+      this.loggingIn = res
+    })
   }
+
+  challenge(name: string, format: string, team = null) {
+    this.ws.send(`|/utm ${team ? team : "null"}`)
+    this.ws.send(`|/challenge ${name}, ${format}`)
+    return new Promise<() => Promise<string | null>>((res) => {
+      this.challenging = { status: "pending", next: (x) => res(() => x) }
+    })
+  }
+
+  accept(name: string, team = null) {
+    this.ws.send(`|/utm ${team ? team : "null"}`)
+    this.ws.send(`|/accept ${name}`)
+  }
+
+  reject(name: string) {
+    this.ws.send(`|/reject ${name}`)
+  }
+
+  send(roomId: string, msg: string) {
+    this.ws.send(`${roomId}|${msg}`)
+  }
+}
+
+const s1 = new Session(new WebSocket(WS_URL))
+await s1.start()
+await s1.login("chest20", await assertAnon("chest20", s1.challstr))
+
+// const s2 = new Session(new WebSocket(WS_URL))
+// await s2.start()
+// await s2.login("chest21", await assertAnon("chest21", s2.challstr))
+
+const find = await s1.challenge("chest17", "gen9randombattle")
+
+const id = await find()
+const gen = new Generations(Dex).get(9)
+const obs = new Observer(gen)
+
+const run: Run = {
+  obs,
+  gen
+}
+
+let pendingReq = false
+
+s1.on((event) => {
+  
 })
 
-ws.on("error", (error) => {
-  console.error("WebSocket error:", error.message)
-})
+// .set(id!, (logs) => {
+//   console.log(logs)
+//   for (const log of logs) {
+//     obs.read(log)
+//   }
 
-ws.on("close", () => {
-  console.log("Disconnected from server")
-})
+//   if (pendingReq) {
+//     const choice = randomAgent(run)
+//     s1.send(id!, "/" + choiceToMessage(choice))
+//     pendingReq = false
+//   }
+
+//   pendingReq = logs[0].startsWith("|request")
+// })

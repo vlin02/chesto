@@ -1,5 +1,5 @@
 import { Hazard, Screen, DelayedMove } from "../battle.js"
-import { AllyUser, FoeUser, User } from "./user.js"
+import { User } from "./user.js"
 
 export type POV = "ally" | "foe"
 
@@ -25,10 +25,10 @@ export type Ally = {
   delayedAttack?: DelayedAttack
   turnMoves: number
   effects: SideEffects
-  active: AllyUser
-  team: { [k: string]: AllyUser }
+  active: User
+  team: { [k: string]: User }
   wish?: number
-  slots: AllyUser[]
+  slots: User[]
   teraUsed?: boolean
   isReviving?: boolean
 }
@@ -37,8 +37,8 @@ export type Foe = {
   delayedAttack?: DelayedAttack
   turnMoves: number
   effects: SideEffects
-  active: FoeUser
-  team: { [k: string]: FoeUser }
+  active: User
+  team: { [k: string]: User }
   wish?: number
   teraUsed?: boolean
   isReviving?: boolean

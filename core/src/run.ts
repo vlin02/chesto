@@ -1,8 +1,8 @@
 import { Generation } from "@pkmn/data"
 import { Patch } from "./version.js"
-import { Observer } from "./client/observer.js"
-import { Choice, PARTIALLY_TRAPPED_MOVES } from "./battle.js"
-import { User, getDefTyping } from "./client/user.js"
+import { Observer } from "./parser/observer.js"
+import { PARTIAL_TRAPPING_MOVES } from "./battle.js"
+import { User, getDefTyping } from "./parser/user.js"
 import { Choice as RawChoice } from "./log.js"
 
 export type Format = {
@@ -11,11 +11,11 @@ export type Format = {
 }
 
 export type Run = {
-  fmt: Format
+  gen: Generation
   obs: Observer
 }
 
-type MoveOptions =
+type MoveSelection =
   | {
       type: "struggle" | "recharge"
     }
@@ -25,7 +25,11 @@ type MoveOptions =
       stuck?: boolean
     }
 
-export function getMoveOptions({ fmt: { gen } }: Run, user: User): MoveOptions {
+export function getValidMoves({ gen, obs }: Run): MoveSelection {
+  const {
+    ally: { active }
+  } = obs
+
   let {
     volatiles: {
       "Encore": encore,
@@ -39,14 +43,14 @@ export function getMoveOptions({ fmt: { gen } }: Run, user: User): MoveOptions {
     },
     item,
     lastMove
-  } = user
+  } = active
 
   if (recharge)
     return {
       type: "recharge"
     }
 
-  const { moveSet } = user
+  const { moveSet } = active
   const moves = []
 
   if (locked?.move) return { type: "default", moves: [locked.move] }
@@ -73,8 +77,11 @@ export function getMoveOptions({ fmt: { gen } }: Run, user: User): MoveOptions {
       }
     }
 
-    if (!stuck && choiceLocked && choiceLocked.move !== move) continue
-    if (!stuck && encore && encore.move !== move) continue
+    if (!stuck) {
+      if (choiceLocked && choiceLocked.move !== move) continue
+      if (encore && encore.move !== move) continue
+    }
+
     if (disable?.move === move) continue
     if (taunt && category === "Status") continue
     if (healBlock && heal) continue
@@ -101,7 +108,7 @@ export function isTrapped(user: User) {
   if (
     volatiles["Trapped"] ||
     volatiles["No Retreat"] ||
-    PARTIALLY_TRAPPED_MOVES.some((k) => volatiles[k])
+    PARTIAL_TRAPPING_MOVES.some((k) => volatiles[k])
   )
     return true
 
@@ -141,7 +148,7 @@ export function getValidSwitches({
   return opts
 }
 
-export function toChoice({ fmt: { gen }, obs }: Run, raw: RawChoice): Choice {
+export function toChoice({ gen, obs }: Run, raw: RawChoice): Choice {
   switch (raw.type) {
     case "move": {
       const { move, tera } = raw
@@ -169,18 +176,18 @@ export type Choice =
       species: string
     }
 
-export type Options = {
+export type Actions = {
   canTera: boolean
-  moves: MoveOptions | null
-  switches: string[]
+  move: MoveSelection | null
+  switch: string[]
 }
 
-export function getAllOptions(run: Run): Options {
+export function getValidActions(run: Run): Actions {
   const { obs } = run
 
   let canTera = false
   let switches: string[] = []
-  let moves: MoveOptions | null = null
+  let moves: MoveSelection | null = null
 
   const {
     req,
@@ -191,7 +198,7 @@ export function getAllOptions(run: Run): Options {
     case "move":
       const trapped = isTrapped(active)
 
-      moves = getMoveOptions(run, active)
+      moves = getValidMoves(run)
 
       if (!teraUsed && moves.type === "default") canTera = true
       if (!trapped) switches = getValidSwitches(run)
@@ -201,5 +208,5 @@ export function getAllOptions(run: Run): Options {
       break
   }
 
-  return { canTera, moves, switches }
+  return { canTera, move: moves, switch: switches }
 }

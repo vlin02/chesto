@@ -10,7 +10,7 @@ import {
 } from "./protocol.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
-import { AllyUser, FoeUser, getOffTyping, MoveSet, User } from "./user.js"
+import { User, MoveSet } from "./user.js"
 import { inferMaxPP, isLockingMove, isPressuredMove } from "./move.js"
 import {
   StatusId,
@@ -22,7 +22,7 @@ import {
   Hazard,
   HAZARDS,
   Screen,
-  PARTIALLY_TRAPPED_MOVES
+  PARTIAL_TRAPPING_MOVES
 } from "../battle.js"
 import { piped } from "../parse.js"
 
@@ -69,8 +69,8 @@ export class Observer {
   private swaps: string[]
 
   private illusion?: {
-    from: AllyUser
-    to: AllyUser
+    from: User
+    to: User
   }
 
   private gen: Generation
@@ -96,12 +96,12 @@ export class Observer {
   ppCost(move: string, src: User, dest: User) {
     return dest.volatiles["Pressure"] &&
       dest.hp[0] !== 0 &&
-      (move === "Curse" ? "Ghost" in getOffTyping(src) : isPressuredMove(this.gen, move))
+      (move === "Curse" ? "Ghost" in src.offensiveTyping : isPressuredMove(this.gen, move))
       ? 2
       : 1
   }
 
-  ref(s: string): Ref {
+  toRef(s: string): Ref {
     const { side, species } = parseReference(s)
     return { pov: side === this.side ? "ally" : "foe", species }
   }
@@ -115,7 +115,7 @@ export class Observer {
       const { volatiles } = opp.active
 
       delete volatiles["Trapped"]
-      for (const move of PARTIALLY_TRAPPED_MOVES) {
+      for (const move of PARTIAL_TRAPPING_MOVES) {
         delete volatiles[move]
       }
     }
@@ -134,7 +134,7 @@ export class Observer {
     if (user.pov === "ally") user.revealed = true
   }
 
-  user({ pov, species }: Ref) {
+  deref({ pov, species }: Ref) {
     const { illusion } = this
     const user = this[pov].team[species]
     if (illusion?.from === user) return illusion.to
@@ -152,7 +152,7 @@ export class Observer {
 
     if (volatiles["Trace"] || volatiles["Transform"] || user.formeChange?.ability) return
 
-    const { base } = user
+    const { init: base } = user
     base.ability = ability
   }
 
@@ -164,8 +164,8 @@ export class Observer {
 
     if (user.pov === "ally") return
 
-    const { base } = user
-    if (base.item === undefined) base.item = item
+    const { init } = user
+    if (init.item === undefined) init.item = item
   }
 
   disrupt(user: User) {
@@ -208,12 +208,12 @@ export class Observer {
           this.side = this.req.side
           this.name = this.req.name
 
-          let active: AllyUser | undefined = undefined
-          let team: { [k: string]: AllyUser } = {}
-          let slots: AllyUser[] = []
+          let active: User | undefined = undefined
+          let team: { [k: string]: User } = {}
+          let slots: User[] = []
 
           for (const member of this.req.team) {
-            const user = new AllyUser(this.gen, member)
+            const user = new User(this.gen, { pov: "ally", member })
             if (member.active) {
               this.onSwitchIn(user)
               active = user
@@ -249,7 +249,7 @@ export class Observer {
       }
       case "-ability": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const ability = p.args[1]
 
         p = piped(line, p.i, -1)
@@ -260,7 +260,7 @@ export class Observer {
         if (ability === "Pressure") user.volatiles["Pressure"] = {}
 
         if (cause.ability === "Trace") {
-          const target = this.user(this.ref(of))
+          const target = this.deref(this.toRef(of))
 
           this.setAbility(user, "Trace")
           user.volatiles["Trace"] = { ability }
@@ -274,7 +274,7 @@ export class Observer {
       }
       case "faint": {
         p = piped(line, p.i)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
 
         user.tera = false
         user.hp[0] = 0
@@ -286,7 +286,7 @@ export class Observer {
       case "switch":
       case "drag": {
         p = piped(line, p.i, 3)
-        let ref = this.ref(p.args[0])
+        let ref = this.toRef(p.args[0])
         const { pov, species } = ref
 
         if (pov === "ally" && this.swaps.length) {
@@ -307,12 +307,12 @@ export class Observer {
         let user: User
 
         if (pov === "ally") {
-          user = this.user(ref)
+          user = this.deref(ref)
         } else {
           const team = this.foe?.team ?? {}
           user = team[species]
           if (!user) {
-            user = team[species] = new FoeUser(this.gen, species, label)
+            user = team[species] = new User(this.gen, { pov: "foe", species, label })
           }
 
           if (!this.foe) {
@@ -350,7 +350,7 @@ export class Observer {
       }
       case "-mustrecharge": {
         p = piped(line, p.i)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         user.volatiles["Recharge"] = { turn: 0 }
         break
       }
@@ -374,7 +374,7 @@ export class Observer {
 
         this.weather = { name, turn: 0 }
         if (ability) {
-          const user = this.user(this.ref(of))
+          const user = this.deref(this.toRef(of))
           this.setAbility(user, ability)
         }
 
@@ -382,7 +382,7 @@ export class Observer {
       }
       case "-prepare": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
 
         const move = p.args[1]
         if (move === "Solar Beam" && this.weather?.name === "SunnyDay") break
@@ -400,7 +400,7 @@ export class Observer {
 
         const { ability } = parseEntity(from)
 
-        const user = this.user(this.ref(of))
+        const user = this.deref(this.toRef(of))
         if (ability) this.setAbility(user, ability)
         break
       }
@@ -413,7 +413,7 @@ export class Observer {
       }
       case "-status": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const id = p.args[1] as StatusId
 
         p = piped(line, p.i, -1)
@@ -425,7 +425,7 @@ export class Observer {
           attempt: id === "slp" ? 0 : undefined
         }
 
-        const src = of ? this.user(this.ref(of)) : user
+        const src = of ? this.deref(this.toRef(of)) : user
         const { ability, item } = parseEntity(from)
 
         if (item) this.setItem(src, item)
@@ -434,7 +434,7 @@ export class Observer {
       }
       case "-curestatus": {
         p = piped(line, p.i, 2)
-        const target = this.user(this.ref(p.args[0]))
+        const target = this.deref(this.toRef(p.args[0]))
 
         delete target.status
 
@@ -448,7 +448,7 @@ export class Observer {
       }
       case "move": {
         p = piped(line, p.i, 3)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const move = p.args[1]
 
         const { pov, volatiles, status } = user
@@ -554,14 +554,14 @@ export class Observer {
         break
       case "-immune":
         p = piped(line, p.i)
-        const { pov } = this.user(this.ref(p.args[0]))
+        const { pov } = this.deref(this.toRef(p.args[0]))
 
         this.disrupt(this[OPP[pov]].active)
         break
       case "-heal":
       case "-sethp": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const { hp } = parseHealth(p.args[1])!
         const { pov } = user
 
@@ -591,7 +591,7 @@ export class Observer {
       case "-damage": {
         p = piped(line, p.i, 2)
 
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const health = parseHealth(p.args[1])
 
         if (health) user.hp = health.hp
@@ -602,7 +602,7 @@ export class Observer {
         const { from, of } = parseTags(p.args)
 
         const { item, ability } = parseEntity(from)
-        const target = of ? this.user(this.ref(of)) : user
+        const target = of ? this.deref(this.toRef(of)) : user
 
         if (ability) this.setAbility(target, ability)
         if (item) this.setItem(target, item)
@@ -612,7 +612,7 @@ export class Observer {
       case "-boost":
       case "-unboost": {
         p = piped(line, p.i, 3)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
 
         const id = p.args[1] as BoostId
         const n = Number(p.args[2])
@@ -635,7 +635,7 @@ export class Observer {
       }
       case "-clearboost": {
         p = piped(line, p.i)
-        const { pov } = this.ref(p.args[0])
+        const { pov } = this.toRef(p.args[0])
 
         this[pov].active!.boosts = {}
         break
@@ -648,7 +648,7 @@ export class Observer {
       }
       case "-clearnegativeboost": {
         p = piped(line, p.i)
-        const { boosts } = this.user(this.ref(p.args[0]))
+        const { boosts } = this.deref(this.toRef(p.args[0]))
 
         for (const k in boosts) {
           const id = k as BoostId
@@ -658,14 +658,14 @@ export class Observer {
       }
       case "-item": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const item = p.args[1]
 
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)
         const { ability } = parseEntity(from)
 
-        const src = of ? this.user(this.ref(of)) : undefined
+        const src = of ? this.deref(this.toRef(of)) : undefined
 
         if (ability === "Frisk") {
           this.setItem(user, item)
@@ -688,7 +688,7 @@ export class Observer {
       }
       case "-enditem": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const item = p.args[1]
 
         p = piped(line, p.i, -1)
@@ -702,7 +702,7 @@ export class Observer {
         this.setItem(user, null)
 
         let eater = eat != null && user
-        if (from === "stealeat") eater = this.user(this.ref(of))
+        if (from === "stealeat") eater = this.deref(this.toRef(of))
 
         if (eater) {
           eater.lastBerry = {
@@ -715,20 +715,20 @@ export class Observer {
       }
       case "-transform": {
         p = piped(line, p.i, 2)
-        const from = this.user(this.ref(p.args[0]))
-        const to = this.user(this.ref(p.args[1]))
+        const src = this.deref(this.toRef(p.args[0]))
+        const dest = this.deref(this.toRef(p.args[1]))
 
-        const { pov, volatiles } = from
+        const { pov, volatiles } = src
 
         p = piped(line, p.i, -1)
 
-        let ability
+        let ability: string
         let moves: string[] = []
 
         if (pov === "ally") {
           const { type, team } = this.req
 
-          const user = team.find((x) => x.species === from.species)!
+          const user = team.find((x) => x.species === src.species)!
 
           // immediately fainted / switched out
           if (!user.active || type === "switch" || !user.health) {
@@ -739,7 +739,7 @@ export class Observer {
 
           ability = this.gen.abilities.get(user.ability!)!.name
 
-          const { moveSet } = to
+          const { moveSet } = dest
           moves = user.moves.map((id) => this.gen.moves.get(id)!.name)
 
           for (const move of moves) {
@@ -749,17 +749,17 @@ export class Observer {
             }
           }
 
-          this.setAbility(to, ability)
+          this.setAbility(dest, ability)
         } else {
-          const user = to as AllyUser
-          ability = user.ability
+          const user = dest as User
+          ability = user.ability!
           moves = Object.keys(user.moveSet)
         }
 
-        const { boosts } = to
-        const { forme, gender } = to.base
+        const { boosts } = dest
+        const { forme, gender } = dest.init
 
-        this.setAbility(from, "Imposter")
+        this.setAbility(src, "Imposter")
 
         volatiles["Transform"] = {
           forme,
@@ -776,7 +776,7 @@ export class Observer {
       case "-start": {
         p = piped(line, p.i, 2)
 
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         let { stripped: name } = parseEntity(p.args[1])
 
         const { pov, volatiles } = user
@@ -863,7 +863,7 @@ export class Observer {
         const { from, of, fatigue } = parseTags(p.args)
 
         const { ability, item } = parseEntity(from)
-        const src = of ? this.user(this.ref(of)) : user
+        const src = of ? this.deref(this.toRef(of)) : user
 
         if (ability) this.setAbility(src, ability)
         if (item) this.setItem(src, item)
@@ -879,7 +879,7 @@ export class Observer {
       }
       case "-terastallize": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const teraType = p.args[1] as TypeName
         const { pov } = user
 
@@ -890,7 +890,7 @@ export class Observer {
       }
       case "-formechange": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const forme = p.args[1]
 
         // Shaymin emits both a forme & detailchange. ignore forme.
@@ -911,7 +911,7 @@ export class Observer {
       }
       case "detailschange": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const { forme } = parseLabel(p.args[1])
 
         user.formeChange = {
@@ -932,7 +932,7 @@ export class Observer {
       }
       case "-activate": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const { pov } = user
 
         let { ability, item, move, stripped } = parseEntity(p.args[1])
@@ -985,7 +985,7 @@ export class Observer {
       }
       case "replace": {
         p = piped(line, p.i, 3)
-        const { pov, species } = this.ref(p.args[0])
+        const { pov, species } = this.toRef(p.args[0])
 
         if (pov === "foe") {
           const { team, active: user } = this.foe
@@ -995,8 +995,8 @@ export class Observer {
 
           user.lvl = lvl
           user.species = species
-          user.base.forme = forme
-          user.base.gender = gender
+          user.init.forme = forme
+          user.init.gender = gender
 
           team[species] = user
         } else {
@@ -1009,7 +1009,7 @@ export class Observer {
       }
       case "-end": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const { pov } = user
         let { stripped: name } = parseEntity(p.args[1])
 
@@ -1025,7 +1025,7 @@ export class Observer {
       }
       case "-singleturn": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const { stripped: name } = parseEntity(p.args[1])
 
         user.volatiles[name] = { singleTurn: true }
@@ -1033,7 +1033,7 @@ export class Observer {
       }
       case "-singlemove": {
         p = piped(line, p.i, 2)
-        const user = this.user(this.ref(p.args[0]))
+        const user = this.deref(this.toRef(p.args[0]))
         const { stripped: name } = parseEntity(p.args[1])
 
         user.volatiles[name] = { singleMove: true }
@@ -1042,7 +1042,7 @@ export class Observer {
 
       case "-sidestart": {
         p = piped(line, p.i, 2)
-        const { pov } = this.ref(p.args[0])
+        const { pov } = this.toRef(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
 
         const { effects } = this[pov]
@@ -1060,7 +1060,7 @@ export class Observer {
       }
       case "-sideend": {
         p = piped(line, p.i, 2)
-        const { pov } = this.ref(p.args[0])
+        const { pov } = this.toRef(p.args[0])
         const { stripped: name } = parseEntity(p.args[1])
 
         const { effects } = this[pov]

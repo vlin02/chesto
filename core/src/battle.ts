@@ -67,7 +67,7 @@ export type Screen = (typeof SCREENS)[number]
 export const DELAYED_MOVES = ["Future Sight", "Doom Desire"]
 export type DelayedMove = (typeof DELAYED_MOVES)[number]
 
-export const PARTIALLY_TRAPPED_MOVES = ["Magma Storm", "Infestation", "Whirlpool"]
+export const PARTIAL_TRAPPING_MOVES = ["Magma Storm", "Infestation", "Whirlpool"]
 
 export const MOVE_CATEGORY = ["Physical", "Special", "Status"] as const
 export type MoveCategory = (typeof MOVE_CATEGORY)[number]

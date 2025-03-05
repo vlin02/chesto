@@ -1,10 +1,6 @@
-import {
-  Choice,
-  getAllOptions, Options,
-  Run
-} from "../run.js"
+import { Choice, getValidActions, Actions, Run } from "../run.js"
 
-function optionsListed({ canTera, moves, switches }: Options): Choice[] {
+function optionsListed({ canTera, move: moves, switch: switches }: Actions): Choice[] {
   const choices: Choice[] = []
   switch (moves?.type) {
     case "struggle":
@@ -40,9 +36,19 @@ function optionsListed({ canTera, moves, switches }: Options): Choice[] {
 }
 
 export function randomAgent(run: Run) {
-  const opts = getAllOptions(run)
+  const opts = getValidActions(run)
   const choices = optionsListed(opts)
 
   const i = Math.floor(Math.random() * choices.length)
   return choices[i]
+}
+
+export function chioceToMessage(choice: Choice) {
+  switch (choice.type) {
+    case "move":
+      const pfx = `move ${choice.move}`
+      return choice.tera ? `${pfx} terastallize` : pfx
+    case "switch":
+      return `switch ${choice.species}`
+  }
 }
