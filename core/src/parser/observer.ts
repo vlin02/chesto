@@ -11,7 +11,7 @@ import {
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
 import { User, MoveSet } from "./user.js"
-import { inferMaxPP, isLockingMove, isPressuredMove } from "./move.js"
+import { getMaxPP, isLocking, triggersPressure } from "../move.js"
 import {
   StatusId,
   CHOICE_ITEMS,
@@ -96,7 +96,7 @@ export class Observer {
   ppCost(move: string, src: User, dest: User) {
     return dest.volatiles["Pressure"] &&
       dest.hp[0] !== 0 &&
-      (move === "Curse" ? "Ghost" in src.offensiveTyping : isPressuredMove(this.gen, move))
+      (move === "Curse" ? "Ghost" in src.offensiveTyping : triggersPressure(this.gen, move))
       ? 2
       : 1
   }
@@ -175,7 +175,7 @@ export class Observer {
   allocateSlot(moveSet: MoveSet, move: string) {
     return (moveSet[move] = moveSet[move] ?? {
       used: 0,
-      max: inferMaxPP(this.gen, move)
+      max: getMaxPP(this.gen, move)
     })
   }
 
@@ -276,7 +276,7 @@ export class Observer {
         p = piped(line, p.i)
         const user = this.deref(this.toRef(p.args[0]))
 
-        user.tera = false
+        user.isTera = false
         user.hp[0] = 0
         user.status = undefined
 
@@ -541,7 +541,7 @@ export class Observer {
         }
 
         if (
-          isLockingMove(this.gen, move) &&
+          isLocking(this.gen, move) &&
           (pov === "foe" || assertLocked(this.req, move) !== false)
         ) {
           volatiles["Locked Move"] = { turn: 0, move }
@@ -745,7 +745,7 @@ export class Observer {
           for (const move of moves) {
             moveSet[move] = moveSet[move] ?? {
               used: 0,
-              max: inferMaxPP(this.gen, move)
+              max: getMaxPP(this.gen, move)
             }
           }
 
@@ -884,7 +884,7 @@ export class Observer {
         const { pov } = user
 
         this[pov].teraUsed = true
-        user.tera = true
+        user.isTera = true
         user.teraType = teraType
         break
       }

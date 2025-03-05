@@ -1,5 +1,5 @@
 import { Generation, TypeName } from "@pkmn/data"
-import { inferMaxPP } from "./move.js"
+import { getMaxPP } from "../move.js"
 import { Boosts, Gender, PARTIAL_TRAPPING_MOVES, StatId, StatusId } from "../battle.js"
 import { Member } from "./request.js"
 import { Label } from "./protocol.js"
@@ -140,7 +140,7 @@ export class User {
   lastBerry?: LastBerry
   volatiles: Volatiles
   boosts: Boosts
-  tera: boolean
+  isTera: boolean
   clone: () => User
 
   constructor(
@@ -186,7 +186,7 @@ export class User {
         moveSet: Object.fromEntries(
           moves.map((id) => {
             const { name } = gen.moves.get(id)!
-            return [name, { used: 0, max: inferMaxPP(gen, name) }]
+            return [name, { used: 0, max: getMaxPP(gen, name) }]
           })
         ),
         gender,
@@ -196,7 +196,7 @@ export class User {
       this.hp = hp!
       this.volatiles = {}
       this.boosts = {}
-      this.tera = false
+      this.isTera = false
       this.stats = stats
     } else {
       const { species, label } = option
@@ -211,7 +211,7 @@ export class User {
       this.volatiles = {}
       this.boosts = {}
       this.flags = {}
-      this.tera = false
+      this.isTera = false
       this.gen = gen
       this.init = {
         forme,
@@ -278,12 +278,12 @@ export class User {
   }
 
   get defensiveTyping() {
-    const { tera, teraType, types } = this
+    const { isTera: tera, teraType, types } = this
     return tera ? [teraType!] : types
   }
 
   get offensiveTyping() {
-    const { tera, types, teraType } = this
+    const { isTera: tera, types, teraType } = this
 
     const typing: { [k in TypeName]?: number } = Object.fromEntries(types.map((t) => [t, 1]))
     if (tera) {

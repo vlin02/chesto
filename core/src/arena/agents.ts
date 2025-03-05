@@ -1,6 +1,6 @@
 import { Choice, getValidActions, Actions, Run } from "../run.js"
 
-function optionsListed({ canTera, move: moves, switch: switches }: Actions): Choice[] {
+function optionsListed({ tera: canTera, move: moves, switch: switches }: Actions): Choice[] {
   const choices: Choice[] = []
   switch (moves?.type) {
     case "struggle":

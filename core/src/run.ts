@@ -1,8 +1,6 @@
 import { Generation } from "@pkmn/data"
 import { Patch } from "./version.js"
 import { Observer } from "./parser/observer.js"
-import { PARTIAL_TRAPPING_MOVES } from "./battle.js"
-import { User, getDefTyping } from "./parser/user.js"
 import { Choice as RawChoice } from "./log.js"
 
 export type Format = {
@@ -99,22 +97,6 @@ export function getValidMoves({ gen, obs }: Run): MoveSelection {
   return { type: "default", moves, stuck }
 }
 
-export function isTrapped(user: User) {
-  const { volatiles } = user
-  if (volatiles["Recharge"] || volatiles["Prepare"] || volatiles["Locked Move"]) return true
-
-  if (getDefTyping(user).includes("Ghost")) return false
-
-  if (
-    volatiles["Trapped"] ||
-    volatiles["No Retreat"] ||
-    PARTIAL_TRAPPING_MOVES.some((k) => volatiles[k])
-  )
-    return true
-
-  return false
-}
-
 export function getValidRevives({
   obs: {
     ally: { team }
@@ -177,7 +159,7 @@ export type Choice =
     }
 
 export type Actions = {
-  canTera: boolean
+  tera: boolean
   move: MoveSelection | null
   switch: string[]
 }
@@ -196,17 +178,15 @@ export function getValidActions(run: Run): Actions {
 
   switch (req.type) {
     case "move":
-      const trapped = isTrapped(active)
-
       moves = getValidMoves(run)
 
       if (!teraUsed && moves.type === "default") canTera = true
-      if (!trapped) switches = getValidSwitches(run)
+      if (!active.trapped) switches = getValidSwitches(run)
       break
     case "switch":
       switches = isReviving ? getValidRevives(run) : getValidSwitches(run)
       break
   }
 
-  return { canTera, move: moves, switch: switches }
+  return { tera: canTera, move: moves, switch: switches }
 }

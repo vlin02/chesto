@@ -1,11 +1,11 @@
 import { Generation } from "@pkmn/data"
 
-export function inferMaxPP(gen: Generation, move: string) {
+export function getMaxPP(gen: Generation, move: string) {
   const { noPPBoosts, pp } = gen.moves.get(move)!
   return noPPBoosts ? pp : Math.floor(pp * 1.6)
 }
 
-export function isPressuredMove(gen: Generation, move: string) {
+export function triggersPressure(gen: Generation, move: string) {
   const {
     target,
     flags: { mustpressure }
@@ -26,7 +26,7 @@ export function isPressuredMove(gen: Generation, move: string) {
   )
 }
 
-export function isLockingMove(gen: Generation, move: string) {
+export function isLocking(gen: Generation, move: string) {
   const {
     self,
     flags: { charge }
