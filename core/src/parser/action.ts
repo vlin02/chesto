@@ -1,4 +1,4 @@
-export type MoveSelection =
+export type Selection =
   | {
       type: "struggle" | "recharge"
     }
@@ -8,33 +8,45 @@ export type MoveSelection =
       stuck?: boolean
     }
 
-export type ActionSelection = {
+export type Action = {
   tera: boolean
-  move: MoveSelection | null
-  switch: string[]
+  select: Selection | null
+  switches: string[]
 }
 
-export type Choice = 
+export type Choice =
+  | {
+      type: "move"
+      move: string
+      tera: boolean
+    }
+  | {
+      type: "switch"
+      species: string
+    }
 
-export function flattenActions(select: ActionSelection) {
+export function toChoices(action: Action): Choice[] {
+  const { select, switches } = action
   const choices: Choice[] = []
-  switch (select.move?.type) {
+
+  switch (select?.type) {
     case "struggle":
     case "recharge":
       choices.push({
         type: "move",
-        move: { struggle: "Struggle", recharge: "Recharge" }[moves.type],
+        move: { struggle: "Struggle", recharge: "Recharge" }[select.type],
         tera: false
       })
       break
     case "default":
       const { moves } = select
-      for (const name of names) {
+      for (const move of moves) {
         for (const tera of [false, true]) {
-          if (tera && !canTera) continue
+          if (tera && !action.tera) continue
+
           choices.push({
             type: "move",
-            move: name,
+            move,
             tera
           })
         }

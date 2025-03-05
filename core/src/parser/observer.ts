@@ -26,7 +26,7 @@ import {
 } from "../battle.js"
 import { piped } from "../parse.js"
 import { InputChoice } from "../log.js"
-import { ActionSelection, MoveSelection } from "./action.js"
+import { Action, Selection } from "./action.js"
 
 type Ref = {
   species: string
@@ -1237,10 +1237,10 @@ export class Observer {
     return opts
   }
 
-  getValidActions(): ActionSelection {
+  getValidActions(): Action {
     let tera = false
     let switches: string[] = []
-    let moves: MoveSelection | null = null
+    let moves: Selection | null = null
 
     const {
       req,
@@ -1259,15 +1259,15 @@ export class Observer {
         break
     }
 
-    return { tera, move: moves, switch: switches }
+    return { tera, select: moves, switches: switches }
   }
 
-  derefChoice(choice: InputChoice) {
+  processChoice(input: InputChoice) {
     const { gen, ally } = this
 
-    switch (choice.type) {
+    switch (input.type) {
       case "move": {
-        const { move, tera } = choice
+        const { move, tera } = input
         return {
           type: "move",
           move: move === "recharge" ? "Recharge" : gen.moves.get(move)!.name,
@@ -1275,7 +1275,7 @@ export class Observer {
         }
       }
       case "switch": {
-        const { i } = choice
+        const { i } = input
         return { type: "switch", species: ally.slots[i - 1].species }
       }
     }
