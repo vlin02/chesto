@@ -1,6 +1,6 @@
-import { Choice as Choice, getValidActions, Actions, Run } from "../run.js"
 
-function optionsListed({ tera: canTera, move: moves, switch: switches }: Actions): Choice[] {
+
+function flattenActions({ tera: canTera, move: moves, switch: switches }: Actions): Choice[] {
   const choices: Choice[] = []
   switch (moves?.type) {
     case "struggle":
@@ -37,7 +37,7 @@ function optionsListed({ tera: canTera, move: moves, switch: switches }: Actions
 
 export function randomAgent(run: Run) {
   const opts = getValidActions(run)
-  const choices = optionsListed(opts)
+  const choices = listActions(opts)
 
   const i = Math.floor(Math.random() * choices.length)
   return choices[i]

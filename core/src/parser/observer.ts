@@ -1238,7 +1238,7 @@ export class Observer {
   }
 
   getValidActions(): ActionSelection {
-    let canTera = false
+    let tera = false
     let switches: string[] = []
     let moves: MoveSelection | null = null
 
@@ -1251,7 +1251,7 @@ export class Observer {
       case "move":
         const moves = this.getValidMoves()
 
-        if (!teraUsed && moves.type === "default") canTera = true
+        if (!teraUsed && moves.type === "default") tera = true
         if (!active.trapped) switches = this.listSwitches()
         break
       case "switch":
@@ -1259,7 +1259,7 @@ export class Observer {
         break
     }
 
-    return { tera: canTera, move: moves, switch: switches }
+    return { tera, move: moves, switch: switches }
   }
 
   derefChoice(choice: InputChoice) {

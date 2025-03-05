@@ -202,8 +202,8 @@ export type Observation = {
   foe: SideFeature
 }
 
-export const CHOICE_MODES = ["move", "switch", "revive", "wait"]
-export type ChoiceMode = (typeof CHOICE_MODES)[number]
+export const REQUEST_STATUS = ["move", "switch", "revive", "wait"]
+export type RequestStatus = (typeof REQUEST_STATUS)[number]
 
 export function extractMoveSlot(moveSet: MoveSet, move: string): MoveSlotFeature {
   if (move in moveSet) {
@@ -295,7 +295,7 @@ function extractSide({
   delayedAttack,
   teraUsed
 }: {
-  mode: ChoiceMode
+  mode: RequestStatus
   effects: SideEffects
   wish?: number
   delayedAttack?: DelayedAttack
@@ -307,7 +307,7 @@ function extractSide({
   x.push(...encodeDelayedAttack(delayedAttack))
   x.push(teraUsed ? 1 : 0)
 
-  x.push(...CHOICE_MODES.map((x) => (mode === x ? 1 : 0)))
+  x.push(...REQUEST_STATUS.map((x) => (mode === x ? 1 : 0)))
   x.push(...HAZARDS.map((name) => effects[name]?.layers ?? 0))
   x.push(...SCREENS.map((name) => effects[name]?.turn ?? 0))
 
@@ -484,7 +484,7 @@ export function extractObservation(format: Format, obs: Observer): Observation {
       }
     }
 
-    let mode: ChoiceMode
+    let mode: RequestStatus
     {
       switch (req.type) {
         case "move":
