@@ -16,7 +16,7 @@ import {
 } from "../battle.js"
 import { Flags, MoveSet, Status, User, Volatiles } from "../client/user.js"
 import { DelayedAttack, SideEffects } from "../client/side.js"
-import { inferInitialForme, getPotentialPresets, matchesPreset } from "../version.js"
+import { inferInitialForme, findPotentialPresets, matchesPreset } from "../version.js"
 import { Format } from "../run.js"
 import { INTERIM_FORMES } from "./forme.js"
 import { scalePP, scaleStat } from "./norm.js"
@@ -420,14 +420,14 @@ export function extractObservation(format: Format, obs: Observer): Observation {
       } = user
 
       const initialForme = inferInitialForme(format, base.forme)
-      let presets = getPotentialPresets(format, initialForme)
+      let presets = findPotentialPresets(format, initialForme)
       let filtered = presets.filter((x) => matchesPreset(x, user))
 
       if (filtered.length) {
         presets = filtered
       } else {
         for (const initialForme of ["Zoroark", "Zoroark-Hisui"]) {
-          const filtered = getPotentialPresets(format, initialForme).filter((x) =>
+          const filtered = findPotentialPresets(format, initialForme).filter((x) =>
             matchesPreset(x, user)
           )
 

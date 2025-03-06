@@ -1,7 +1,35 @@
 import { Stats } from "fs"
-import { StatId, TypeName } from "./battle.js"
+import { TypeName } from "./battle.js"
 import { Generation } from "@pkmn/data"
 import { User } from "./parser/user.js"
+
+export type Role =
+  | ""
+  | "Fast Attacker"
+  | "Setup Sweeper"
+  | "Wallbreaker"
+  | "Tera Blast user"
+  | "Bulky Attacker"
+  | "Bulky Setup"
+  | "Fast Bulky Setup"
+  | "Bulky Support"
+  | "Fast Support"
+  | "AV Pivot"
+  | "Doubles Fast Attacker"
+  | "Doubles Setup Sweeper"
+  | "Doubles Wallbreaker"
+  | "Doubles Bulky Attacker"
+  | "Doubles Bulky Setup"
+  | "Offensive Protect"
+  | "Bulky Protect"
+  | "Doubles Support"
+  | "Choice Item user"
+  | "Z-Move user"
+  | "Staller"
+  | "Spinner"
+  | "Generalist"
+  | "Berry Sweeper"
+  | "Thief user"
 
 export type Preset = {
   role: string
@@ -37,9 +65,8 @@ export function inferInitialForme({ gen, patch }: Version, forme: string) {
   return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
 }
 
-export function getPotentialPresets({ patch }: Version, initialForme: string) {
+export function findPotentialPresets({ patch }: Version, initialForme: string) {
   const presets = [...patch[initialForme].presets]
-
   if (initialForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)
 
   return presets

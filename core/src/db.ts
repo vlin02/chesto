@@ -1,10 +1,10 @@
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Observation } from "./encoder/observation.js"
-import { Options } from "./encoder/options.js"
-import { Db } from "mongodb"
+import { Collection, Db } from "mongodb"
 import { Side } from "./parser/protocol.js"
 import { Choice } from "./parser/action.js"
+import { Build } from "./replay.js"
 
 export type Player = {
   name: string
@@ -14,7 +14,6 @@ export type Player = {
 export type Step = {
   side: Side
   observation: Observation
-  options: Options
   choice: Choice
 }
 
@@ -69,17 +68,29 @@ type Type = {
   i: number
 }
 
+type DB = {
+  versions: Collection<Version>
+  replays: Collection<Replay>
+}
+
+export function withSchema(db: Db): DB {
+  return {
+    versions: db.collection("versions"),
+    replays: db.collection("replays")
+  }
+}
+
 export class VersionCache {
   cache: Map<string, Version>
 
-  constructor(public db: Db) {
+  constructor(public db: DB) {
     this.cache = new Map()
   }
 
   async load(hash: string) {
     let ver = this.cache.get(hash)
     if (!ver) {
-      ver = (await this.db.collection<Version>("versions").findOne({ hash }))!
+      ver = (await this.db.versions.findOne({ hash }))!
       this.cache.set(hash, ver)
     }
     return ver

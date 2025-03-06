@@ -68,12 +68,17 @@ export type InputChoice =
 export type Input =
   | {
       type: "version"
-      origin: boolean
+      hash: string
+    }
+  | {
+      type: "version-origin"
       hash: string
     }
   | {
       type: "start"
       seed: number[]
+      formatId: string
+      rated: boolean
     }
   | {
       type: "choose"
@@ -92,16 +97,17 @@ export function parseInput(line: string): Input {
 
   switch (pfx) {
     case ">version":
-    case ">version-origin": {
-      const origin = pfx === ">version-origin"
       p = spaced(line, p.i)
-      return { type: "version", origin, hash: pfx }
+      return { type: "version", hash: p.args[0] }
+    case ">version-origin": {
+      p = spaced(line, p.i)
+      return { type: "version-origin", hash: p.args[0] }
     }
     case ">player":
       return { type: "player" }
     case ">start": {
-      const { seed } = JSON.parse(line.slice(p.i))
-      return { type: "start", seed }
+      const { seed, formatid, rated } = JSON.parse(line.slice(p.i))
+      return { type: "start", seed, formatId: formatid, rated }
     }
     case ">p1":
     case ">p2": {
