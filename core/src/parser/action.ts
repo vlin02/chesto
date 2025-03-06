@@ -47,3 +47,13 @@ export function toChoices(action: Action): Choice[] {
 
   return choices
 }
+
+export function serializeChoice(choice: Choice) {
+  switch (choice.type) {
+    case "move":
+      const pfx = `move ${choice.move}`
+      return choice.tera ? `${pfx} terastallize` : pfx
+    case "switch":
+      return `switch ${choice.species}`
+  }
+}

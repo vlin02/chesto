@@ -1,54 +1,13 @@
+import { toChoices } from "../parser/action.js"
+import { Observer } from "../parser/observer.js"
 
+export class RandomAgent {
+  choose(obs: Observer) {
+    const action = obs.getAction()
 
-function flattenActions({ tera: canTera, move: moves, switch: switches }: Actions): Choice[] {
-  const choices: Choice[] = []
-  switch (moves?.type) {
-    case "struggle":
-    case "recharge":
-      choices.push({
-        type: "move",
-        move: { struggle: "Struggle", recharge: "Recharge" }[moves.type],
-        tera: false
-      })
-      break
-    case "default":
-      const { moves: names } = moves
-      for (const name of names) {
-        for (const tera of [false, true]) {
-          if (tera && !canTera) continue
-          choices.push({
-            type: "move",
-            move: name,
-            tera
-          })
-        }
-      }
-  }
+    const choices = toChoices(action)
+    const i = Math.floor(Math.random() * choices.length)
 
-  for (const species of switches) {
-    choices.push({
-      type: "switch",
-      species
-    })
-  }
-
-  return choices
-}
-
-export function randomAgent(run: Run) {
-  const opts = getValidActions(run)
-  const choices = listActions(opts)
-
-  const i = Math.floor(Math.random() * choices.length)
-  return choices[i]
-}
-
-export function formatChoice(choice: Choice) {
-  switch (choice.type) {
-    case "move":
-      const pfx = `move ${choice.move}`
-      return choice.tera ? `${pfx} terastallize` : pfx
-    case "switch":
-      return `switch ${choice.species}`
+    return choices[i]
   }
 }
