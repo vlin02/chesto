@@ -3,53 +3,6 @@ import { StatId, TypeName } from "./battle.js"
 import { Generation } from "@pkmn/data"
 import { User } from "./parser/user.js"
 
-export type Role =
-  | ""
-  | "Fast Attacker"
-  | "Setup Sweeper"
-  | "Wallbreaker"
-  | "Tera Blast user"
-  | "Bulky Attacker"
-  | "Bulky Setup"
-  | "Fast Bulky Setup"
-  | "Bulky Support"
-  | "Fast Support"
-  | "AV Pivot"
-  | "Doubles Fast Attacker"
-  | "Doubles Setup Sweeper"
-  | "Doubles Wallbreaker"
-  | "Doubles Bulky Attacker"
-  | "Doubles Bulky Setup"
-  | "Offensive Protect"
-  | "Bulky Protect"
-  | "Doubles Support"
-  | "Choice Item user"
-  | "Z-Move user"
-  | "Staller"
-  | "Spinner"
-  | "Generalist"
-  | "Berry Sweeper"
-  | "Thief user"
-
-export type Build = {
-  name: string
-  species: string
-  gender: string | boolean
-  moves: string[]
-  ability: string
-  evs: { [k in StatId]: number }
-  ivs: { [k in StatId]: number }
-  item: string
-  level: number
-  shiny: boolean
-  nature?: string
-  happiness?: number
-  dynamaxLevel?: number
-  gigantamax?: boolean
-  teraType?: string
-  role?: Role
-}
-
 export type Preset = {
   role: string
   movepool: string[]
@@ -84,7 +37,7 @@ export function inferInitialForme({ gen, patch }: Version, forme: string) {
   return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
 }
 
-export function getPotentialPresets({ gen, patch }: Version, initialForme: string) {
+export function getPotentialPresets({ patch }: Version, initialForme: string) {
   const presets = [...patch[initialForme].presets]
 
   if (initialForme === "Greninja") presets.push(...patch["Greninja-Bond"].presets)

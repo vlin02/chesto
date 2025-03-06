@@ -1,12 +1,11 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./parser/observer.js"
 import { FOE, Side } from "./parser/protocol.js"
-import { getPotentialPresets, matchesPreset, Patch } from "./version.js"
-import { Run, toChoice } from "./run.js"
+import { getPotentialPresets, matchesPreset, Version } from "./version.js"
 import { Replay } from "./db.js"
 import { extractOptions } from "./encoder/options.js"
 
-export function testSide(patch: Patch, obs: Observer, replay: Replay, side: Side) {
+export function testSide(version: Version, obs: Observer, replay: Replay, side: Side) {
   const { inputs, outputs } = replay
 
   const opp = replay[FOE[side]]
@@ -40,7 +39,6 @@ export function testSide(patch: Patch, obs: Observer, replay: Replay, side: Side
     }
 
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      // console.log(msg)
       obs.read(msg)
     }
 
@@ -51,7 +49,7 @@ export function testSide(patch: Patch, obs: Observer, replay: Replay, side: Side
         const user = team[species]
 
         const build = opp.team.find((x) => x.name === species)!
-        const presets = getPotentialPresets(fmt, user.base.forme)
+        const presets = getPotentialPresets(version, user.init.forme)
 
         const buildFound = presets.some((preset) => {
           return preset.role === build.role && matchesPreset(preset, user)
@@ -73,7 +71,7 @@ export function testSide(patch: Patch, obs: Observer, replay: Replay, side: Side
 
         const aliveCnt = req.team.reduce((t, x) => t + (x.health ? 1 : 0), 0)
 
-        const trappedA = aliveCnt !== 1 && isTrapped(active)
+        const trappedA = aliveCnt !== 1 && active.trapped
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 

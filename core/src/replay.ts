@@ -57,32 +57,3 @@ export function seekToStart(lines: string[], i: number) {
 
   throw Error()
 }
-
-export interface BattleLike {
-  choose(type: string, input: string): void
-  win(side: Side | null): void
-  sendUpdates(): void
-}
-
-export function apply(battle: BattleLike, input: string) {
-  let j = input.indexOf(" ")
-  const type = input.slice(1, j === -1 ? undefined : j)
-
-  switch (type) {
-    case "p1":
-    case "p2":
-      battle.choose(type, input.slice(j + 1))
-      break
-    case "forcelose":
-      const side = FOE[input.slice(j + 1) as Side]
-      battle.win(side)
-      break
-    case "forcetie":
-      battle.win(null)
-      break
-    case "chat":
-      break
-    default:
-      throw Error(type)
-  }
-}

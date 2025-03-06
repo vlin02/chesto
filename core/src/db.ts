@@ -1,4 +1,4 @@
-import { Build, Patch } from "./version.js"
+import { Patch } from "./version.js"
 import { Log } from "./log.js"
 import { Observation } from "./encoder/observation.js"
 import { Options } from "./encoder/options.js"
