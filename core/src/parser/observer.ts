@@ -26,7 +26,7 @@ import {
 } from "../battle.js"
 import { piped } from "../parse.js"
 import { InputChoice } from "../log.js"
-import { Action, Selection } from "./action.js"
+import { Action, Choice, Selection } from "./action.js"
 
 type Ref = {
   species: string
@@ -1129,7 +1129,9 @@ export class Observer {
     return event
   }
 
-  getValidMoves() {
+  getSelection(): Selection {
+    const tera = !this.ally.teraUsed
+
     const {
       gen,
       ally: { active }
@@ -1152,13 +1154,14 @@ export class Observer {
 
     if (recharge)
       return {
-        type: "recharge"
+        moves: ["Recharge"],
+        tera: false
       }
 
     const { moveSet } = active
     const moves = []
 
-    if (locked?.move) return { type: "default", moves: [locked.move] }
+    if (locked?.move) return { tera, moves: [locked.move] }
 
     let stuck = [choiceLocked?.move, encore?.move].some((x) => x && !(x in moveSet))
 
@@ -1198,10 +1201,11 @@ export class Observer {
 
     if (!moves.length)
       return {
-        type: "struggle"
+        moves: ["Struggle"],
+        tera: false
       }
 
-    return { type: "default", moves, stuck }
+    return { moves, tera, stuck }
   }
 
   listRevivable() {
@@ -1237,21 +1241,18 @@ export class Observer {
     return opts
   }
 
-  getValidActions(): Action {
-    let tera = false
+  getAction(): Action {
     let switches: string[] = []
-    let moves: Selection | null = null
+    let select: Selection | null = null
 
     const {
       req,
-      ally: { active, isReviving, teraUsed }
+      ally: { active, isReviving }
     } = this
 
     switch (req.type) {
       case "move":
-        const moves = this.getValidMoves()
-
-        if (!teraUsed && moves.type === "default") tera = true
+        select = this.getSelection()
         if (!active.trapped) switches = this.listSwitches()
         break
       case "switch":
@@ -1259,10 +1260,10 @@ export class Observer {
         break
     }
 
-    return { tera, select: moves, switches: switches }
+    return { select, switches }
   }
 
-  processChoice(input: InputChoice) {
+  resolveInputChoice(input: InputChoice): Choice {
     const { gen, ally } = this
 
     switch (input.type) {

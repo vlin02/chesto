@@ -3,7 +3,7 @@ import { Observer } from "./parser/observer.js"
 import { FOE, Side } from "./parser/protocol.js"
 import { getPotentialPresets, matchesPreset, Version } from "./version.js"
 import { Replay } from "./db.js"
-import { extractOptions } from "./encoder/options.js"
+import { toChoices } from "./parser/action.js"
 
 export function testSide(version: Version, obs: Observer, replay: Replay, side: Side) {
   const { inputs, outputs } = replay
@@ -17,24 +17,13 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
     const logs = outputs[i]
 
     if (input.type === "choose") {
-      const choice = toChoice(obs, input.choice)
+      const choice = obs.resolveInputChoice(input.choice)
 
       if (input.side === side) {
-        const opt = extractOptions(run)
+        const act = obs.getAction()
+        const choices = toChoices(act)
 
-        switch (choice.type) {
-          case "move": {
-            const { tera, move } = choice
-
-            if (!opt.moves.some((x) => x.move === move)) throw Error()
-            if (tera && !opt.canTera) throw Error()
-            break
-          }
-          case "switch": {
-            if (!opt.switches.includes(choice.species)) throw Error()
-            break
-          }
-        }
+        if (!choices.some((x) => JSON.stringify(x) === JSON.stringify(choice))) throw Error()
       }
     }
 
@@ -62,9 +51,6 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
     if (obs.req && obs.winner === undefined) {
       const { ally, req } = obs
 
-      if (obs.ally.active.lastMove && !gen.moves.get(obs.ally.active.lastMove))
-        throw Error(obs.ally.active.lastMove)
-
       if (req.type === "move") {
         const { active } = ally
         const [{ moveSlots, trapped }] = req.choices
@@ -75,9 +61,9 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const movesA = extractOptions(run)
-          .moves!.map((x) => x.move)
-          .sort()
+        const act = obs.getAction()
+
+        const movesA = act.select!.moves.sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
