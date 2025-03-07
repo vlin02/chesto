@@ -61,7 +61,7 @@ export type Version = {
   patch: Patch
 }
 
-export function inferInitialForme({ gen, patch }: Version, forme: string) {
+export function inferOriginForme({ gen, patch }: Version, forme: string) {
   return forme in patch ? forme : gen.species.get(forme)!.baseSpecies
 }
 

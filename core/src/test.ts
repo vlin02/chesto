@@ -1,7 +1,7 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./parser/observer.js"
 import { FOE, Side } from "./parser/protocol.js"
-import { findPotentialPresets, matchesPreset, Version } from "./version.js"
+import { findPotentialPresets, inferOriginForme, matchesPreset, Version } from "./version.js"
 import { Replay } from "./db.js"
 import { toChoices } from "./parser/action.js"
 
@@ -38,7 +38,8 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
         const user = team[species]
 
         const build = opp.team.find((x) => x.name === species)!
-        const presets = findPotentialPresets(version, user.init.forme)
+        const originForme = inferOriginForme(version, user.init.forme)
+        const presets = findPotentialPresets(version, originForme)
 
         const buildFound = presets.some((preset) => {
           return preset.role === build.role && matchesPreset(preset, user)
