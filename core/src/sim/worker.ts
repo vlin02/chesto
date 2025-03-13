@@ -2,13 +2,11 @@ import { parentPort } from "worker_threads"
 import { Sim } from "./sim.js"
 import { Side, SIDES } from "../battle.js"
 import { Action } from "../parser/action.js"
-import { FOE } from "../parser/protocol.js"
-import { calcBattleValue } from "../enc/reward.js"
-import { encodeState, BattleState } from "../enc/state.js"
+import { evalBattle } from "../enc/reward.js"
+import { encodeObserver, ObserverF as BattleState } from "../enc/state.js"
 
 type Environment = {
   sim: Sim
-  side: Side
 }
 
 const envs = new Map<string, Environment>()
@@ -18,51 +16,48 @@ export type Request = [
   { type: "start" } | { type: "step"; actions: Action[] } | { type: "close" }
 ]
 
+type SideUpdate = {
+  reward: number
+  state: BattleState
+}
+
 export type Update = {
   done: boolean
-  reward?: number
-  state?: BattleState
+  p1: SideUpdate
+  p2: SideUpdate
 }
 
 const main = parentPort!
 
-function step({ side, sim }: Environment, actions: Action[]): Update {
-  const { obs } = sim[side]
-
-  const vPrev = calcBattleValue(obs)
+function step({ sim }: Environment, actions: Action[]): Update {
+  const evalSides = () => Object.fromEntries(SIDES.map((side) => [side, evalBattle(sim[side].obs)]))
+  const vPrev = evalSides()
   const status = sim.step(actions)
-  const vCurr = calcBattleValue(obs)
-  const reward = vCurr - vPrev
+  const vCurr = evalSides()
 
-  switch (status.type) {
-    case "end":
-      return {
-        done: true,
-        reward
-      }
-    case "request": {
-      const state = encodeState(obs)
-      return {
-        done: false,
-        reward,
-        state
-      }
+  const sides: { [k in Side]: SideUpdate } = {} as any
+  for (const side of SIDES) {
+    const reward = vCurr[side] - vPrev[side]
+    sides[side] = {
+      reward,
+      state: encodeObserver(sim[side].obs)
     }
   }
+
+  const done = status.type === "end"
+  return { done, ...sides }
 }
 
 main!.on("message", ([id, body]: Request) => {
   switch (body.type) {
     case "start": {
       const side = SIDES[Math.floor(Math.random() * 2)]
-      const fixed = [FOE[side]]
 
-      const sim = new Sim(fixed)
-      const env = { side, sim: new Sim(fixed) }
+      const sim = new Sim([...SIDES])
+      const env = { side, sim }
       envs.set(id, env)
 
-      sim.step([])
-      main.postMessage([id, { done: false, state: encodeState(sim[side].obs) }])
+      main.postMessage([id, step(env, [])])
       break
     }
     case "step": {

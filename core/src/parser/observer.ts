@@ -1241,7 +1241,7 @@ export class Observer {
     return opts
   }
 
-  getOption(): Option {
+  getOption(): Option | null {
     let switches: string[] = []
     let select: Selection | null = null
 
@@ -1249,6 +1249,8 @@ export class Observer {
       req,
       ally: { active, isReviving }
     } = this
+
+    if (req.type === "wait") return null
 
     switch (req.type) {
       case "move":

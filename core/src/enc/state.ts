@@ -2,8 +2,8 @@ import { Generation } from "@pkmn/data"
 import { MOVE_CATEGORIES, STAT_IDS, Stats } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
-import { toMoves } from "../parser/action.js"
 import { Party } from "../parser/side.js"
+import { toMoves } from "../parser/action.js"
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!
@@ -73,28 +73,36 @@ function encodeParty(gen: Generation, { active, team }: Party) {
   return f
 }
 
-export type BattleState = {
-  ally: PartyF
-  foe: PartyF
-  option: {
-    tera: boolean | undefined
-    moves: string[]
-    switches: string[]
+export type OptionF = {
+  tera: boolean | undefined
+  moves: string[]
+  switches: string[]
+}
+
+export function encodeOption(obs: Observer): OptionF | null {
+  const opt = obs.getOption()
+  if (!opt) return null
+  const { select, switches } = opt
+
+  return {
+    tera: !!select?.tera,
+    moves: select ? toMoves(select) : [],
+    switches
   }
 }
 
-export function encodeState(obs: Observer) {
-  const { ally, foe, gen } = obs
+export type ObserverF = {
+  ally: PartyF
+  foe: PartyF
+  option: OptionF | null
+}
 
-  const { select, switches } = obs.getOption()
+export function encodeObserver(obs: Observer): ObserverF {
+  const { ally, foe, gen } = obs
 
   return {
     ally: encodeParty(gen, ally),
     foe: encodeParty(gen, foe),
-    option: {
-      tera: !!select?.tera,
-      moves: select ? toMoves(select) : [],
-      switches
-    }
+    option: encodeOption(obs)
   }
 }

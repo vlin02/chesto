@@ -1,7 +1,7 @@
 import { Observer } from "../parser/observer.js"
 import { User } from "../parser/user.js"
 
-export function calcUserValue(users: User[]) {
+export function evalUser(users: User[]) {
   let t = 6 * 8
   for (const { hp, status, boosts } of users) {
     const ratio = hp[0] / hp[1]
@@ -16,14 +16,15 @@ export function calcUserValue(users: User[]) {
   return t
 }
 
-export function calcBattleValue(obs: Observer) {
+export function evalBattle(obs: Observer) {
+  if (!obs.ally) return 0
   let t = 0
 
   if (obs.winner) t += obs.winner === obs.side ? 20 : -20
 
   const { ally, foe } = obs
   const [tAlly, tFoe] = [ally, foe].map(({ team, teraUsed }) => {
-    return calcUserValue(Object.values(team)) + (teraUsed ? 0 : 5)
+    return evalUser(Object.values(team)) + (teraUsed ? 0 : 5)
   })
 
   t += tAlly - tFoe

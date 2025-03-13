@@ -51,6 +51,7 @@ export class Sim {
         this.logs.push(log as Log)
       }
     })
+    this.battle.sendUpdates()
   }
 
   choose(side: Side, choice: Choice) {

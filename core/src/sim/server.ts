@@ -6,7 +6,7 @@ import path, { dirname } from "path"
 import { fileURLToPath } from "url"
 import { Update } from "./worker.js"
 
-const NUM_WORKERS = 4
+const NUM_WORKERS = 60
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -63,7 +63,7 @@ app.delete("/:id", async (c) => {
   workers[workerId].postMessage([id, { type: "close" }])
   sessions.delete(id)
 
-  return c.json({ success: true })
+  return c.json({})
 })
 
 export default app

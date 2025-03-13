@@ -4,7 +4,7 @@ import { FOE } from "./parser/protocol.js"
 import { Side } from "./battle.js"
 import { findPotentialPresets, inferOriginForme, matchesPreset, Version } from "./version.js"
 import { Replay } from "./db.js"
-import { toChoices } from "./parser/action.js"
+import { toChoices, toMoves } from "./parser/action.js"
 
 export function testSide(version: Version, obs: Observer, replay: Replay, side: Side) {
   const { inputs, outputs } = replay
@@ -65,7 +65,7 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
 
         const act = obs.getOption()
 
-        const movesA = act.select!.moves.sort()
+        const movesA = toMoves(act.select!).sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)
