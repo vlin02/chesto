@@ -21,7 +21,7 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
       const choice = obs.resolveInputChoice(input.choice)
 
       if (input.side === side) {
-        const act = obs.getAction()
+        const act = obs.getOption()
         const choices = toChoices(act)
 
         if (!choices.some((x) => JSON.stringify(x) === JSON.stringify(choice))) throw Error()
@@ -63,7 +63,7 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const act = obs.getAction()
+        const act = obs.getOption()
 
         const movesA = act.select!.moves.sort()
         const movesB = moveSlots

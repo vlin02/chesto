@@ -2,9 +2,9 @@ import { Hono } from "hono"
 import { Worker } from "worker_threads"
 import { randomUUID } from "crypto"
 import { Action } from "@pkmn/sim"
-import { Update } from "./worker.js"
 import path, { dirname } from "path"
 import { fileURLToPath } from "url"
+import { Update } from "./worker.js"
 
 const NUM_WORKERS = 4
 

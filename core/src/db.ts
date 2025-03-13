@@ -1,6 +1,6 @@
 import { Patch } from "./version.js"
 import { Log } from "./log.js"
-import { Observation } from "./encoder/observation.js"
+import { Observation } from "./__tmp/encoder/observation.js"
 import { Collection, Db } from "mongodb"
 import { Side } from "./battle.js"
 import { Choice } from "./parser/action.js"

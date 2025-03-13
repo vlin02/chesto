@@ -1,7 +1,6 @@
 import { Observer } from "../parser/observer.js"
 import { User } from "../parser/user.js"
 
-
 export function calcUserValue(users: User[]) {
   let t = 6 * 8
   for (const { hp, status, boosts } of users) {

@@ -8,7 +8,7 @@ export class RandomAgent {
     this.obs = obs
   }
   choose() {
-    const action = this.obs.getAction()
+    const action = this.obs.getOption()
 
     const choices = toChoices(action)
     

@@ -1,10 +1,13 @@
 import { Side } from "../battle.js"
 
-export type Selection = {
-  tera: boolean
-  moves: string[]
-  stuck?: boolean
-}
+export type Selection =
+  | { type: "struggle" | "recharge"; tera?: undefined }
+  | {
+      type: "default"
+      tera: boolean
+      moves: string[]
+      stuck?: boolean
+    }
 
 export type Option = {
   select: Selection | null
@@ -24,15 +27,20 @@ export type Choice =
 
 export type Action = { side: Side; choice: Choice }
 
+export function toMoves(select: Selection) {
+  if (select.type === "default") return select.moves
+  return [{ struggle: "Struggle", recharge: "Recharge" }[select.type]]
+}
+
 export function toChoices(option: Option): Choice[] {
   const { select, switches } = option
   const choices: Choice[] = []
 
   if (select) {
-    const { moves } = select
+    const moves = toMoves(select)
     for (const move of moves) {
       for (const tera of [true, false]) {
-        if (!select.tera && tera) continue
+        if (tera && !(select.type === "default" && select.tera)) continue
         choices.push({
           type: "select",
           move,

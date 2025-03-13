@@ -11,7 +11,7 @@ import { RandomAgent } from "../arena/agents.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 
-export type State =
+export type Status =
   | {
       type: "end"
       winner: Side | null
@@ -21,7 +21,7 @@ export type State =
       sides: Side[]
     }
 
-export class Environment {
+export class Sim {
   battle: Battle
   p1: { obs: Observer; agent: RandomAgent }
   p2: { obs: Observer; agent: RandomAgent }
@@ -58,7 +58,7 @@ export class Environment {
     this.battle.sendUpdates()
   }
 
-  step(actions: Action[]): State {
+  step(actions: Action[]): Status {
     actions.forEach(({ side, choice }) => this.choose(side, choice))
 
     while (true) {

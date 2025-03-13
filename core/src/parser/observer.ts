@@ -192,7 +192,7 @@ export class Observer {
     switch (msgType) {
       case "request": {
         this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
-        
+
         if (this.req.type !== "wait") {
           event = "request"
         }
@@ -1156,14 +1156,13 @@ export class Observer {
 
     if (recharge)
       return {
-        moves: ["Recharge"],
-        tera: false
+        type: "recharge"
       }
 
     const { moveSet } = active
     const moves = []
 
-    if (locked?.move) return { tera, moves: [locked.move] }
+    if (locked?.move) return { type: "default", tera, moves: [locked.move] }
 
     let stuck = [choiceLocked?.move, encore?.move].some((x) => x && !(x in moveSet))
 
@@ -1203,11 +1202,10 @@ export class Observer {
 
     if (!moves.length)
       return {
-        moves: ["Struggle"],
-        tera: false
+        type: "struggle"
       }
 
-    return { moves, tera, stuck }
+    return { type: "default", moves, tera, stuck }
   }
 
   listRevivable() {
@@ -1243,7 +1241,7 @@ export class Observer {
     return opts
   }
 
-  getAction(): Option {
+  getOption(): Option {
     let switches: string[] = []
     let select: Selection | null = null
 

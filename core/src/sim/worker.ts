@@ -1,7 +1,15 @@
 import { parentPort } from "worker_threads"
-import { Environment } from "./env.js"
-import { SIDES } from "../battle.js"
+import { Sim } from "./sim.js"
+import { Side, SIDES } from "../battle.js"
 import { Action } from "../parser/action.js"
+import { FOE } from "../parser/protocol.js"
+import { calcBattleValue } from "../enc/reward.js"
+import { encodeState, BattleState } from "../enc/state.js"
+
+type Environment = {
+  sim: Sim
+  side: Side
+}
 
 const envs = new Map<string, Environment>()
 
@@ -18,24 +26,31 @@ export type Update =
   | {
       done: false
       reward: number
-      state: State
+      state: BattleState
     }
 
 const main = parentPort!
 
-function step(env: Environment, actions: Action[]): Update {
-  const event = env.step(actions)
+function step({ side, sim }: Environment, actions: Action[]): Update {
+  const { obs } = sim[side]
 
-  switch (event.type) {
+  const vPrev = calcBattleValue(obs)
+  const status = sim.step(actions)
+  const vCurr = calcBattleValue(obs)
+  const reward = vCurr - vPrev
+
+  switch (status.type) {
     case "end":
-      const { winner } = event
       return {
         done: true,
-        winner
+        reward
       }
     case "request": {
+      const state = encodeState(obs)
       return {
-        done: false
+        done: false,
+        reward,
+        state
       }
     }
   }
@@ -44,9 +59,10 @@ function step(env: Environment, actions: Action[]): Update {
 main!.on("message", ([id, body]: Request) => {
   switch (body.type) {
     case "start": {
-      const fixed = [SIDES[Math.floor(Math.random() * 2)]]
+      const side = SIDES[Math.floor(Math.random() * 2)]
+      const fixed = [FOE[side]]
 
-      const env = new Environment(fixed)
+      const env = { side, sim: new Sim(fixed) }
       envs.set(id, env)
 
       main.postMessage([id, step(env, [])])
