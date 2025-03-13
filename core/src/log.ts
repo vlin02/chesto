@@ -66,6 +66,8 @@ export type InputChoice =
       i: number
     }
 
+export type Seed = number[]
+
 export type Input =
   | {
       type: "version"
@@ -90,7 +92,8 @@ export type Input =
       type: "end"
       winner: Side | null
     }
-  | { type: "chat" | "player" }
+  | { type: "player"; side: Side; seed: Seed; rating: number }
+  | { type: "chat" }
 
 export function parseInput(line: string): Input {
   let p = spaced(line, 0)
@@ -105,7 +108,11 @@ export function parseInput(line: string): Input {
       return { type: "version-origin", hash: p.args[0] }
     }
     case ">player":
-      return { type: "player" }
+      p = spaced(line, p.i)
+      const [side] = p.args as [Side]
+      const { seed, rating } = JSON.parse(line.slice(p.i)) as { seed: Seed; rating: number }
+
+      return { type: "player", side, seed, rating }
     case ">start": {
       const { seed, formatid, rated } = JSON.parse(line.slice(p.i))
       return { type: "start", seed, formatId: formatid, rated }

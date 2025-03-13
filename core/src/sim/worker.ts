@@ -18,16 +18,11 @@ export type Request = [
   { type: "start" } | { type: "step"; actions: Action[] } | { type: "close" }
 ]
 
-export type Update =
-  | {
-      done: true
-      reward: number
-    }
-  | {
-      done: false
-      reward: number
-      state: BattleState
-    }
+export type Update = {
+  done: boolean
+  reward?: number
+  state?: BattleState
+}
 
 const main = parentPort!
 
@@ -62,10 +57,12 @@ main!.on("message", ([id, body]: Request) => {
       const side = SIDES[Math.floor(Math.random() * 2)]
       const fixed = [FOE[side]]
 
+      const sim = new Sim(fixed)
       const env = { side, sim: new Sim(fixed) }
       envs.set(id, env)
 
-      main.postMessage([id, step(env, [])])
+      sim.step([])
+      main.postMessage([id, { done: false, state: encodeState(sim[side].obs) }])
       break
     }
     case "step": {

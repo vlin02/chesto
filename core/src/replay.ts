@@ -1,5 +1,4 @@
 import { PRNGSeed } from "@pkmn/sim"
-import { Side } from "./battle.js"
 import { parseInput } from "./log.js"
 import { StatId } from "./battle.js"
 import { Role } from "./version.js"
@@ -59,9 +58,7 @@ export function seekToStart(lines: string[], i: number) {
         header.versionOrigin = input.hash
         break
       case "player": {
-        let k = line.indexOf(" ", j + 1)
-        const side = line.slice(j + 1, k) as Side
-        const { seed } = JSON.parse(line.slice(k + 1))
+        const { side, seed } = input
 
         header.seed[side] = seed
         mark[side] = true

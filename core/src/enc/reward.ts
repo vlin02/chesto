@@ -9,11 +9,9 @@ export function calcUserValue(users: User[]) {
     if (status) t -= 1
     t -= (1 - ratio) * 5
 
-    t +=
-      2 *
-      Object.values(boosts)
-        .flat()
-        .reduce<number>((t, n) => t + (n ?? 0), 0)
+    t += Object.values(boosts)
+      .flat()
+      .reduce<number>((t, n) => t + (n ?? 0), 0)
   }
   return t
 }
