@@ -3,9 +3,14 @@ import { Worker } from "worker_threads"
 import { randomUUID } from "crypto"
 import { Action } from "@pkmn/sim"
 import { Update } from "./worker.js"
+import path, { dirname } from "path"
+import { fileURLToPath } from "url"
 
 const NUM_WORKERS = 4
-const WORKER_PATH = "./worker.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const WORKER_PATH = path.join(__dirname, "./worker.js")
 
 const app = new Hono()
 
@@ -47,5 +52,18 @@ app.post("/:id/step", async (c) => {
     workers[workerId].postMessage([id, { type: "step", actions }])
   })
 
-  return c.json({id, update})
+  return c.json({ id, update })
 })
+
+app.delete("/:id", async (c) => {
+  const id = c.req.param("id")
+  const session = sessions.get(id)!
+  const { workerId } = session
+
+  workers[workerId].postMessage([id, { type: "close" }])
+  sessions.delete(id)
+
+  return c.json({ success: true })
+})
+
+export default app

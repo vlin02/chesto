@@ -1,0 +1,10 @@
+import { serve } from "@hono/node-server"
+import app from "./server.js"
+const PORT = 3000
+
+serve({
+  fetch: app.fetch,
+  port: PORT
+})
+
+console.log(`Worker pool server running at http://localhost:${PORT}`)

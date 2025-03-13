@@ -5,7 +5,10 @@ import { Action } from "../parser/action.js"
 
 const envs = new Map<string, Environment>()
 
-export type Request = [string, { type: "start" } | { type: "step"; actions: Action[] }]
+export type Request = [
+  string,
+  { type: "start" } | { type: "step"; actions: Action[] } | { type: "close" }
+]
 
 export type Update =
   | {
@@ -52,6 +55,10 @@ main!.on("message", ([id, body]: Request) => {
       const env = envs.get(id)!
 
       main.postMessage([id, step(env, actions)])
+      break
+    }
+    case "close": {
+      envs.delete(id)
       break
     }
   }

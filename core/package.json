@@ -7,6 +7,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.8",
     "@mistralai/mistralai": "^1.5.0",
     "@pkmn/client": "^0.6.30",
     "@pkmn/data": "^0.9.25",
