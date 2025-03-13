@@ -11,7 +11,7 @@ import { RandomAgent } from "../arena/agents.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 
-export type Event =
+export type State =
   | {
       type: "end"
       winner: Side | null
@@ -58,7 +58,7 @@ export class Environment {
     this.battle.sendUpdates()
   }
 
-  step(actions: Action[]): Event {
+  step(actions: Action[]): State {
     actions.forEach(({ side, choice }) => this.choose(side, choice))
 
     while (true) {

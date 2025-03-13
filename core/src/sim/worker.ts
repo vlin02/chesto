@@ -5,9 +5,9 @@ import { Action } from "../parser/action.js"
 
 const envs = new Map<string, Environment>()
 
-type Request = [string, { type: "start" } | { type: "step"; actions: Action[] }]
+export type Request = [string, { type: "start" } | { type: "step"; actions: Action[] }]
 
-type State =
+export type Update =
   | {
       done: true
       winner: Side | null
@@ -18,7 +18,7 @@ type State =
 
 const main = parentPort!
 
-function step(env: Environment, actions: Action[]): State {
+function step(env: Environment, actions: Action[]): Update {
   const event = env.step(actions)
 
   switch (event.type) {

@@ -16,6 +16,7 @@
     "@pkmn/sim": "^0.9.26",
     "@types/json-diff": "^1.0.3",
     "@types/ws": "^8.5.14",
+    "hono": "^4.7.4",
     "json-diff": "^1.0.6",
     "mongodb": "^6.12.0",
     "openai": "^4.80.0",

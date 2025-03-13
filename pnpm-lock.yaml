@@ -37,6 +37,9 @@ importers:
       '@types/ws':
         specifier: ^8.5.14
         version: 8.5.14
+      hono:
+        specifier: ^4.7.4
+        version: 4.7.4
       json-diff:
         specifier: ^1.0.6
         version: 1.0.6
@@ -173,6 +176,10 @@ packages:
 
   heap@0.2.7:
     resolution: {integrity: sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==}
+
+  hono@4.7.4:
+    resolution: {integrity: sha512-Pst8FuGqz3L7tFF+u9Pu70eI0xa5S3LPUmrNd5Jm8nTHze9FxLTK9Kaj5g/k4UcwuJSXTP65SyHOPLrffpcAJg==}
+    engines: {node: '>=16.9.0'}
 
   humanize-ms@1.2.1:
     resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
@@ -468,6 +475,8 @@ snapshots:
       web-streams-polyfill: 4.0.0-beta.3
 
   heap@0.2.7: {}
+
+  hono@4.7.4: {}
 
   humanize-ms@1.2.1:
     dependencies:
