@@ -14,13 +14,11 @@ import {
   TERRAIN_NAMES,
   WEATHER_NAMES
 } from "../battle.js"
-import { Flags, MoveSet, Status, User, Volatiles } from "../client/user.js"
-import { DelayedAttack, SideEffects } from "../client/side.js"
+import { DelayedAttack, SideEffects } from "../parser/side.js"
+import { Status, Volatiles, MoveSet, User, Flags } from "../parser/user.js"
 import { inferOriginForme, findPotentialPresets, matchesPreset } from "../version.js"
-import { Format } from "../run.js"
 import { INTERIM_FORMES } from "./forme.js"
-import { scalePP, scaleStat } from "./norm.js"
-import { inferMaxPP } from "../client/move.js"
+import { scaleStat, scalePP } from "./norm.js"
 
 export function encodeStats(stats: Stats) {
   return STAT_IDS.map((id) => scaleStat(id, stats[id]))

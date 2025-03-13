@@ -69,8 +69,8 @@ export type DelayedMove = (typeof DELAYED_MOVES)[number]
 
 export const PARTIAL_TRAPPING_MOVES = ["Magma Storm", "Infestation", "Whirlpool"]
 
-export const MOVE_CATEGORY = ["Physical", "Special", "Status"] as const
-export type MoveCategory = (typeof MOVE_CATEGORY)[number]
+export const MOVE_CATEGORIES = ["Physical", "Special", "Status"] as const
+export type MoveCategory = (typeof MOVE_CATEGORIES)[number]
 export type Side = "p1" | "p2"
 
 export const SIDES = ["p1", "p2"] as const

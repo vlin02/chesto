@@ -1,7 +1,7 @@
 import {
   MOD_STAT_IDS,
   ModStatId,
-  MOVE_CATEGORY,
+  MOVE_CATEGORIES,
   STATUS_IDS,
   StatusId,
   TYPE_NAMES
@@ -299,7 +299,7 @@ export function encodeMove(move: Move) {
   f.push((accuracy === true ? 100 : accuracy) / 100)
   f.push(scalePower(basePower))
 
-  f.push(...MOVE_CATEGORY.map((x) => (category === x ? 1 : 0)))
+  f.push(...MOVE_CATEGORIES.map((x) => (category === x ? 1 : 0)))
   f.push(scalePP(pp))
   f.push(priority)
 

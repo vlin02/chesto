@@ -1,6 +1,6 @@
 import { parentPort } from "worker_threads"
 import { Environment } from "./env.js"
-import { Side, SIDES } from "../battle.js"
+import { SIDES } from "../battle.js"
 import { Action } from "../parser/action.js"
 
 const envs = new Map<string, Environment>()
@@ -13,10 +13,12 @@ export type Request = [
 export type Update =
   | {
       done: true
-      winner: Side | null
+      reward: number
     }
   | {
       done: false
+      reward: number
+      state: State
     }
 
 const main = parentPort!

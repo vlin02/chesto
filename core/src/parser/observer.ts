@@ -1272,7 +1272,7 @@ export class Observer {
       case "move": {
         const { move, tera } = input
         return {
-          type: "move",
+          type: "select",
           move: move === "recharge" ? "Recharge" : gen.moves.get(move)!.name,
           tera
         }
