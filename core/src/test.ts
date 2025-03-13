@@ -1,6 +1,7 @@
 import { parseInput, split } from "./log.js"
 import { Observer } from "./parser/observer.js"
-import { FOE, Side } from "./parser/protocol.js"
+import { FOE } from "./parser/protocol.js"
+import { Side } from "./battle.js"
 import { findPotentialPresets, inferOriginForme, matchesPreset, Version } from "./version.js"
 import { Replay } from "./db.js"
 import { toChoices } from "./parser/action.js"

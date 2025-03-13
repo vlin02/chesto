@@ -1,5 +1,5 @@
 import { PRNGSeed } from "@pkmn/sim"
-import { Side } from "./parser/protocol.js"
+import { Side } from "./battle.js"
 import { parseInput } from "./log.js"
 import { StatId } from "./battle.js"
 import { Role } from "./version.js"

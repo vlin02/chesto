@@ -1,9 +1,6 @@
 import { TypeName } from "@pkmn/data"
-import { Gender, StatusId } from "../battle.js"
+import { Gender, Side, StatusId } from "../battle.js"
 
-export type Side = "p1" | "p2"
-
-export const SIDES = ["p1", "p2"] as const
 export const FOE = { p1: "p2", p2: "p1" } as const
 
 export type Label = {

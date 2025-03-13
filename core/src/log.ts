@@ -1,5 +1,6 @@
 import { piped, spaced } from "./parse.js"
-import { FOE, SIDES, Side } from "./parser/protocol.js"
+import { FOE } from "./parser/protocol.js"
+import { SIDES, Side } from "./battle.js"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 

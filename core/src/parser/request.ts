@@ -1,7 +1,8 @@
 import { Generation } from "@pkmn/data"
 import { StatId, TypeName } from "../battle.js"
 
-import { Health, Label, parseHealth, parseLabel, parseReference, Side } from "./protocol.js"
+import { Health, Label, parseHealth, parseLabel, parseReference } from "./protocol.js"
+import { Side } from "../battle.js"
 
 export type RawRequest = {
   side: {

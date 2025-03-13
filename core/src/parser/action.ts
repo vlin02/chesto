@@ -1,17 +1,19 @@
+import { Side } from "../battle.js"
+
 export type Selection = {
   tera: boolean
   moves: string[]
   stuck?: boolean
 }
 
-export type Action = {
+export type Option = {
   select: Selection | null
   switches: string[]
 }
 
 export type Choice =
   | {
-      type: "move"
+      type: "select"
       move: string
       tera: boolean
     }
@@ -20,8 +22,10 @@ export type Choice =
       species: string
     }
 
-export function toChoices(action: Action): Choice[] {
-  const { select, switches } = action
+export type Action = { side: Side; choice: Choice }
+
+export function toChoices(option: Option): Choice[] {
+  const { select, switches } = option
   const choices: Choice[] = []
 
   if (select) {
@@ -30,7 +34,7 @@ export function toChoices(action: Action): Choice[] {
       for (const tera of [true, false]) {
         if (!select.tera && tera) continue
         choices.push({
-          type: "move",
+          type: "select",
           move,
           tera
         })
@@ -48,9 +52,9 @@ export function toChoices(action: Action): Choice[] {
   return choices
 }
 
-export function serializeChoice(choice: Choice) {
+export function formatChoice(choice: Choice) {
   switch (choice.type) {
-    case "move":
+    case "select":
       const pfx = `move ${choice.move}`
       return choice.tera ? `${pfx} terastallize` : pfx
     case "switch":

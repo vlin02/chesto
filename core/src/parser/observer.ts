@@ -5,9 +5,9 @@ import {
   parseReference,
   parseTags,
   parseLabel,
-  parseTypes,
-  Side
+  parseTypes
 } from "./protocol.js"
+import { Side } from "../battle.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
 import { User, MoveSet } from "./user.js"
@@ -26,7 +26,7 @@ import {
 } from "../battle.js"
 import { piped } from "../parse.js"
 import { InputChoice } from "../log.js"
-import { Action, Choice, Selection } from "./action.js"
+import { Option, Choice, Selection } from "./action.js"
 
 type Ref = {
   species: string
@@ -191,9 +191,11 @@ export class Observer {
 
     switch (msgType) {
       case "request": {
-        event = "request"
-
         this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
+        
+        if (this.req.type !== "wait") {
+          event = "request"
+        }
 
         if (this.ally) {
           this.swaps.push(
@@ -1241,7 +1243,7 @@ export class Observer {
     return opts
   }
 
-  getAction(): Action {
+  getAction(): Option {
     let switches: string[] = []
     let select: Selection | null = null
 
