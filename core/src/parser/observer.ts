@@ -1255,7 +1255,7 @@ export class Observer {
     switch (req.type) {
       case "move":
         select = this.getSelection()
-        if (!active.trapped) switches = this.listSwitches()
+        if (!(req.choices[0].trapped || active.trapped)) switches = this.listSwitches()
         break
       case "switch":
         switches = isReviving ? this.listRevivable() : this.listSwitches()

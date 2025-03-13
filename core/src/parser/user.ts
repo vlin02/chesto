@@ -256,12 +256,11 @@ export class User {
 
     if (volatiles["Recharge"] || volatiles["Prepare"] || volatiles["Locked Move"]) return true
 
-    if (types.includes("Ghost")) return false
-
     if (
-      volatiles["Trapped"] ||
-      volatiles["No Retreat"] ||
-      PARTIAL_TRAPPING_MOVES.some((k) => volatiles[k])
+      !types.includes("Ghost") &&
+      (volatiles["Trapped"] ||
+        volatiles["No Retreat"] ||
+        PARTIAL_TRAPPING_MOVES.some((k) => volatiles[k]))
     )
       return true
 

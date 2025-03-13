@@ -111,3 +111,9 @@ export class Sim {
     }
   }
 }
+
+for (let i = 0; i < 1000; i++) {
+  console.log(i)
+  const sim = new Sim([...SIDES])
+  sim.step([])
+}
