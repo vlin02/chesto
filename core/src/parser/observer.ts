@@ -87,12 +87,14 @@ export class Observer {
   fields: Fields
   weather?: Weather
   winner?: Side | null
+  names: { [k: string]: Side }
 
   constructor(gen: Generation) {
     this.gen = gen
     this.fields = {}
     this.turn = 0
     this.swaps = []
+    this.names = {}
   }
 
   ppCost(move: string, src: User, dest: User) {
@@ -190,6 +192,12 @@ export class Observer {
     let event: "request" | "turn" | "end" | null = null
 
     switch (msgType) {
+      case "player": {
+        p = piped(line, p.i, 2)
+        const [side, name] = p.args as [Side, string]
+        this.names[name] = side
+        break
+      }
       case "request": {
         this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
 
@@ -1121,7 +1129,7 @@ export class Observer {
       }
       case "win": {
         p = piped(line, p.i)
-        this.winner = p.args[0] as Side
+        this.winner = this.names[p.args[0]]
         event = "end"
         break
       }

@@ -45,8 +45,8 @@ export class Sim {
 
     this.battle = new Battle({
       formatid: toID("gen9randombattle"),
-      p1: {},
-      p2: {},
+      p1: { name: "p1" },
+      p2: { name: "p2" },
       send: (...log) => {
         this.logs.push(log as Log)
       }
@@ -110,10 +110,4 @@ export class Sim {
       }
     }
   }
-}
-
-for (let i = 0; i < 1000; i++) {
-  console.log(i)
-  const sim = new Sim([...SIDES])
-  sim.step([])
 }

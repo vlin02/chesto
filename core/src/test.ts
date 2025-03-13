@@ -21,8 +21,8 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
       const choice = obs.resolveInputChoice(input.choice)
 
       if (input.side === side) {
-        const act = obs.getOption()
-        const choices = toChoices(act)
+        const opt = obs.getOption()!
+        const choices = toChoices(opt)
 
         if (!choices.some((x) => JSON.stringify(x) === JSON.stringify(choice))) throw Error()
       }
