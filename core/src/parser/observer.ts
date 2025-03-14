@@ -78,6 +78,13 @@ function canTera(gen: Generation, { volatiles }: User) {
 export type Fields = { [k: string]: number }
 export type Weather = { name: WeatherName; turn: number }
 
+type Event = {
+  winner?: Side | null
+  turn?: number
+  req?: Request
+  error?: string
+}
+
 export class Observer {
   private swaps: string[]
 
@@ -97,7 +104,6 @@ export class Observer {
   turn: number
   fields: Fields
   weather?: Weather
-  winner?: Side | null
   names: { [k: string]: Side }
 
   constructor(gen: Generation) {
@@ -194,13 +200,13 @@ export class Observer {
     })
   }
 
-  read(line: string) {
+  read(line: string): Event {
     let p: { args: string[]; i: number }
     p = piped(line, 1)
     const msgType = p.args[0]
 
     const currLine: Line = {}
-    let event: "request" | "turn" | "end" | null = null
+    let event: Event = {}
 
     switch (msgType) {
       case "player": {
@@ -210,15 +216,12 @@ export class Observer {
         break
       }
       case "error": {
-        if (line.startsWith("[Invalid choice]", p.i)) return "error"
+        event.error = line.slice(p.i)
         break
       }
       case "request": {
         this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
-
-        if (this.req.type !== "wait") {
-          event = "request"
-        }
+        event.req = this.req
 
         if (this.ally) {
           this.swaps.push(
@@ -1102,10 +1105,9 @@ export class Observer {
         break
       }
       case "turn": {
-        event = "turn"
-
         p = piped(line, p.i)
         this.turn = Number(p.args[0])
+        event.turn = this.turn
 
         for (const pov of POVS) {
           const side = this[pov]
@@ -1138,14 +1140,12 @@ export class Observer {
         break
       }
       case "tie": {
-        this.winner = null
-        event = "end"
+        event.winner = null
         break
       }
       case "win": {
         p = piped(line, p.i)
-        this.winner = this.names[p.args[0]]
-        event = "end"
+        event.winner = this.names[p.args[0]]
         break
       }
     }

@@ -54,27 +54,10 @@ export class Sim {
     this.p2 = { obs: new Observer(gen) }
     this.logs = []
 
-    const options: any = {
+    this.battle = new Battle({
       formatid: toID("gen9randombattle"),
       p1: { name: "p1" },
       p2: { name: "p2" },
-      send: (...log: any) => {
-        this.logs.push(log as Log)
-      }
-    }
-
-    if (seed) {
-      const { battle, p1, p2 } = seed
-      options.seed = battle
-      options.p1.seed = p1
-      options.p2.seed = p2
-    }
-
-    this.battle = new Battle({
-      formatid: toID("gen9randombattle"),
-      seed: ["sodium", "400ad5bcbe7a70be8d9354e7e8b12db6"],
-      p1: { name: "p1", seed: ["sodium", "69b78e19c6b30a8f08cd574f974f42b2"] },
-      p2: { name: "p2", seed: ["sodium", "8b1648294a2502ac31fe5de18d4173ed"] },
       send: (...log) => {
         console.log(log)
         this.logs.push(log as Log)
@@ -107,17 +90,10 @@ export class Sim {
         for (const side of SIDES) {
           const { obs } = this[side]
           for (const line of ch[side]) {
-            switch (obs.read(line)) {
-              case "end":
-                winner = obs.winner!
-                break
-              case "request":
-                requested.push(side)
-                break
-              case "error":
-                console.log(line)
-                
-                break
+            const e = obs.read(line)
+            if (e.error) {
+              console.log(this.battle.inputLog)
+              throw e.error
             }
           }
         }
@@ -130,7 +106,7 @@ export class Sim {
           winner
         }
       }
-      
+
       const deferred: Side[] = []
 
       for (const side of requested) {
