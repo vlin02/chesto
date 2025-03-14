@@ -28,8 +28,10 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
       }
     }
 
+    let done = false
     for (const msg of logs.flatMap((x) => split(x)[side])) {
-      obs.read(msg)
+      const e = obs.read(msg)
+      done ||= !!e.winner
     }
 
     if (!hasZoroark && obs.foe) {
@@ -50,7 +52,7 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
       }
     }
 
-    if (obs.req && obs.winner === undefined) {
+    if (obs.req && !done) {
       const { ally, req } = obs
 
       if (req.type === "move") {

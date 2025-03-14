@@ -79,7 +79,7 @@ export type Fields = { [k: string]: number }
 export type Weather = { name: WeatherName; turn: number }
 
 type Event = {
-  winner?: Side | null
+  winner?: Side | "tie"
   turn?: number
   req?: Request
   error?: string
@@ -1140,7 +1140,7 @@ export class Observer {
         break
       }
       case "tie": {
-        event.winner = null
+        event.winner = "tie"
         break
       }
       case "win": {
