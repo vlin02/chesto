@@ -33,13 +33,6 @@ function parseSeeds(lines: string[]): string[] {
     return data.seed[1]
   })
 }
-
-// const v = [
-//   '>start {"formatid":"gen9randombattle","seed":["sodium","15ec3dbaa1bebb8d624499ac4102c905"]}',
-//   '>player p1 {"name":"p1","seed":["sodium","c42751cebdf17071c6f2577ea7191fb8"]}',
-//   '>player p2 {"name":"p2","seed":["sodium","56eb526ea12bbea19fd780d08e96c760"]}'
-// ]
-
 export class Sim {
   battle: Battle
   p1: { obs: Observer; agent?: Agent }
@@ -143,12 +136,4 @@ export class Sim {
       }
     }
   }
-}
-
-for (let i = 0; i < 10000; i++) {
-  console.log(i)
-  const sim = new Sim()
-  sim.p1.agent = new RandomAgent(sim.p1.obs)
-  sim.p2.agent = new RandomAgent(sim.p2.obs)
-  sim.step([])
 }

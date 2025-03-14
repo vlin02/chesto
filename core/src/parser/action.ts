@@ -1,4 +1,4 @@
-import { Side } from "../battle.js"
+import { Side } from "../battle.js";
 
 export type Selection =
   | { type: "struggle" | "recharge"; tera?: undefined }
@@ -58,14 +58,4 @@ export function toChoices(option: Option): Choice[] {
   }
 
   return choices
-}
-
-export function formatChoice(choice: Choice) {
-  switch (choice.type) {
-    case "move":
-      const pfx = `move ${choice.move}`
-      return choice.tera ? `${pfx} terastallize` : pfx
-    case "switch":
-      return `switch ${choice.species}`
-  }
 }
