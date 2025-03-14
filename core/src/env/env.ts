@@ -1,7 +1,7 @@
 import { Side, SIDES } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
-import { RandomAgent } from "../arena/agents.js"
+import { RandomAgent } from "../agents.js"
 import { Choice } from "../parser/option.js"
 import { BattleF, encodeBattle } from "../model/state.js"
 import { Battle, toID } from "@pkmn/sim"

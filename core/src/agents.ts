@@ -1,5 +1,5 @@
-import { toChoices } from "../parser/option.js"
-import { Observer } from "../parser/observer.js"
+import { toChoices } from "./parser/option.js"
+import { Observer } from "./parser/observer.js"
 
 export class RandomAgent {
   obs: Observer
@@ -7,11 +7,11 @@ export class RandomAgent {
   constructor(obs: Observer) {
     this.obs = obs
   }
-  choose() {
-    const action = this.obs.getOption()
 
-    const choices = toChoices(action)
-    
+  choose() {
+    const opt = this.obs.getOption()!
+    const choices = toChoices(opt)
+
     const i = Math.floor(Math.random() * choices.length)
 
     return choices[i]
