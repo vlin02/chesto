@@ -1,4 +1,3 @@
-import { Side } from "../battle.js";
 
 export type Selection =
   | { type: "struggle" | "recharge"; tera?: undefined }
@@ -25,7 +24,6 @@ export type Choice =
       species: string
     }
 
-export type Action = { side: Side; choice: Choice }
 
 export function toMoves(select: Selection) {
   if (select.type === "default") return select.moves

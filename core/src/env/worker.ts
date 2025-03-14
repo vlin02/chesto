@@ -1,67 +1,58 @@
 import { parentPort } from "worker_threads"
-import { Sim } from "./sim.js"
-import { Side, SIDES } from "../battle.js"
-import { Action } from "../parser/action.js"
-import { evalBattle } from "../enc/reward.js"
-import { encodeObserver, ObserverF as BattleState } from "../enc/state.js"
-
-const sims = new Map<string, Sim>()
+import { Side } from "../battle.js"
+import { Observer } from "../parser/observer.js"
+import { Battle, toID } from "@pkmn/sim"
+import { Generations } from "@pkmn/data"
+import { Dex } from "@pkmn/dex"
+import { Log } from "../log.js"
+import { Action, Environment } from "./env.js"
 
 export type Request = [
   string,
-  { type: "start" } | { type: "step"; actions: Action[] } | { type: "close" }
+  { type: "start"; auto: Side[] } | { type: "step"; actions: Action[] } | { type: "close" }
 ]
 
-type SideUpdate = {
-  reward: number
-  state: BattleState
-}
-
-export type Update = {
-  done: boolean
-  p1: SideUpdate
-  p2: SideUpdate
-}
+const envs = new Map<string, Environment>()
+const gen = new Generations(Dex).get(9)
 
 const main = parentPort!
-
-function step(sim: Sim, actions: Action[]): Update {
-  const evalSides = () => Object.fromEntries(SIDES.map((side) => [side, evalBattle(sim[side].obs)]))
-  const vPrev = evalSides()
-  const status = sim.step(actions)
-  const vCurr = evalSides()
-
-  const sides: { [k in Side]: SideUpdate } = {} as any
-  for (const side of SIDES) {
-    const reward = vCurr[side] - vPrev[side]
-    sides[side] = {
-      reward,
-      state: encodeObserver(sim[side].obs)
-    }
-  }
-
-  const done = status.type === "end"
-  return { done, ...sides }
-}
 
 main!.on("message", ([id, body]: Request) => {
   switch (body.type) {
     case "start": {
-      const sim = new Sim()
-      sims.set(id, sim)
+      const { auto } = body
 
-      main.postMessage([id, step(sim, [])])
+      const env = {
+        p1: new Observer(gen),
+        p2: new Observer(gen),
+        auto,
+        logs: []
+      } as any
+
+      env.battle = new Battle({
+        formatid: toID("gen9randombattle"),
+        p1: { name: "p1" },
+        p2: { name: "p2" },
+        send: (...log) => {
+          env.logs.push(log as Log)
+        }
+      })
+      env.battle.sendUpdates()
+
+      envs.set(id, env)
+
+      main.postMessage([id, env.step([])])
       break
     }
     case "step": {
       const { actions } = body
-      const sim = sims.get(id)!
+      const env = envs.get(id)!
 
-      main.postMessage([id, step(sim, actions)])
+      main.postMessage([id, env.step(actions)])
       break
     }
     case "close": {
-      sims.delete(id)
+      envs.delete(id)
       break
     }
   }

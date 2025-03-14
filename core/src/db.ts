@@ -3,7 +3,7 @@ import { Log } from "./log.js"
 import { Observation } from "./__tmp/encoder/observation.js"
 import { Collection, Db } from "mongodb"
 import { Side } from "./battle.js"
-import { Choice } from "./parser/action.js"
+import { Choice } from "./parser/option.js"
 import { Build } from "./replay.js"
 
 export type Player = {

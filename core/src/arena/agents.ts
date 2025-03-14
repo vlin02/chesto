@@ -1,4 +1,4 @@
-import { toChoices } from "../parser/action.js"
+import { toChoices } from "../parser/option.js"
 import { Observer } from "../parser/observer.js"
 
 export class RandomAgent {

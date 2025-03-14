@@ -4,7 +4,7 @@ import { FOE } from "./parser/protocol.js"
 import { Side } from "./battle.js"
 import { findPotentialPresets, inferOriginForme, matchesPreset, Version } from "./version.js"
 import { Replay } from "./db.js"
-import { toChoices, toMoves } from "./parser/action.js"
+import { toChoices, toMoves } from "./parser/option.js"
 
 export function testSide(version: Version, obs: Observer, replay: Replay, side: Side) {
   const { inputs, outputs } = replay

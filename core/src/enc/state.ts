@@ -3,7 +3,7 @@ import { MOVE_CATEGORIES, STAT_IDS, Stats } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
 import { Party } from "../parser/side.js"
-import { toMoves } from "../parser/action.js"
+import { toMoves } from "../parser/option.js"
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!
@@ -91,13 +91,13 @@ export function encodeOption(obs: Observer): OptionF | null {
   }
 }
 
-export type ObserverF = {
+export type BattleF = {
   ally: PartyF
   foe: PartyF
   option: OptionF | null
 }
 
-export function encodeObserver(obs: Observer): ObserverF {
+export function encodeBattle(obs: Observer): BattleF {
   const { ally, foe, gen } = obs
 
   return {

@@ -7,7 +7,7 @@ import {
   parseLabel,
   parseTypes
 } from "./protocol.js"
-import { Side } from "../battle.js"
+import { Side, Winner } from "../battle.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS } from "./side.js"
 import { User, MoveSet } from "./user.js"
@@ -26,7 +26,7 @@ import {
 } from "../battle.js"
 import { piped } from "../parse.js"
 import { InputChoice } from "../log.js"
-import { Option, Choice, Selection } from "./action.js"
+import { Option, Choice, Selection } from "./option.js"
 
 type Ref = {
   species: string
@@ -105,6 +105,7 @@ export class Observer {
   fields: Fields
   weather?: Weather
   names: { [k: string]: Side }
+  winner?: Winner
 
   constructor(gen: Generation) {
     this.gen = gen

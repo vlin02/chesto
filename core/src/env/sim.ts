@@ -4,7 +4,7 @@ import { Observer } from "../parser/observer.js"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { Side, SIDES } from "../battle.js"
-import { Action, Choice } from "../parser/action.js"
+import { Action, Choice } from "../parser/option.js"
 
 import { TeamGenerators } from "@pkmn/randoms"
 import { RandomAgent } from "../arena/agents.js"

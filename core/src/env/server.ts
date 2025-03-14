@@ -4,15 +4,11 @@ import { randomUUID } from "crypto"
 import { Action } from "@pkmn/sim"
 import path, { dirname } from "path"
 import { fileURLToPath } from "url"
-import { Update } from "./worker.js"
 
 const NUM_WORKERS = 60
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const WORKER_PATH = path.join(__dirname, "./worker.js")
-
-const app = new Hono()
+const WORKER_PATH = path.join(dirname(__filename), "./worker.js")
 
 type Session = {
   workerId: number
@@ -22,12 +18,14 @@ type Session = {
 const sessions = new Map<string, Session>()
 
 const workers = Array.from({ length: NUM_WORKERS }, () => new Worker(WORKER_PATH))
+
 workers.forEach((worker) => {
   worker.on("message", ([id, update]: [string, Update]) => {
     sessions.get(id)!.resolve!(update)
   })
 })
 
+const app = new Hono()
 app.post("/new", async (c) => {
   const id = randomUUID()
   const workerId = Math.floor(Math.random() * NUM_WORKERS)
