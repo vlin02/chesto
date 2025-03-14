@@ -1131,12 +1131,14 @@ export class Observer {
         break
       }
       case "tie": {
-        event.winner = "tie"
+        this.winner = "tie"
+        event.winner = this.winner
         break
       }
       case "win": {
         p = piped(line, p.i)
-        event.winner = this.names[p.args[0]]
+        this.winner = this.names[p.args[0]]
+        event.winner = this.winner
         break
       }
     }

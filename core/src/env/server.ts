@@ -1,10 +1,11 @@
 import { Hono } from "hono"
 import { Worker } from "worker_threads"
 import { randomUUID } from "crypto"
-import { Action } from "@pkmn/sim"
 import path, { dirname } from "path"
 import { fileURLToPath } from "url"
-import { EnvUpdate } from "./env.js"
+import { EnvUpdate, Action } from "./env.js"
+import { WorkerRequest } from "./worker.js"
+import { Side } from "../battle.js"
 
 const NUM_WORKERS = 60
 const __filename = fileURLToPath(import.meta.url)
@@ -25,41 +26,47 @@ workers.forEach((worker) => {
   })
 })
 
+function sendMessage(id: number, req: WorkerRequest) {
+  workers[id].postMessage(req)
+}
+
 const app = new Hono()
-app.post("/new", async (c) => {
-  const id = randomUUID()
+
+app.post("/start", async (c) => {
+  const envId = randomUUID()
   const workerId = Math.floor(Math.random() * NUM_WORKERS)
+  const { auto } = await c.req.json<{ auto: Side[] }>()
 
   const update = await new Promise<EnvUpdate>((resolve) => {
-    sessions.set(id, { workerId, resolve })
-    workers[workerId].postMessage([id, { type: "start" }])
+    sessions.set(envId, { workerId, resolve })
+    sendMessage(workerId, [envId, { type: "start", auto }])
   })
 
-  return c.json({ id, update })
+  return c.json({ id: envId, update })
 })
 
 app.post("/:id/step", async (c) => {
-  const id = c.req.param("id")
+  const envId = c.req.param("id")
   const { actions } = await c.req.json<{ actions: Action[] }>()
 
-  const session = sessions.get(id)!
+  const session = sessions.get(envId)!
   const { workerId } = session
 
   const update = await new Promise<EnvUpdate>((resolve) => {
     session.resolve = resolve
-    workers[workerId].postMessage([id, { type: "step", actions }])
+    sendMessage(workerId, [envId, { type: "step", actions }])
   })
 
-  return c.json({ id, update })
+  return c.json({ id: envId, update })
 })
 
 app.delete("/:id", async (c) => {
-  const id = c.req.param("id")
-  const session = sessions.get(id)!
+  const envId = c.req.param("id")
+  const session = sessions.get(envId)!
   const { workerId } = session
 
-  workers[workerId].postMessage([id, { type: "close" }])
-  sessions.delete(id)
+  sendMessage(workerId, [envId, { type: "close" }])
+  sessions.delete(envId)
 
   return c.json({})
 })

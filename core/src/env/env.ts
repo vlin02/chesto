@@ -41,7 +41,6 @@ export class Environment {
     this.p2 = { obs: new Observer(gen), v: 0 }
     this.auto = auto
     this.logs = []
-
     this.battle = new Battle({
       formatid: toID("gen9randombattle"),
       p1: { name: "p1" },
@@ -50,6 +49,7 @@ export class Environment {
         this.logs.push(log as Log)
       }
     })
+
     this.battle.sendUpdates()
   }
 
@@ -71,12 +71,13 @@ export class Environment {
       this.choose(action)
     }
 
-    const pending: Side[] = []
-    let winner = false
-
     while (true) {
+      let winner = false
+      const pending: Side[] = []
+
       for (const log of this.logs) {
         const ch = split(log)
+
         for (const side of SIDES) {
           const { obs } = this[side]
           for (const line of ch[side]) {
@@ -90,6 +91,7 @@ export class Environment {
           }
         }
       }
+      this.logs = []
 
       if (winner) {
         return {
