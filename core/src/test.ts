@@ -55,7 +55,7 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
 
       if (req.type === "move") {
         const { active } = ally
-        const [{ moveSlots, trapped }] = req.choices
+        const [{ moveSlots, trapped, canTerastallize }] = req.choices
 
         const aliveCnt = req.team.reduce((t, x) => t + (x.health ? 1 : 0), 0)
 
@@ -63,9 +63,11 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
         const trappedB = !!trapped
         if (trappedA !== trappedB) throw Error()
 
-        const act = obs.getOption()
+        const opt = obs.getOption()!
 
-        const movesA = toMoves(act.select!).sort()
+        if (!!opt.select?.tera !== !!canTerastallize) throw Error()
+
+        const movesA = toMoves(opt.select!).sort()
         const movesB = moveSlots
           .filter((x) => !x.disabled)
           .map((x) => x.name)

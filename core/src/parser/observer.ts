@@ -198,6 +198,10 @@ export class Observer {
         this.names[name] = side
         break
       }
+      case "error": {
+        if (line.startsWith("[Invalid choice]", p.i)) return "error"
+        break
+      }
       case "request": {
         this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
 

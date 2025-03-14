@@ -5,11 +5,7 @@ import { Action } from "../parser/action.js"
 import { evalBattle } from "../enc/reward.js"
 import { encodeObserver, ObserverF as BattleState } from "../enc/state.js"
 
-type Environment = {
-  sim: Sim
-}
-
-const envs = new Map<string, Environment>()
+const sims = new Map<string, Sim>()
 
 export type Request = [
   string,
@@ -29,7 +25,7 @@ export type Update = {
 
 const main = parentPort!
 
-function step({ sim }: Environment, actions: Action[]): Update {
+function step(sim: Sim, actions: Action[]): Update {
   const evalSides = () => Object.fromEntries(SIDES.map((side) => [side, evalBattle(sim[side].obs)]))
   const vPrev = evalSides()
   const status = sim.step(actions)
@@ -51,24 +47,21 @@ function step({ sim }: Environment, actions: Action[]): Update {
 main!.on("message", ([id, body]: Request) => {
   switch (body.type) {
     case "start": {
-      const side = SIDES[Math.floor(Math.random() * 2)]
+      const sim = new Sim()
+      sims.set(id, sim)
 
-      const sim = new Sim([...SIDES])
-      const env = { side, sim }
-      envs.set(id, env)
-
-      main.postMessage([id, step(env, [])])
+      main.postMessage([id, step(sim, [])])
       break
     }
     case "step": {
       const { actions } = body
-      const env = envs.get(id)!
+      const sim = sims.get(id)!
 
-      main.postMessage([id, step(env, actions)])
+      main.postMessage([id, step(sim, actions)])
       break
     }
     case "close": {
-      envs.delete(id)
+      sims.delete(id)
       break
     }
   }
