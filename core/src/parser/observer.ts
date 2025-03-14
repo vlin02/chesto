@@ -81,7 +81,7 @@ export type Weather = { name: WeatherName; turn: number }
 type Event = {
   winner?: Side | "tie"
   turn?: number
-  req?: Request
+  pending?: boolean
   error?: string
 }
 
@@ -189,10 +189,6 @@ export class Observer {
     if (init.item === undefined) init.item = item
   }
 
-  disrupt(user: User) {
-    delete user.volatiles["Locked Move"]
-  }
-
   allocateSlot(moveSet: MoveSet, move: string) {
     return (moveSet[move] = moveSet[move] ?? {
       used: 0,
@@ -221,7 +217,8 @@ export class Observer {
       }
       case "request": {
         this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
-        event.req = this.req
+
+        if (this.req.type !== "wait") event.pending = true
 
         if (this.ally) {
           this.swaps.push(
@@ -496,7 +493,6 @@ export class Observer {
         if (cause.ability) this.setAbility(user, cause.ability)
 
         const failed = notarget != null || miss != null
-        if (failed) this.disrupt(user)
 
         let isDirect: boolean = true
 
@@ -581,12 +577,6 @@ export class Observer {
       }
       case "-fail":
         if (this.prevLine?.revivalBlessing) this[this.prevLine.revivalBlessing].isReviving = false
-        break
-      case "-immune":
-        p = piped(line, p.i)
-        const { pov } = this.deref(this.toRef(p.args[0]))
-
-        this.disrupt(this[OPP[pov]].active)
         break
       case "-heal":
       case "-sethp": {
