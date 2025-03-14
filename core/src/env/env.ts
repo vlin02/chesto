@@ -35,8 +35,9 @@ export class Environment {
   p2: Player
   auto: Side[]
   logs: Log[]
+  turnLimit: number
 
-  constructor(gen: Generation, auto: Side[]) {
+  constructor(gen: Generation, auto: Side[], turnLimit: number) {
     this.p1 = { obs: new Observer(gen), v: 0 }
     this.p2 = { obs: new Observer(gen), v: 0 }
     this.auto = auto
@@ -51,6 +52,7 @@ export class Environment {
     })
 
     this.battle.sendUpdates()
+    this.turnLimit = turnLimit
   }
 
   private choose({ side, choice }: Action) {
@@ -73,6 +75,7 @@ export class Environment {
 
     while (true) {
       let winner = false
+      let turn: number | undefined 
       const pending: Side[] = []
 
       for (const log of this.logs) {
@@ -88,12 +91,13 @@ export class Environment {
             }
             if (e.winner) winner = true
             if (e.pending) pending.push(side)
+            if (e.turn) turn = e.turn
           }
         }
       }
       this.logs = []
 
-      if (winner) {
+      if ((turn && turn > this.turnLimit) || winner) {
         return {
           done: true,
           p1: this.getSideUpdate("p1"),
