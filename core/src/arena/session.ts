@@ -31,8 +31,8 @@ export class Session {
   challstr!: string
   username!: string
   ws: WebSocket
-  loginReq?: LogingRequest
-  challengeReq?: ChallengeRequest
+  private loginReq?: LogingRequest
+  private challengeReq?: ChallengeRequest
   on: (event: Event) => void = () => {}
 
   constructor(ws: WebSocket) {

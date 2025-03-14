@@ -1263,7 +1263,7 @@ export class Observer {
 
     const {
       req,
-      ally: { isReviving, active }
+      ally: { isReviving }
     } = this
 
     if (req.type === "wait") return null
