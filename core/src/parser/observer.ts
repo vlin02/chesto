@@ -1270,7 +1270,7 @@ export class Observer {
 
     const {
       req,
-      ally: { isReviving }
+      ally: { isReviving, active }
     } = this
 
     if (req.type === "wait") return null
@@ -1292,6 +1292,18 @@ export class Observer {
     return { select, switches }
   }
 
+  formatChoice(choice: Choice) {
+    switch (choice.type) {
+      case "move":
+        const pfx = `move ${choice.move}`
+        return choice.tera ? `${pfx} terastallize` : pfx
+      case "switch":
+        const slots = this.ally.slots.map((x) => x.species)
+        const i = slots.indexOf(choice.species) + 1
+        return `switch ${i}`
+    }
+  }
+
   resolveInputChoice(input: InputChoice): Choice {
     const { gen, ally } = this
 
@@ -1299,7 +1311,7 @@ export class Observer {
       case "move": {
         const { move, tera } = input
         return {
-          type: "select",
+          type: "move",
           move: move === "recharge" ? "Recharge" : gen.moves.get(move)!.name,
           tera
         }

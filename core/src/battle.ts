@@ -74,3 +74,5 @@ export type MoveCategory = (typeof MOVE_CATEGORIES)[number]
 export type Side = "p1" | "p2"
 
 export const SIDES = ["p1", "p2"] as const
+
+export type Winner = Side | "tie"

@@ -16,7 +16,7 @@ export type Option = {
 
 export type Choice =
   | {
-      type: "select"
+      type: "move"
       move: string
       tera: boolean
     }
@@ -42,7 +42,7 @@ export function toChoices(option: Option): Choice[] {
       for (const tera of [true, false]) {
         if (tera && !(select.type === "default" && select.tera)) continue
         choices.push({
-          type: "select",
+          type: "move",
           move,
           tera
         })
@@ -62,7 +62,7 @@ export function toChoices(option: Option): Choice[] {
 
 export function formatChoice(choice: Choice) {
   switch (choice.type) {
-    case "select":
+    case "move":
       const pfx = `move ${choice.move}`
       return choice.tera ? `${pfx} terastallize` : pfx
     case "switch":
