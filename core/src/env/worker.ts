@@ -1,11 +1,14 @@
 import { parentPort } from "worker_threads"
 import { Side } from "../battle.js"
 import { Observer } from "../parser/observer.js"
-import { Battle, toID } from "@pkmn/sim"
+import { Battle, Teams, toID } from "@pkmn/sim"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { Log } from "../log.js"
 import { Action, Environment } from "./env.js"
+import { TeamGenerators } from "@pkmn/randoms"
+
+Teams.setGeneratorFactory(TeamGenerators)
 
 export type Request = [
   string,

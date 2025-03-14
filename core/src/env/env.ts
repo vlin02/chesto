@@ -4,9 +4,10 @@ import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../arena/agents.js"
 import { Choice } from "../parser/option.js"
 import { BattleF, encodeBattle } from "../enc/state.js"
-import { Battle, toID } from "@pkmn/sim"
+import { Battle, Teams, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
 import { evalBattle } from "../enc/reward.js"
+import { TeamGenerators } from "@pkmn/randoms"
 
 export type Action = { side: Side; choice: Choice }
 
