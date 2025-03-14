@@ -3,10 +3,10 @@ import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../arena/agents.js"
 import { Choice } from "../parser/option.js"
-import { BattleF, encodeBattle } from "../enc/state.js"
+import { BattleF, encodeBattle } from "../model/state.js"
 import { Battle, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
-import { evalBattle } from "../enc/reward.js"
+import { evalBattle } from "../model/reward.js"
 
 export type Action = { side: Side; choice: Choice }
 
