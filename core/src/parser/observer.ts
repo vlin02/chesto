@@ -64,6 +64,17 @@ function resolveSwaps(a: string[], b: string[]) {
   return switches
 }
 
+function canTera(gen: Generation, { volatiles }: User) {
+  if (volatiles["Transform"]) {
+    const { forme } = volatiles["Transform"]
+    if (["Ogerpon", "Terapagos"].includes(gen.species.get(forme)!.baseSpecies)) return false
+  }
+
+  if (volatiles["Locked Move"]) return false
+
+  return true
+}
+
 export type Fields = { [k: string]: number }
 export type Weather = { name: WeatherName; turn: number }
 
@@ -1144,12 +1155,12 @@ export class Observer {
   }
 
   getSelection(): Selection {
-    const tera = !this.ally.teraUsed
-
     const {
       gen,
-      ally: { active }
+      ally: { active, teraUsed }
     } = this
+
+    const tera = !teraUsed && canTera(this.gen, active)
 
     let {
       volatiles: {
@@ -1259,16 +1270,20 @@ export class Observer {
 
     const {
       req,
-      ally: { active, isReviving }
+      ally: { isReviving }
     } = this
 
     if (req.type === "wait") return null
 
     switch (req.type) {
-      case "move":
+      case "move": {
+        // use request trapped over active.trapped due to arena-trap abilities
+        const { trapped } = req.choices[0]
         select = this.getSelection()
-        if (!(req.choices[0].trapped || active.trapped)) switches = this.listSwitches()
+
+        if (!trapped) switches = this.listSwitches()
         break
+      }
       case "switch":
         switches = isReviving ? this.listRevivable() : this.listSwitches()
         break
