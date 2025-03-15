@@ -1,5 +1,5 @@
 import { Generation } from "@pkmn/data"
-import { MOVE_CATEGORIES, STAT_IDS, Stats } from "../battle.js"
+import { MOVE_CATEGORIES, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
 import { Party } from "../parser/side.js"
@@ -36,10 +36,7 @@ export function encodeMove(gen: Generation, move: string) {
   }
 }
 
-type UserF = {
-  x: number[]
-  types: string[]
-}
+type UserF = number[]
 
 function encodeUser(gen: Generation, user: User) {
   const { revealed, hp, lvl, types, forme } = user
@@ -52,11 +49,9 @@ function encodeUser(gen: Generation, user: User) {
 
   x.push((hpRatio * stats.hp) / 600)
   x.push(...STAT_IDS.map((k) => stats[k] / 600))
+  x.push(...TYPE_NAMES.map((k) => (types.includes(k) ? 1 : 0)))
 
-  return {
-    x,
-    types
-  }
+  return x
 }
 
 type PartyF = {
