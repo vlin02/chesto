@@ -11,7 +11,7 @@ import { evalBattle } from "../model/reward.js"
 export type Action = { side: Side; choice: Choice }
 
 type SideUpdate = {
-  reward: number
+  reward: number | null
   state: BattleF
 }
 
@@ -27,7 +27,7 @@ export type EnvUpdate =
       p2?: SideUpdate
     }
 
-type Player = { obs: Observer; v: number }
+type Player = { obs: Observer; v: number | null }
 
 export class Environment {
   battle: Battle
@@ -38,8 +38,8 @@ export class Environment {
   turnLimit: number
 
   constructor(gen: Generation, auto: Side[], turnLimit: number) {
-    this.p1 = { obs: new Observer(gen), v: 0 }
-    this.p2 = { obs: new Observer(gen), v: 0 }
+    this.p1 = { obs: new Observer(gen), v: null }
+    this.p2 = { obs: new Observer(gen), v: null }
     this.auto = auto
     this.logs = []
     this.battle = new Battle({
@@ -63,7 +63,7 @@ export class Environment {
   private getReward(side: Side) {
     const p = this[side]
     const v = evalBattle(p.obs)
-    const r = v - p.v
+    const r = p.v == null ? null : v - p.v
     p.v = v
     return r
   }

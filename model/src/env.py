@@ -33,6 +33,7 @@ class Environment:
         ) as res:
             res = await res.json()
             done = res["done"]
+            reward = res[self.side]
 
             if done:
                 x = await self.reset()

@@ -16,9 +16,7 @@ export function evalUser(users: User[]) {
 }
 
 export function evalBattle(obs: Observer) {
-  if (!obs.ally) return 0
   let t = 0
-
   if (obs.winner) t += obs.winner === obs.side ? 20 : -20
 
   const { ally, foe } = obs

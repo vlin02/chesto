@@ -76,7 +76,7 @@ def vectorize_state(lookup, state, device):
         )
 
 
-def batch_inputs(inputs):
+def batch_states(inputs):
     x = {k: torch.stack([x[k] for x in inputs]) for k in INPUT_KEYS}
     x["batch_idx"] = torch.arange(len(inputs))
     return x
