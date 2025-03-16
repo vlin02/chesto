@@ -50,7 +50,7 @@ async def train(
     dones = torch.zeros((n_steps, n_envs), device=device)
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
-    next_states = batch_states([vectorize_state(x, lookup, device) for x in asyncio.gather(*(env.reset() for env in envs))])
+    next_states = batch_states([vectorize_state(x, lookup, device) for x in await asyncio.gather(*(env.reset() for env in envs))])
     tot_rewards = torch.zeros(n_envs, device=device)
 
     for iter in range(n_iters):
