@@ -8,13 +8,14 @@ class Environment:
     def __init__(self, session, url):
         self.session = session
         self.url = url
-        self.done = True
+        
         self.id = None
         self.side = None
 
     async def reset(self):
         self.done = False
         self.side = random.choice(SIDES)
+
         async with self.session.post(
             f"{self.url}/start", json=dict(auto=[OPP[self.side]])
         ) as res:
