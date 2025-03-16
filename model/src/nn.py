@@ -1,22 +1,12 @@
-import json
 import torch
 from torch import nn
-from pymongo import MongoClient
-from b import S
-
-device = torch.device("cpu")
-
-DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
-
-client = MongoClient(DB_URL)
 
 user_enc_dim = 28
-
 move_feat_dim = 26
 move_enc_dim = move_feat_dim
 
 
-def get_lookup(db):
+def get_lookup(db, device):
     lookup = {}
     moves = list(db["moves"].find())
     move_idx = {x["name"]: x["i"] for x in moves}
@@ -24,7 +14,7 @@ def get_lookup(db):
     move_enc = torch.zeros(1000, move_enc_dim, device=device)
 
     for move in moves:
-        move_enc[move["i"]] = torch.tensor(move["f"], device=device)
+        move_enc[move["i"]] = torch.tensor(move["x"], device=device)
 
     lookup["move_idx"] = move_idx
     lookup["move_enc"] = move_enc
@@ -35,10 +25,6 @@ def process_input(lookup, state, device):
     ally = state["ally"]
     foe = state["foe"]
     opt = state["option"]
-
-    tera = opt["tera"]
-    moves = opt["moves"]
-    switches = opt["switches"]
 
     user_enc = torch.zeros(2, 6, user_enc_dim)
     active_idx = torch.zeros(2, dtype=torch.long)
@@ -52,30 +38,41 @@ def process_input(lookup, state, device):
     move_mask = torch.zeros((4, 2), device=device)
     switch_mask = torch.zeros(6, device=device)
 
-    for i, move in enumerate(moves):
-        move_choice_idx[i] = lookup["move_idx"][move]
-        for j in range(2):
-            if j == 1 and (not tera):
-                continue
-            move_mask[i] = 1
+    if opt:
+        tera = opt["tera"]
+        moves = opt["moves"]
+        switches = opt["switches"]
 
-    for i, species in enumerate(ally["team"].keys()):
-        if species in switches:
-            switch_mask[i] = 1
+        for i, move in enumerate(moves):
+            move_choice_idx[i] = lookup["move_idx"][move]
+            for j in range(2):
+                if j == 1 and (not tera):
+                    continue
+                move_mask[i] = 1
 
-    return dict(
-        user_enc=user_enc,
-        active_idx=active_idx,
-        move_mask=move_mask,
-        switch_mask=switch_mask,
-        move_choice_idx=move_choice_idx,
-    )
+        for i, species in enumerate(ally["team"].keys()):
+            if species in switches:
+                switch_mask[i] = 1
+
+        return dict(
+            user_enc=user_enc,
+            active_idx=active_idx,
+            move_mask=move_mask,
+            switch_mask=switch_mask,
+            move_choice_idx=move_choice_idx,
+        )
 
 
 def batch_inputs(inputs):
     x = {
         k: torch.stack([x[k] for x in inputs])
-        for k in ["user_enc", "active_idx", "move_mask", "switch_mask", "move_choice_idx"]
+        for k in [
+            "user_enc",
+            "active_idx",
+            "move_mask",
+            "switch_mask",
+            "move_choice_idx",
+        ]
     }
     x["batch_idx"] = torch.arange(len(inputs))
     return x
@@ -90,29 +87,30 @@ class NN(nn.Module):
             nn.Linear(move_enc_dim, 64), nn.Tanh(), nn.Linear(64, 16)
         )
         self.user_block = nn.Sequential(
-            nn.Linear(user_enc_dim, 64), nn.ReLU(), nn.Linear(64, 32)
+            nn.Linear(user_enc_dim, 64), nn.Tanh(), nn.Linear(64, 32)
         )
         self.battle_block = nn.Sequential(
-            nn.Linear(32 * 2, 64), nn.ReLU(), nn.Linear(64, 32)
+            nn.Linear(32 * 2, 64), nn.Tanh(), nn.Linear(64, 32)
         )
         self.move_logit_block = nn.Sequential(
             nn.Linear(32 + 16 + 1, 64),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(64, 64),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(64, 1),
         )
         self.switch_logit_block = nn.Sequential(
             nn.Linear(32 + 32, 64),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(64, 64),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(64, 1),
         )
         self.register_buffer("party_idx", torch.arange(2, dtype=torch.long).view(1, 2))
         self.register_buffer(
             "tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1)
         )
+        self.critic = nn.Sequential()
 
     def forward(self, x):
         user_enc = x["user_enc"]
@@ -123,7 +121,9 @@ class NN(nn.Module):
         batch_idx = x["batch_idx"]
         batch_dim = batch_idx.size(0)
 
-        move_choice_emb = self.move_embed_block(self.lookup["move_enc"][move_choice_idx])
+        move_choice_emb = self.move_embed_block(
+            self.lookup["move_enc"][move_choice_idx]
+        )
 
         user_emb = self.user_block(user_enc)
 
@@ -157,12 +157,3 @@ class NN(nn.Module):
         switch_logit += (switch_mask - 1) * 1e9
 
         return torch.cat([move_logit.flatten(1), switch_logit], dim=-1)
-
-
-update = json.loads(S)
-
-lookup = get_lookup(client["chesto"])
-nn = NN(lookup).to(device)
-print(
-    nn(batch_inputs([process_input(lookup, update["p1"]["state"], device=torch.device("cpu"))]))
-)

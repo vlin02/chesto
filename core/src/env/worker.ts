@@ -18,12 +18,14 @@ const gen = new Generations(Dex).get(9)
 
 const main = parentPort!
 
+const TURN_LIMIT = 100
+
 main!.on("message", ([id, body]: WorkerRequest) => {
   switch (body.type) {
     case "start": {
       const { auto } = body
 
-      const env = new Environment(gen, auto)
+      const env = new Environment(gen, auto, TURN_LIMIT)
       envs.set(id, env)
 
       main.postMessage([id, env.step([])])

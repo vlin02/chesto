@@ -57,7 +57,7 @@ app.post("/:id/step", async (c) => {
     sendMessage(workerId, [envId, { type: "step", actions }])
   })
 
-  return c.json({ id: envId, update })
+  return c.json(update)
 })
 
 app.delete("/:id", async (c) => {

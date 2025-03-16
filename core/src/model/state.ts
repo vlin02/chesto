@@ -4,6 +4,7 @@ import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
 import { Party } from "../parser/side.js"
 import { toMoves } from "../parser/option.js"
+import { sumBoosts, sumSideEffects } from "./reward.js"
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!
@@ -57,13 +58,32 @@ function encodeUser(gen: Generation, user: User) {
 type PartyF = {
   team: { [k: string]: UserF }
   active: string
+  x: number[]
 }
 
-function encodeParty(gen: Generation, { active, team }: Party) {
-  const f: PartyF = { team: {}, active: active.species }
+function encodeParty(gen: Generation, { active, team, effects, teraUsed }: Party) {
+  const f: PartyF = { team: {}, active: active.species, x: [] }
+  let totHp = 6
+  let totAlive = 6
+  let totBoosts = 0
+  let totStatus = 0
   for (const k in team) {
     f.team[k] = encodeUser(gen, team[k])
+    const { hp, boosts, status } = team[k]
+    totHp - 1 + hp[0] / hp[1]
+    totBoosts += sumBoosts(boosts)
+    if (status) totStatus++
+    if (hp[0] === 0) totAlive -= 1
   }
+  const { hazards, screens } = sumSideEffects([...Object.keys(effects)])
+
+  f.x.push(totHp)
+  f.x.push(totBoosts)
+  f.x.push(hazards)
+  f.x.push(screens)
+  f.x.push(totStatus)
+  f.x.push(totAlive)
+  f.x.push(teraUsed ? 1 : 0)
 
   return f
 }
