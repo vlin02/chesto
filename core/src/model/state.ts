@@ -42,7 +42,7 @@ function encodeUser(gen: Generation, user: User) {
 
   x.push(revealed ? 1 : 0)
 
-  const stats = user.stats ? { ...user.stats, hp: hp[1] } : inferStats(gen, forme, lvl)
+  const stats = user.pov === "ally" ? { ...user.stats!, hp: hp[1] } : inferStats(gen, forme, lvl)
   const hpRatio = hp[0] / hp[1]
 
   x.push((hpRatio * stats.hp) / 600)
