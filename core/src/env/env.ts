@@ -60,7 +60,7 @@ export class Environment {
     this.battle.sendUpdates()
   }
 
-  private getReward(side: Side) {
+  private stepReward(side: Side) {
     const p = this[side]
     const v = evalBattle(p.obs)
     const r = p.v == null ? null : v - p.v
@@ -100,8 +100,8 @@ export class Environment {
       if ((turn && turn > this.turnLimit) || winner) {
         return {
           done: true,
-          p1: this.getReward("p1"),
-          p2: this.getReward("p2")
+          p1: this.stepReward("p1")!,
+          p2: this.stepReward("p2")!
         }
       }
 
@@ -120,7 +120,7 @@ export class Environment {
       if (deferred.length) {
         const update: EnvUpdate = { done: false }
         for (const side of deferred) {
-          update[side] = { reward: this.getReward(side), state: encodeBattle(this[side].obs) }
+          update[side] = { reward: this.stepReward(side), state: encodeBattle(this[side].obs) }
         }
 
         return update

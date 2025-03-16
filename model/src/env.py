@@ -12,10 +12,6 @@ class Environment:
         self.id = None
         self.side = None
 
-    def _process_update(self, update):
-        side_update = update[self.side]
-        return (side_update["state"], side_update["reward"])
-
     async def reset(self):
         self.done = False
         self.side = random.choice(SIDES)
@@ -25,7 +21,7 @@ class Environment:
             res = await res.json()
             self.id = res["id"]
 
-            return self._process_update(res["update"])
+            return res[self.side]["state"]
 
     async def step(self, choice):
         async with self.session.post(
@@ -33,11 +29,11 @@ class Environment:
         ) as res:
             res = await res.json()
             done = res["done"]
-            reward = res[self.side]
+            side = res[self.side]
 
             if done:
-                x = await self.reset()
+                reward = side
+                new_ep_state = await self.reset()
+                return new_ep_state, reward, True
             else:
-                x = self._process_update(res)
-
-            return (*x, done)
+                return side["state"], side["reward"], False
