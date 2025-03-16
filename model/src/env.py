@@ -8,7 +8,7 @@ class Environment:
     def __init__(self, session, url):
         self.session = session
         self.url = url
-        
+
         self.id = None
         self.side = None
 
@@ -33,8 +33,7 @@ class Environment:
             side = res[self.side]
 
             if done:
-                reward = side
-                new_ep_state = await self.reset()
-                return new_ep_state, reward, True
+                next_state = await self.reset()
+                return side["reward"], True, next_state
             else:
-                return side["state"], side["reward"], False
+                return side["reward"], False, side["state"]

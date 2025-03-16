@@ -11,23 +11,17 @@ import { evalBattle } from "../model/reward.js"
 export type Action = { side: Side; choice: Choice }
 
 type SideUpdate = {
-  reward: number | null
-  state: BattleF
+  reward?: number
+  state?: BattleF
 }
 
-export type EnvUpdate =
-  | {
-      done: true
-      p1: number
-      p2: number
-    }
-  | {
-      done: false
-      p1?: SideUpdate
-      p2?: SideUpdate
-    }
+export type EnvUpdate = {
+  done: boolean
+  p1?: SideUpdate
+  p2?: SideUpdate
+}
 
-type Player = { obs: Observer; v: number | null }
+type Player = { obs: Observer; v?: number }
 
 export class Environment {
   battle: Battle
@@ -38,8 +32,8 @@ export class Environment {
   turnLimit: number
 
   constructor(gen: Generation, auto: Side[], turnLimit: number) {
-    this.p1 = { obs: new Observer(gen), v: null }
-    this.p2 = { obs: new Observer(gen), v: null }
+    this.p1 = { obs: new Observer(gen) }
+    this.p2 = { obs: new Observer(gen) }
     this.auto = auto
     this.logs = []
     this.battle = new Battle({
@@ -63,7 +57,7 @@ export class Environment {
   private stepReward(side: Side) {
     const p = this[side]
     const v = evalBattle(p.obs)
-    const r = p.v == null ? null : v - p.v
+    const r = p.v == null ? undefined : v - p.v
     p.v = v
     return r
   }
@@ -100,8 +94,8 @@ export class Environment {
       if ((turn && turn > this.turnLimit) || winner) {
         return {
           done: true,
-          p1: this.stepReward("p1")!,
-          p2: this.stepReward("p2")!
+          p1: { reward: this.stepReward("p1")! },
+          p2: { reward: this.stepReward("p2")! }
         }
       }
 
