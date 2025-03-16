@@ -16,7 +16,7 @@ INPUT_KEYS = [
 ]
 
 
-def get_lookup(db, device):
+def load_lookup(db, device):
     lookup = {}
     moves = list(db["moves"].find())
     move_idx = {x["name"]: x["i"] for x in moves}
@@ -31,7 +31,7 @@ def get_lookup(db, device):
     return lookup
 
 
-def vectorize_state(lookup, state, device):
+def vectorize_state(state, lookup, device):
     ally = state["ally"]
     foe = state["foe"]
     opt = state["option"]
