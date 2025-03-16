@@ -1,7 +1,9 @@
 import asyncio
 import aiohttp
-from net import INPUT_KEYS, NN, batch_inputs, optim, vectorize_state
+from net import INPUT_KEYS, NN
 import torch
+from torch import optim
+from input import vectorize_state, batch_states
 from env import Environment
 
 
@@ -13,19 +15,6 @@ def to_choice(state, n):
 
     i = n - 8
     return dict(type="switch", species=opt["switches"][i])
-
-
-async def step(envs, batch_actions, device):
-    steps = asyncio.gather(
-        [env.step(actions) for env, actions in zip(envs, batch_actions)]
-    )
-    states, rewards, dones = zip(*steps)
-
-    return (
-        batch_inputs(list(map(vectorize_state, states))),
-        torch.tensor(rewards, device=device),
-        torch.tensor(dones, device=device),
-    )
 
 
 def combine_batches(batches):
@@ -61,51 +50,50 @@ async def train(
     n_samples = n_steps * n_envs
 
     states = [None] * n_steps
-    actions = torch.zeros((n_steps, n_envs), dtype=torch.long, device=device)
     logprobs = torch.zeros((n_steps, n_envs), device=device)
+    actions = torch.zeros((n_steps, n_envs), dtype=torch.long, device=device)
+    rewards = torch.zeros((n_steps, n_envs), device=device)
     dones = torch.zeros((n_steps, n_envs), device=device)
     values = torch.zeros((n_steps, n_envs), device=device)
-    rewards = torch.zeros((n_steps, n_envs), device=device)
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
-    next_state, reward, done = step(envs, [] * n_envs, device)
-
+    next_states = batch_states(list(map(vectorize_state, asyncio.gather([env.reset() for env in envs]))))
     tot_rewards = torch.zeros(n_envs, device=device)
 
     for iter_i in range(n_iters):
         for step_i in range(0, n_steps):
-            state = next_state
+            curr_states = next_states
             
             with torch.no_grad():
-                logits, value = nn(state)
+                logits, curr_values = nn(curr_states)
+                
                 dist = torch.distributions.Categorical(logits)
-                choice_ids = dist.sample()
-                logprob = dist.log_prob(choice_ids)
+                choice_idxs = dist.sample()
 
-                values[step_i] = value
-                logprobs[step_i] = logprob
-                actions[step_i] = choice_ids
-                state[step_i] = state
+                values[step_i] = curr_values
+                logprobs[step_i] = dist.log_prob(choice_idxs)
+                actions[step_i] = choice_idxs
+                states[step_i] = curr_states
 
-                next_state, reward, done = await step(
-                    envs,
-                    [
-                        dict(side=x["side"], choice=to_choice(x, y))
-                        for x, y in zip(state, choice_ids)
-                    ],
-                    device,
+                steps = asyncio.gather(
+                    [env.step(to_choice(state, idx)) for env, state, idx in zip(envs, curr_states, choice_idxs)]
                 )
 
-                tot_rewards += reward
-                for env_i in torch.nonzero(done).flatten().tolist():
-                    update(tot_rewards[env_i])
-                tot_rewards *= 1 - done
+                curr_rewards, curr_dones, next_states =  zip(*steps)
+                curr_rewards = torch.tensor(curr_rewards, device=device)
+                curr_dones = torch.tensor(curr_dones, device=device)
+                next_states = batch_states([vectorize_state(x) for x in next_states])
 
-                dones[step_i] = done
-                rewards[step_i] = reward
+                tot_rewards += curr_rewards
+                for env_i in torch.nonzero(curr_dones).flatten().tolist():
+                    update(tot_rewards[env_i])
+                tot_rewards *= 1 - curr_dones
+
+                dones[step_i] = curr_dones
+                rewards[step_i] = curr_rewards
 
         with torch.no_grad():
-            _, next_v = nn(state)
+            _, next_v = nn(curr_states)
 
             gae = 0
             not_dones = 1.0 - dones
