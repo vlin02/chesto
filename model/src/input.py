@@ -50,30 +50,29 @@ def vectorize_state(state, lookup, device):
     move_mask = torch.zeros((4, 2), device=device)
     switch_mask = torch.zeros(6, device=device)
 
-    if opt:
-        tera = opt["tera"]
-        moves = opt["moves"]
-        switches = opt["switches"]
+    tera = opt["tera"]
+    moves = opt["moves"]
+    switches = opt["switches"]
 
-        for i, move in enumerate(moves):
-            move_choice_idx[i] = lookup["move_idx"][move]
-            for j in range(2):
-                if j == 1 and (not tera):
-                    continue
-                move_mask[i][j] = 1
+    for i, move in enumerate(moves):
+        move_choice_idx[i] = lookup["move_idx"][move]
+        for j in range(2):
+            if j == 1 and (not tera):
+                continue
+            move_mask[i][j] = 1
 
-        for i, species in enumerate(ally["team"].keys()):
-            if species in switches:
-                switch_mask[i] = 1
+    for i, species in enumerate(ally["team"].keys()):
+        if species in switches:
+            switch_mask[i] = 1
 
-        return dict(
-            party_enc=party_enc,
-            user_enc=user_enc,
-            active_idx=active_idx,
-            move_mask=move_mask,
-            switch_mask=switch_mask,
-            move_choice_idx=move_choice_idx,
-        )
+    return dict(
+        party_enc=party_enc,
+        user_enc=user_enc,
+        active_idx=active_idx,
+        move_mask=move_mask,
+        switch_mask=switch_mask,
+        move_choice_idx=move_choice_idx,
+    )
 
 
 def batch_states(inputs):
