@@ -18,8 +18,8 @@ type SideUpdate = {
 export type EnvUpdate =
   | {
       done: true
-      p1: SideUpdate
-      p2: SideUpdate
+      p1: number
+      p2: number
     }
   | {
       done: false
@@ -60,12 +60,12 @@ export class Environment {
     this.battle.sendUpdates()
   }
 
-  private getSideUpdate(side: Side) {
+  private getReward(side: Side) {
     const p = this[side]
     const v = evalBattle(p.obs)
-    const update: SideUpdate = { reward: v - p.v, state: encodeBattle(p.obs) }
+    const r = v - p.v
     p.v = v
-    return update
+    return r
   }
 
   step(actions: Action[]): EnvUpdate {
@@ -75,7 +75,7 @@ export class Environment {
 
     while (true) {
       let winner = false
-      let turn: number | undefined 
+      let turn: number | undefined
       const pending: Side[] = []
 
       for (const log of this.logs) {
@@ -100,8 +100,8 @@ export class Environment {
       if ((turn && turn > this.turnLimit) || winner) {
         return {
           done: true,
-          p1: this.getSideUpdate("p1"),
-          p2: this.getSideUpdate("p2")
+          p1: this.getReward("p1"),
+          p2: this.getReward("p2")
         }
       }
 
@@ -120,7 +120,7 @@ export class Environment {
       if (deferred.length) {
         const update: EnvUpdate = { done: false }
         for (const side of deferred) {
-          update[side] = this.getSideUpdate(side)
+          update[side] = { reward: this.getReward(side), state: encodeBattle(this[side].obs) }
         }
 
         return update

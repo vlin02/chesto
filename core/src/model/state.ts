@@ -1,5 +1,5 @@
 import { Generation } from "@pkmn/data"
-import { MOVE_CATEGORIES, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
+import { MOVE_CATEGORIES, Side, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
 import { Party } from "../parser/side.js"
@@ -94,9 +94,8 @@ export type OptionF = {
   switches: string[]
 }
 
-export function encodeOption(obs: Observer): OptionF | null {
-  const opt = obs.getOption()
-  if (!opt) return null
+export function encodeOption(obs: Observer): OptionF {
+  const opt = obs.getOption()!
   const { select, switches } = opt
 
   return {
@@ -107,15 +106,17 @@ export function encodeOption(obs: Observer): OptionF | null {
 }
 
 export type BattleF = {
+  side: Side
   ally: PartyF
   foe: PartyF
-  option: OptionF | null
+  option: OptionF
 }
 
 export function encodeBattle(obs: Observer): BattleF {
-  const { ally, foe, gen } = obs
+  const { ally, foe, gen, side } = obs
 
   return {
+    side,
     ally: encodeParty(gen, ally),
     foe: encodeParty(gen, foe),
     option: encodeOption(obs)
