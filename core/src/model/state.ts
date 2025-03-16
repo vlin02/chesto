@@ -28,15 +28,12 @@ export function encodeMove(gen: Generation, move: string) {
 
   x.push(basePower / 250)
   x.push(...MOVE_CATEGORIES.map((k) => (category === k ? 1 : 0)))
+  x.push((accuracy === true ? 100 : accuracy) / 100)
   x.push(priority)
-  x.push(accuracy === true ? 1 : accuracy)
+  x.push(...TYPE_NAMES.map((k) => (type === k ? 1 : 0)))
 
-  return {
-    x,
-    type
-  }
+  return x
 }
-
 type UserF = number[]
 
 function encodeUser(gen: Generation, user: User) {
