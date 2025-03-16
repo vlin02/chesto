@@ -47,7 +47,7 @@ app.post("/start", async (c) => {
 
 app.post("/:id/step", async (c) => {
   const envId = c.req.param("id")
-  const { actions } = await c.req.json<{ actions: Action[] }>()
+  const actions = await c.req.json<Action[]>()
 
   const session = sessions.get(envId)!
   const { workerId } = session
