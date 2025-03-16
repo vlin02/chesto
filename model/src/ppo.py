@@ -36,7 +36,7 @@ async def train(
 ):
     nn = NN(lookup).to(device)
     torch.compile(nn)
-    
+
     envs = [create_env() for _ in range(n_envs)]
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
 
@@ -67,7 +67,7 @@ async def train(
                 log_probs[t] = dist.log_prob(action_idxs)
                 actions[t] = action_idxs
 
-                steps = asyncio.gather(
+                steps = await asyncio.gather(
                     env.step(to_choice(state, idx)) for env, state, idx in zip(envs, curr_states, action_idxs)
                 )
 
