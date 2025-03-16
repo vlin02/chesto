@@ -13,6 +13,9 @@ class Environment:
         self.side = None
 
     async def reset(self):
+        if self.id:
+            await self.session.delete(f"{self.url}/{self.id}")
+        
         self.done = False
         self.side = random.choice(SIDES)
 

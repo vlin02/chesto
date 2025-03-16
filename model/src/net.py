@@ -60,7 +60,7 @@ class NN(nn.Module):
             torch.cat(
                 [
                     user_emb[
-                        batch_idx.view(1, batch_dim).expand(-1, 2),
+                        batch_idx.view(batch_dim, 1).expand(-1, 2),
                         self.party_idx.expand(batch_dim, -1),
                         active_idx,
                     ].reshape(batch_dim, -1),

@@ -60,7 +60,7 @@ def vectorize_state(state, lookup, device):
             for j in range(2):
                 if j == 1 and (not tera):
                     continue
-                move_mask[i] = 1
+                move_mask[i][j] = 1
 
         for i, species in enumerate(ally["team"].keys()):
             if species in switches:

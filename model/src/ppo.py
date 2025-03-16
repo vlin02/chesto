@@ -6,29 +6,29 @@ from torch import optim
 from input import INPUT_KEYS, load_lookup, vectorize_state, batch_states
 from env import Environment
 from pymongo import MongoClient
-
+import torch.nn.functional as F
 
 def to_choice(state, idx):
     opt = state["option"]
     if idx < 8:
         i, j = idx // 2, idx % 2
-        return dict(type="move", move=opt["move"][i], tera=j == 1)
+        return dict(type="move", move=opt["moves"][i], tera= j == 1)
 
     i = idx - 8
-    return dict(type="switch", species=opt["switches"][i])
+    return dict(type="switch", species=list(state["ally"]["team"].keys())[i])
 
-
+@profile
 async def train(
     lookup,
     device,
     update,
     create_env,
     n_iters=100,
-    n_envs=10,
+    n_envs=200,
     clip_coef=0.1,
     gamma=0.99,
     vf_coef=0.75,
-    n_steps=256,
+    n_steps=100,
     n_epochs=5,
     gae_lambda=0.9,
     minibatch_size=32,
@@ -50,7 +50,12 @@ async def train(
     dones = torch.zeros((n_steps, n_envs), device=device)
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
-    next_states = batch_states([vectorize_state(x, lookup, device) for x in await asyncio.gather(*(env.reset() for env in envs))])
+    def process_states(states):
+        x = batch_states([vectorize_state(state, lookup, device) for state in states])
+        x["raw"] = states
+        return x
+    
+    next_states = process_states(await asyncio.gather(*(env.reset() for env in envs)))
     tot_rewards = torch.zeros(n_envs, device=device)
 
     for iter in range(n_iters):
@@ -58,23 +63,24 @@ async def train(
             curr_states = next_states
             
             with torch.no_grad():
+                print(t)
                 states[t] = curr_states
                 logits, values[t] = nn(curr_states)
                 
-                dist = torch.distributions.Categorical(logits)
+                dist = torch.distributions.Categorical(F.softmax(logits, dim= 1))
                 action_idxs = dist.sample()
 
                 log_probs[t] = dist.log_prob(action_idxs)
                 actions[t] = action_idxs
 
                 steps = await asyncio.gather(
-                    env.step(to_choice(state, idx)) for env, state, idx in zip(envs, curr_states, action_idxs)
+                    *(env.step(to_choice(state, idx)) for env, state, idx in zip(envs, curr_states["raw"], action_idxs.tolist()))
                 )
 
-                curr_rewards, curr_dones, next_states =  zip(*steps)
+                curr_rewards, curr_dones, next_states = zip(*steps)
                 curr_rewards = torch.tensor(curr_rewards, device=device)
-                curr_dones = torch.tensor(curr_dones, device=device)
-                next_states = batch_states([vectorize_state(x, device) for x in next_states])
+                curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int)
+                next_states = process_states(next_states)
 
                 tot_rewards += curr_rewards
                 for env_i in torch.nonzero(curr_dones).flatten().tolist():
@@ -88,7 +94,7 @@ async def train(
             _, next_values = nn(curr_states)
 
             gae = 0
-            not_dones = 1.0 - dones
+            not_dones = 1 - dones
             for t in reversed(range(n_steps)):
                 not_done = not_dones[t]
                 delta = rewards[t] + not_done * gamma * next_values - values[t]
@@ -105,7 +111,7 @@ async def train(
 
         x = {"batch_idx": torch.arange(minibatch_size, device=device)}
 
-        for _ in range(n_epochs):
+        for epoch in range(n_epochs):
             idxs = torch.randperm(n_samples)
             cnt = n_samples // minibatch_size
 
@@ -113,7 +119,7 @@ async def train(
                 mb_idxs = idxs[start * minibatch_size : (start + 1) * minibatch_size]
                 
                 for k in INPUT_KEYS:
-                    x[k] = torch.cat(b_states[k][mb_idxs])
+                    x[k] = b_states[k][mb_idxs]
                 logits, value = nn(x)
 
                 dist = torch.distributions.Categorical(logits)
