@@ -17,11 +17,12 @@ export function evalUser(users: User[]) {
 
 export function evalBattle(obs: Observer) {
   let t = 0
-  if (obs.winner) t += obs.winner === obs.side ? 20 : -20
+  if (obs.winner && obs.winner !== "tie") t += obs.winner === obs.side ? 5 : -5
 
   const { ally, foe } = obs
-  const [tAlly, tFoe] = [ally, foe].map(({ team, teraUsed }) => {
-    return evalUser(Object.values(team)) + (teraUsed ? 0 : 5)
+  const [tAlly, tFoe] = [ally, foe].map(({ team, teraUsed, effects }) => {
+    const { hazards, screens } = sumSideEffects(Object.keys(effects))
+    return evalUser(Object.values(team)) + (teraUsed ? 0 : 5) + 2 * screens - 3 * hazards
   })
 
   t += tAlly - tFoe

@@ -1,6 +1,6 @@
 import torch
-from base64 import b64decode
-
+from pybase64 import b64decode
+import numpy as np
 
 user_enc_dim = 28
 move_feat_dim = 26
@@ -33,33 +33,21 @@ def load_lookup(db, device):
     return lookup
 
 
-def decode_state(state, device):
+@profile
+def decode_state(states, device):
     x = {}
+    N = len(states)
     for _k, k, dtype, shape in [
-        ("userEnc", "user_enc", torch.float32, (2, 6, user_enc_dim)),
-        ("partyEnc", "party_enc", torch.float32, (2, party_enc_dim)),
-        ("activeIdx", "active_idx", torch.int32, (2,)),
-        ("moveMask", "move_mask", torch.int32, (4, 2)),
-        ("switchMask", "switch_mask", torch.int32, (6,)),
-        ("moveChoiceIdx", "move_choice_idx", torch.int32, (4,)),
+        ("userEnc", "user_enc", np.float32, (N, 2, 6, user_enc_dim)),
+        ("partyEnc", "party_enc", np.float32, (N, 2, party_enc_dim)),
+        ("activeIdx", "active_idx", np.int32, (N, 2,)),
+        ("moveMask", "move_mask", np.int32, (N, 4, 2)),
+        ("switchMask", "switch_mask", np.int32, (N, 6,)),
+        ("moveChoiceIdx", "move_choice_idx", np.int32, (N, 4,)),
     ]:
-        x[k] = (
-            torch.frombuffer(bytearray(b64decode(state[_k])), dtype=dtype)
-            .reshape(*shape)
-            .to(device)
-        )
+        a = b''.join([b64decode(x[_k]) for x in states])
+        a = bytearray(a)
+        a = np.frombuffer(a, dtype=dtype)
+        a = a.reshape(shape)
+        x[k] = torch.from_numpy(a).to(device)
     return x
-
-
-def batch_states(inputs):
-    return {
-        k: torch.stack([x[k] for x in inputs])
-        for k in [
-            "user_enc",
-            "active_idx",
-            "move_mask",
-            "switch_mask",
-            "move_choice_idx",
-            "party_enc",
-        ]
-    }

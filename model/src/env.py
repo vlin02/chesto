@@ -27,9 +27,9 @@ class Environment:
 
             return res["update"][self.side]["state"]
 
-    async def step(self, choice):
+    async def step(self, id):
         async with self.session.post(
-            f"{self.url}/{self.id}/step", json=[dict(side=self.side, choice=choice)]
+            f"{self.url}/{self.id}/step", json=[dict(side=self.side, id=id)]
         ) as res:
             res = await res.json()
             done = res["done"]

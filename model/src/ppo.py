@@ -3,10 +3,12 @@ import aiohttp
 from net import NN
 import torch
 from torch import optim
-from input import STATE_FIELDS, load_lookup, decode_state, batch_states
+from input import STATE_FIELDS, load_lookup, decode_state
 from env import Environment
 from pymongo import MongoClient
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 @profile
@@ -16,18 +18,18 @@ async def train(
     update,
     create_env,
     n_iters=500,
-    n_envs=60,
+    n_envs=100,
     clip_coef=0.1,
-    gamma=0.99,
+    gamma=0.9,
     vf_coef=0.75,
-    n_steps=100,
-    n_epochs=10,
-    gae_lambda=0.9,
-    minibatch_size=1024,
-    lr=0.003,
+    n_steps=70,
+    n_epochs=15,
+    gae_lambda=0.95,
+    minibatch_size=256,
+    lr=0.0003,
 ):
     nn = NN(lookup).to(device)
-    # torch.compile(nn)
+    torch.compile(nn)
 
     envs = [create_env() for _ in range(n_envs)]
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
@@ -43,19 +45,17 @@ async def train(
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
     def process_states(states):
-        return batch_states(
-            [decode_state(state, device) for state in states]
-        )
+        return decode_state(states, device)
 
     next_states = process_states(await asyncio.gather(*(env.reset() for env in envs)))
     tot_rewards = torch.zeros(n_envs, device=device)
 
     for iter in range(n_iters):
         for t in range(0, n_steps):
+            print(t)
             curr_states = next_states
 
             with torch.no_grad():
-                print(t)
                 states[t] = curr_states
                 logits, values[t] = nn(curr_states)
 
@@ -74,7 +74,7 @@ async def train(
 
                 curr_rewards, curr_dones, next_states = zip(*steps)
                 curr_rewards = torch.tensor(curr_rewards, device=device)
-                curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int)
+                curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int32)
                 next_states = process_states(next_states)
 
                 tot_rewards += curr_rewards
@@ -105,7 +105,8 @@ async def train(
         b_returns = returns.reshape(-1)
 
         mb_x = {}
-        for _ in range(n_epochs):
+        for epoch in range(n_epochs):
+            print(epoch)
             idxs = torch.randperm(n_samples)
             cnt = n_samples // minibatch_size
 
@@ -116,7 +117,7 @@ async def train(
                     mb_x[k] = b_states[k][mb_i]
                 logits, value = nn(mb_x)
 
-                dist = torch.distributions.Categorical(logits)
+                dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
                 new_log_probs = dist.log_prob(b_actions[mb_i])
                 log_ratio = new_log_probs - b_log_probs[mb_i]
                 ratio = log_ratio.exp()
@@ -152,8 +153,20 @@ async def main():
         def create_env():
             return Environment(session, "http://172.31.50.187:3000")
 
+        # List to store rewards
+        rewards_list = []
+
         def update(r):
-            print(r)
+            # Convert tensor to float and add to list
+            rewards_list.append(r.item())
+            
+            # Plot and save every 100 updates
+            if len(rewards_list) % 100 == 0:
+                plt.figure(figsize=(10, 6))
+                plt.plot(rewards_list)
+                plt.grid(True)
+                plt.savefig(f'rewards_plot_1.png')
+                plt.close()
 
         device = torch.device("cuda")
         client = MongoClient(DB_URL)
