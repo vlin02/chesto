@@ -123,7 +123,7 @@ export class Environment {
         if (this.auto.includes(side)) {
           const { obs } = this[side]
           const choice = new RandomAgent(obs).choose()
-          this.choose({ side, choice })
+          this.choose(side, choice)
         } else {
           deferred.push(side)
         }
