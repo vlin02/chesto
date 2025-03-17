@@ -8,6 +8,13 @@ dependencies = [
     "aiohttp>=3.11.13",
     "line-profiler>=4.2.0",
     "matplotlib>=3.10.1",
+    "numba>=0.61.0",
     "pymongo>=4.11.2",
     "torch>=2.6.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+ext-modules = [
+    {name = "streaming_form_data._parser", sources = ["src/streaming_form_data/_parser.c"]}
 ]

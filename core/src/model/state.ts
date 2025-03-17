@@ -2,7 +2,7 @@ import { Generation } from "@pkmn/data"
 import { MOVE_CATEGORIES, Side, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
-import { Party } from "../parser/side.js"
+import { Party, POVS } from "../parser/side.js"
 import { toMoves } from "../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
 
@@ -58,14 +58,13 @@ type PartyF = {
   x: number[]
 }
 
-function encodeParty(gen: Generation, { active, team, effects, teraUsed }: Party) {
-  const f: PartyF = { team: {}, active: active.species, x: [] }
+function encodeParty({ team, effects, teraUsed }: Party) {
+  let x: number[] = []
   let totHp = 6
   let totAlive = 6
   let totBoosts = 0
   let totStatus = 0
   for (const k in team) {
-    f.team[k] = encodeUser(gen, team[k])
     const { hp, boosts, status } = team[k]
     totHp - 1 + hp[0] / hp[1]
     totBoosts += sumBoosts(boosts)
@@ -74,15 +73,15 @@ function encodeParty(gen: Generation, { active, team, effects, teraUsed }: Party
   }
   const { hazards, screens } = sumSideEffects([...Object.keys(effects)])
 
-  f.x.push(totHp)
-  f.x.push(totBoosts)
-  f.x.push(hazards)
-  f.x.push(screens)
-  f.x.push(totStatus)
-  f.x.push(totAlive)
-  f.x.push(teraUsed ? 1 : 0)
+  x.push(totHp)
+  x.push(totBoosts)
+  x.push(hazards)
+  x.push(screens)
+  x.push(totStatus)
+  x.push(totAlive)
+  x.push(teraUsed ? 1 : 0)
 
-  return f
+  return x
 }
 
 export type OptionF = {
@@ -102,20 +101,74 @@ export function encodeOption(obs: Observer): OptionF {
   }
 }
 
-export type BattleF = {
-  side: Side
-  ally: PartyF
-  foe: PartyF
-  option: OptionF
+export type BattleState = {
+  partyEnc: number[][]
+  userEnc: number[][][]
+  activeIdx: number[]
+  moveChoiceIdx: number[]
+  moveMask: number[][]
+  switchMask: number[]
 }
 
-export function encodeBattle(obs: Observer): BattleF {
-  const { ally, foe, gen, side } = obs
+function zeros(dims: number[]): any {
+  if (dims.length === 1) return Array(dims[0]).fill(0)
+
+  return Array(dims[0])
+    .fill(null)
+    .map(() => zeros(dims.slice(1)))
+}
+
+export function encodeBattle(obs: Observer) {
+  const { ally, gen } = obs
+
+  const activeIdx: number[] = zeros([2])
+  const partyEnc: number[][] = zeros([7])
+  const userEnc: number[][][] = zeros([2, 6, 28])
+  const moveChoiceIdx: number[] = zeros([4])
+  const moveMask: number[][] = zeros([4, 2])
+  const switchMask: number[] = zeros([6])
+
+  for (let i = 0; i < 2; i++) {
+    const pov = POVS[i]
+    const party = obs[pov]
+    const { team, active } = party
+
+    partyEnc[i] = encodeParty(party)
+
+    const users = Object.values(team)
+    for (let j = 0; j < users.length; j++) {
+      userEnc[i][j] = encodeUser(gen, users[j])
+      if (users[j] === active) activeIdx[i] = j
+    }
+  }
+
+  const { select, switches } = obs.getOption()!
+
+  if (select) {
+    const { tera } = select
+    const moves = toMoves(select)
+
+    for (let i = 0; i < moves.length; i++) {
+      for (let j = 0; j < 2; j++) {
+        if (j === 1 && !tera) continue
+        moveMask[i][j] = 1
+      }
+
+      moveChoiceIdx[i] = gen.moves.get(moves[i])!.num
+    }
+  }
+
+  const teamK = Object.keys(ally.team)
+  for (let i = 0; i < 6; i++) {
+    if (switches.includes(teamK[i])) switchMask[i] = 1
+  }
 
   return {
-    side,
-    ally: encodeParty(gen, ally),
-    foe: encodeParty(gen, foe),
-    option: encodeOption(obs)
+    partyEnc,
+    userEnc,
+    activeIdx,
+    moveChoiceIdx,
+    moveMask,
+    switchMask
   }
 }

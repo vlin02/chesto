@@ -3,7 +3,7 @@ import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../agents.js"
 import { Choice } from "../parser/option.js"
-import { BattleF, encodeBattle } from "../model/state.js"
+import { BattleState, encodeBattle } from "../model/state.js"
 import { Battle, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
 import { evalBattle } from "../model/reward.js"
@@ -12,7 +12,7 @@ export type Action = { side: Side; choice: Choice }
 
 type SideUpdate = {
   reward?: number
-  state?: BattleF
+  state?: BattleState
 }
 
 export type EnvUpdate = {
@@ -22,6 +22,41 @@ export type EnvUpdate = {
 }
 
 type Player = { obs: Observer; v?: number }
+
+function processArr(x: any, type: "float" | "int"): string {
+  x = x.flat(Infinity)
+  if (type === "float") x = new Float32Array(x)
+  else x = new Int32Array(x)
+  return Buffer.from(x.buffer).toString("base64")
+}
+
+function flattenState({
+  partyEnc,
+  userEnc,
+  activeIdx,
+  moveChoiceIdx,
+  moveMask,
+  switchMask
+}: BattleState) {
+  return {
+    partyEnc: processArr(partyEnc, "float"),
+    userEnc: processArr(userEnc, "float"),
+    activeIdx: processArr(activeIdx, "int"),
+    moveChoiceIdx: processArr(moveChoiceIdx, "int"),
+    moveMask: processArr(moveMask, "int"),
+    switchMask: processArr(switchMask, "int")
+  }
+}
+
+export function processUpdate(update: EnvUpdate) {
+  for (const side of SIDES) {
+    if (update[side]?.state) {
+      update[side].state = flattenState(update[side].state) as any
+    }
+  }
+
+  return update
+}
 
 export class Environment {
   battle: Battle

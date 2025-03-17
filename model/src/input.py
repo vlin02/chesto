@@ -1,4 +1,6 @@
+import numpy as np
 import torch
+from base64 import b64decode
 
 
 user_enc_dim = 28
@@ -14,6 +16,15 @@ INPUT_KEYS = [
     "move_choice_idx",
     "party_enc",
 ]
+
+FIELDS = dict(
+    user_enc=((2, 6, user_enc_dim), torch.float32),
+    party_enc=((party_enc_dim,), torch.float32),
+    active_idx=((2,), torch.int32),
+    move_mask=((4, 2), torch.int32),
+    switch_mask=((6,), torch.int32),
+    move_choice_idx=((4,), torch.int32),
+)
 
 
 def load_lookup(db, device):
@@ -31,51 +42,15 @@ def load_lookup(db, device):
     return lookup
 
 
-def vectorize_state(state, lookup, device):
-    ally = state["ally"]
-    foe = state["foe"]
-    opt = state["option"]
-
-    user_enc = torch.zeros(2, 6, user_enc_dim)
-    active_idx = torch.zeros(2, dtype=torch.long)
-    move_choice_idx = torch.zeros(4, dtype=torch.long)
-    party_enc = torch.zeros(2, party_enc_dim)
-
-    for i, party in enumerate([ally, foe]):
-        team = party["team"]
-        active_idx[i] = list(team.keys()).index(party["active"])
-        user_enc[i][: len(team)] = torch.tensor([*team.values()], device=device)
-        party_enc[i] = torch.tensor(party["x"], device=device)
-
-    move_mask = torch.zeros((4, 2), device=device)
-    switch_mask = torch.zeros(6, device=device)
-
-    tera = opt["tera"]
-    moves = opt["moves"]
-    switches = opt["switches"]
-
-    for i, move in enumerate(moves):
-        move_choice_idx[i] = lookup["move_idx"][move]
-        for j in range(2):
-            if j == 1 and (not tera):
-                continue
-            move_mask[i][j] = 1
-
-    for i, species in enumerate(ally["team"].keys()):
-        if species in switches:
-            switch_mask[i] = 1
-
-    return dict(
-        party_enc=party_enc,
-        user_enc=user_enc,
-        active_idx=active_idx,
-        move_mask=move_mask,
-        switch_mask=switch_mask,
-        move_choice_idx=move_choice_idx,
-    )
+@profile
+def vectorize_state(state, device):
+    return {
+        torch.frombuffer(b64decode(state[k]), device=device, dtype=dtype).reshape(dims)
+        for k, (dims, dtype) in FIELDS.items()
+    }
 
 
-def batch_states(inputs):
-    x = {k: torch.stack([x[k] for x in inputs]) for k in INPUT_KEYS}
-    x["batch_idx"] = torch.arange(len(inputs))
+def batch_states(inputs, device):
+    x = {k: torch.stack([x[k] for x in inputs]) for k in FIELDS.keys()}
+    x["batch_idx"] = torch.arange(len(inputs), device=device)
     return x

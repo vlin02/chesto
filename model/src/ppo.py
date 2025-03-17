@@ -23,15 +23,15 @@ async def train(
     device,
     update,
     create_env,
-    n_iters=100,
-    n_envs=200,
+    n_iters=500,
+    n_envs=60,
     clip_coef=0.1,
     gamma=0.99,
     vf_coef=0.75,
     n_steps=100,
-    n_epochs=5,
+    n_epochs=10,
     gae_lambda=0.9,
-    minibatch_size=32,
+    minibatch_size=1024,
     lr=0.003,
 ):
     nn = NN(lookup).to(device)
@@ -51,7 +51,7 @@ async def train(
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
     def process_states(states):
-        x = batch_states([vectorize_state(state, lookup, device) for state in states])
+        x = batch_states([vectorize_state(state, lookup) for state in states], device=device)
         x["raw"] = states
         return x
     
@@ -77,18 +77,18 @@ async def train(
                     *(env.step(to_choice(state, idx)) for env, state, idx in zip(envs, curr_states["raw"], action_idxs.tolist()))
                 )
 
-                curr_rewards, curr_dones, next_states = zip(*steps)
-                curr_rewards = torch.tensor(curr_rewards, device=device)
-                curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int)
+                # curr_rewards, curr_dones, next_states = zip(*steps)
+                # curr_rewards = torch.tensor(curr_rewards, device=device)
+                # curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int)
                 next_states = process_states(next_states)
 
-                tot_rewards += curr_rewards
-                for env_i in torch.nonzero(curr_dones).flatten().tolist():
-                    update(tot_rewards[env_i])
-                tot_rewards *= 1 - curr_dones
+                # tot_rewards += curr_rewards
+                # for env_i in torch.nonzero(curr_dones).flatten().tolist():
+                #     update(tot_rewards[env_i])
+                # tot_rewards *= 1 - curr_dones
 
-                rewards[t] = curr_rewards
-                dones[t] = curr_dones
+                # rewards[t] = curr_rewards
+                # dones[t] = curr_dones
 
         with torch.no_grad():
             _, next_values = nn(curr_states)
@@ -151,14 +151,15 @@ async def train(
 DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
 
 async def main():
-    async with aiohttp.ClientSession() as session:
+    connector = aiohttp.TCPConnector(limit=1000)
+    async with aiohttp.ClientSession(connector=connector) as session:
         def create_env():
             return Environment(session, "http://172.31.50.187:3000")
 
         def update(r):
             print(r)
 
-        device = torch.device("cpu")
+        device = torch.device("cuda")
         client = MongoClient(DB_URL)
         lookup = load_lookup(client["chesto"], device)
 
