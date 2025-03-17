@@ -126,7 +126,7 @@ export function encodeBattle(obs: Observer) {
         moveMask[i][j] = 1
       }
 
-      moveChoiceIdx[i] = gen.moves.get(moves[i])!.num
+      moveChoiceIdx[i] = moves[i] === "Recharge" ? 0 : gen.moves.get(moves[i])!.num
     }
   }
 

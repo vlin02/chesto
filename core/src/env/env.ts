@@ -74,7 +74,7 @@ export class Environment {
         tera: j === 1
       }
     }
-
+    
     id -= 8
     return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
   }
