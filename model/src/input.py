@@ -6,7 +6,7 @@ from base64 import b64decode
 user_enc_dim = 28
 move_feat_dim = 26
 move_enc_dim = move_feat_dim
-party_enc_dim = 7
+party_enc_dim = 19
 
 INPUT_KEYS = [
     "user_enc",
@@ -18,12 +18,12 @@ INPUT_KEYS = [
 ]
 
 FIELDS = dict(
-    user_enc=((2, 6, user_enc_dim), torch.float32),
-    party_enc=((party_enc_dim,), torch.float32),
-    active_idx=((2,), torch.int32),
-    move_mask=((4, 2), torch.int32),
-    switch_mask=((6,), torch.int32),
-    move_choice_idx=((4,), torch.int32),
+    user_enc=((2, 6, user_enc_dim), torch.float32, "userEnc"),
+    party_enc=((party_enc_dim,), torch.float32, "partyEnc"),
+    active_idx=((2,), torch.int32, "activeIdx"),
+    move_mask=((4, 2), torch.int32, "moveMask"),
+    switch_mask=((6,), torch.int32, "switchMask"),
+    move_choice_idx=((4,), torch.int32, "moveChoiceIdx"),
 )
 
 
@@ -45,8 +45,8 @@ def load_lookup(db, device):
 @profile
 def vectorize_state(state, device):
     return {
-        torch.frombuffer(b64decode(state[k]), device=device, dtype=dtype).reshape(dims)
-        for k, (dims, dtype) in FIELDS.items()
+        k: torch.frombuffer(b64decode(state[k1]), dtype=dtype).reshape(dims).to(device)
+        for k, (dims, dtype, k1) in FIELDS.items()
     }
 
 

@@ -17,9 +17,10 @@ async def main():
         state = await env.reset()
         print(env.id, env.side, state)
 
+        device = torch.device("cpu")
         for i in range(1000):
             print(i)
-            vectorize_state(state)
+            vectorize_state(state, device=device)
 
         # env.id = "fbfb2554-4e31-4b23-b1ff-093cd9fef36a"
         # env.side = "p1"

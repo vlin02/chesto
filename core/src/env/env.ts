@@ -38,6 +38,7 @@ function flattenState({
   moveMask,
   switchMask
 }: BattleState) {
+  console.log(partyEnc)
   return {
     partyEnc: processArr(partyEnc, "float"),
     userEnc: processArr(userEnc, "float"),

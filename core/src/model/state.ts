@@ -52,12 +52,6 @@ function encodeUser(gen: Generation, user: User) {
   return x
 }
 
-type PartyF = {
-  team: { [k: string]: UserF }
-  active: string
-  x: number[]
-}
-
 function encodeParty({ team, effects, teraUsed }: Party) {
   let x: number[] = []
   let totHp = 6
