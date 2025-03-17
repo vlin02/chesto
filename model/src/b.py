@@ -3,7 +3,7 @@ import aiohttp
 import asyncio
 from env import Environment
 from pymongo import MongoClient
-from input import load_lookup, vectorize_state
+from input import load_lookup, decode_state
 
 DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
 
@@ -18,9 +18,10 @@ async def main():
         print(env.id, env.side, state)
 
         device = torch.device("cpu")
-        for i in range(1000):
-            print(i)
-            vectorize_state(state, device=device)
+        for i in range(20000):
+            # print(i)
+            # print(state)
+            decode_state(state, device=device)
 
         # env.id = "fbfb2554-4e31-4b23-b1ff-093cd9fef36a"
         # env.side = "p1"

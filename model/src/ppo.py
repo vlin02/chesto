@@ -3,7 +3,7 @@ import aiohttp
 from net import NN
 import torch
 from torch import optim
-from input import INPUT_KEYS, load_lookup, vectorize_state, batch_states
+from input import INPUT_KEYS, load_lookup, decode_state, batch_states
 from env import Environment
 from pymongo import MongoClient
 import torch.nn.functional as F
@@ -51,7 +51,7 @@ async def train(
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
     def process_states(states):
-        x = batch_states([vectorize_state(state, lookup) for state in states], device=device)
+        x = batch_states([decode_state(state, lookup) for state in states], device=device)
         x["raw"] = states
         return x
     

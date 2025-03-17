@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 from base64 import b64decode
 
@@ -6,7 +5,7 @@ from base64 import b64decode
 user_enc_dim = 28
 move_feat_dim = 26
 move_enc_dim = move_feat_dim
-party_enc_dim = 19
+party_enc_dim = 7
 
 INPUT_KEYS = [
     "user_enc",
@@ -16,15 +15,6 @@ INPUT_KEYS = [
     "move_choice_idx",
     "party_enc",
 ]
-
-FIELDS = dict(
-    user_enc=((2, 6, user_enc_dim), torch.float32, "userEnc"),
-    party_enc=((party_enc_dim,), torch.float32, "partyEnc"),
-    active_idx=((2,), torch.int32, "activeIdx"),
-    move_mask=((4, 2), torch.int32, "moveMask"),
-    switch_mask=((6,), torch.int32, "switchMask"),
-    move_choice_idx=((4,), torch.int32, "moveChoiceIdx"),
-)
 
 
 def load_lookup(db, device):
@@ -42,15 +32,25 @@ def load_lookup(db, device):
     return lookup
 
 
-@profile
-def vectorize_state(state, device):
-    return {
-        k: torch.frombuffer(b64decode(state[k1]), dtype=dtype).reshape(dims).to(device)
-        for k, (dims, dtype, k1) in FIELDS.items()
-    }
-
-
-def batch_states(inputs, device):
-    x = {k: torch.stack([x[k] for x in inputs]) for k in FIELDS.keys()}
-    x["batch_idx"] = torch.arange(len(inputs), device=device)
+def decode_state(state, device):
+    x = {}
+    for _k, k, dtype, shape in [
+        ("userEnc", "user_enc", torch.float32, (2, 6, user_enc_dim)),
+        ("partyEnc", "party_enc", torch.float32, (2, party_enc_dim)),
+        ("activeIdx", "active_idx", torch.int32, (2,)),
+        ("moveMask", "move_mask", torch.int32, (4, 2)),
+        ("switchMask", "switch_mask", torch.int32, (6,)),
+        ("moveChoiceIdx", "move_choice_idx", torch.int32, (4,)),
+    ]:
+        x[k] = (
+            torch.frombuffer(bytearray(b64decode(state[_k])), dtype=dtype)
+            .reshape(*shape)
+            .to(device)
+        )
     return x
+
+
+# def batch_states(inputs, device):
+#     x = {k: torch.stack([x[k] for x in inputs]) for k in FIELDS.keys()}
+#     x["batch_idx"] = torch.arange(len(inputs), device=device)
+#     return x

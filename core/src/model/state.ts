@@ -1,5 +1,5 @@
 import { Generation } from "@pkmn/data"
-import { MOVE_CATEGORIES, Side, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
+import { MOVE_CATEGORIES, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
 import { Party, POVS } from "../parser/side.js"
@@ -17,10 +17,6 @@ function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   return stats
 }
 
-export type MoveF = {
-  x: number[]
-  type: string
-}
 
 export function encodeMove(gen: Generation, move: string) {
   const { basePower, priority, accuracy, type, category } = gen.moves.get(move)!
@@ -76,23 +72,6 @@ function encodeParty({ team, effects, teraUsed }: Party) {
   x.push(teraUsed ? 1 : 0)
 
   return x
-}
-
-export type OptionF = {
-  tera: boolean | undefined
-  moves: string[]
-  switches: string[]
-}
-
-export function encodeOption(obs: Observer): OptionF {
-  const opt = obs.getOption()!
-  const { select, switches } = opt
-
-  return {
-    tera: !!select?.tera,
-    moves: select ? toMoves(select) : [],
-    switches
-  }
 }
 
 export type BattleState = {
@@ -156,7 +135,6 @@ export function encodeBattle(obs: Observer) {
   for (let i = 0; i < 6; i++) {
     if (switches.includes(teamK[i])) switchMask[i] = 1
   }
-  console.log(partyEnc)
 
   return {
     partyEnc,
@@ -165,5 +143,30 @@ export function encodeBattle(obs: Observer) {
     moveChoiceIdx,
     moveMask,
     switchMask
+  }
+}
+
+function toB64(x: any, type: "float" | "int"): string {
+  x = x.flat(Infinity)
+  if (type === "float") x = new Float32Array(x)
+  else x = new Int32Array(x)
+  return Buffer.from(x.buffer).toString("base64")
+}
+
+export function serializeBattle({
+  partyEnc,
+  userEnc,
+  activeIdx,
+  moveChoiceIdx,
+  moveMask,
+  switchMask
+}: BattleState) {
+  return {
+    partyEnc: toB64(partyEnc, "float"),
+    userEnc: toB64(userEnc, "float"),
+    activeIdx: toB64(activeIdx, "int"),
+    moveChoiceIdx: toB64(moveChoiceIdx, "int"),
+    moveMask: toB64(moveMask, "int"),
+    switchMask: toB64(switchMask, "int")
   }
 }
