@@ -17,7 +17,6 @@ function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   return stats
 }
 
-
 export function encodeMove(gen: Generation, move: string) {
   const { basePower, priority, accuracy, type, category } = gen.moves.get(move)!
   let x: number[] = []
@@ -74,21 +73,21 @@ function encodeParty({ team, effects, teraUsed }: Party) {
   return x
 }
 
-export type BattleState = {
-  partyEnc: number[][]
-  userEnc: number[][][]
-  activeIdx: number[]
-  moveChoiceIdx: number[]
-  moveMask: number[][]
-  switchMask: number[]
-}
-
 function zeros(dims: number[]): any {
   if (dims.length === 1) return Array(dims[0]).fill(0)
 
   return Array(dims[0])
     .fill(null)
     .map(() => zeros(dims.slice(1)))
+}
+
+type BattleF = {
+  partyEnc: number[][]
+  userEnc: number[][][]
+  activeIdx: number[]
+  moveChoiceIdx: number[]
+  moveMask: number[][]
+  switchMask: number[]
 }
 
 export function encodeBattle(obs: Observer) {
@@ -153,14 +152,23 @@ function toB64(x: any, type: "float" | "int"): string {
   return Buffer.from(x.buffer).toString("base64")
 }
 
-export function serializeBattle({
+export type PackedBattle = {
+  partyEnc: string
+  userEnc: string
+  activeIdx: string
+  moveChoiceIdx: string
+  moveMask: string
+  switchMask: string
+}
+
+export function packBattle({
   partyEnc,
   userEnc,
   activeIdx,
   moveChoiceIdx,
   moveMask,
   switchMask
-}: BattleState) {
+}: BattleF) {
   return {
     partyEnc: toB64(partyEnc, "float"),
     userEnc: toB64(userEnc, "float"),

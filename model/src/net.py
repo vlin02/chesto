@@ -46,9 +46,9 @@ class NN(nn.Module):
         move_mask = x["move_mask"]
         switch_mask = x["switch_mask"]
         move_choice_idx = x["move_choice_idx"]
-        batch_idx = x["batch_idx"]
         party_enc = x["party_enc"]
-        batch_dim = batch_idx.size(0)
+        batch_dim = user_enc.shape[0]
+        batch_idx = torch.arange(batch_dim, device=user_enc.device)
 
         move_choice_emb = self.move_embed_block(
             self.lookup["move_enc"][move_choice_idx]

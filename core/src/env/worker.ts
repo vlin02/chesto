@@ -3,7 +3,7 @@ import { Side } from "../battle.js"
 import { Teams } from "@pkmn/sim"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
-import { Action, Environment, processUpdate } from "./env.js"
+import { Action, Environment } from "./env.js"
 import { TeamGenerators } from "@pkmn/randoms"
 
 Teams.setGeneratorFactory(TeamGenerators)
@@ -28,14 +28,14 @@ main!.on("message", ([id, body]: WorkerRequest) => {
       const env = new Environment(gen, auto, TURN_LIMIT)
       envs.set(id, env)
 
-      main.postMessage([id, processUpdate(env.step([]))])
+      main.postMessage([id, env.step([])])
       break
     }
     case "step": {
       const { actions } = body
       const env = envs.get(id)!
 
-      main.postMessage([id, processUpdate(env.step(actions))])
+      main.postMessage([id, env.step(actions)])
       break
     }
     case "close": {

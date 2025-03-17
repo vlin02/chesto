@@ -7,7 +7,8 @@ move_feat_dim = 26
 move_enc_dim = move_feat_dim
 party_enc_dim = 7
 
-INPUT_KEYS = [
+
+STATE_FIELDS = [
     "user_enc",
     "active_idx",
     "move_mask",
@@ -50,7 +51,15 @@ def decode_state(state, device):
     return x
 
 
-# def batch_states(inputs, device):
-#     x = {k: torch.stack([x[k] for x in inputs]) for k in FIELDS.keys()}
-#     x["batch_idx"] = torch.arange(len(inputs), device=device)
-#     return x
+def batch_states(inputs):
+    return {
+        k: torch.stack([x[k] for x in inputs])
+        for k in [
+            "user_enc",
+            "active_idx",
+            "move_mask",
+            "switch_mask",
+            "move_choice_idx",
+            "party_enc",
+        ]
+    }

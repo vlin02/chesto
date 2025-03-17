@@ -2,17 +2,17 @@ import { Side, SIDES } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../agents.js"
-import { Choice } from "../parser/option.js"
-import { BattleState, encodeBattle, serializeBattle } from "../model/state.js"
+import { PackedBattle, encodeBattle, packBattle } from "../model/state.js"
 import { Battle, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
 import { evalBattle } from "../model/reward.js"
+import { Choice, toMoves } from "../parser/option.js"
 
-export type Action = { side: Side; choice: Choice }
+export type Action = { side: Side; id: number }
 
 type SideUpdate = {
   reward?: number
-  state?: BattleState
+  state?: PackedBattle
 }
 
 export type EnvUpdate = {
@@ -49,7 +49,7 @@ export class Environment {
     this.turnLimit = turnLimit
   }
 
-  private choose({ side, choice }: Action) {
+  private choose(side: Side, choice: Choice) {
     this.battle.choose(side, this[side].obs.formatChoice(choice))
     this.battle.sendUpdates()
   }
@@ -62,9 +62,27 @@ export class Environment {
     return r
   }
 
+  private toChoice({ side, id }: Action): Choice {
+    const { obs } = this[side]
+    const opt = obs.getOption()!
+    if (id < 8) {
+      const j = id % 2
+      const i = (id - j) / 2
+      return {
+        type: "move",
+        move: toMoves(opt.select!)[i],
+        tera: j === 1
+      }
+    }
+
+    id -= 8
+    return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
+  }
+
   step(actions: Action[]): EnvUpdate {
     for (const action of actions) {
-      this.choose(action)
+      const { side } = action
+      this.choose(side, this.toChoice(action))
     }
 
     while (true) {
@@ -116,7 +134,7 @@ export class Environment {
         for (const side of deferred) {
           update[side] = {
             reward: this.stepReward(side),
-            state: serializeBattle(encodeBattle(this[side].obs))
+            state: packBattle(encodeBattle(this[side].obs))
           }
         }
 

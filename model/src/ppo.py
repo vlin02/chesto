@@ -3,19 +3,11 @@ import aiohttp
 from net import NN
 import torch
 from torch import optim
-from input import INPUT_KEYS, load_lookup, decode_state, batch_states
+from input import STATE_FIELDS, load_lookup, decode_state, batch_states
 from env import Environment
 from pymongo import MongoClient
 import torch.nn.functional as F
 
-def to_choice(state, idx):
-    opt = state["option"]
-    if idx < 8:
-        i, j = idx // 2, idx % 2
-        return dict(type="move", move=opt["moves"][i], tera= j == 1)
-
-    i = idx - 8
-    return dict(type="switch", species=list(state["ally"]["team"].keys())[i])
 
 @profile
 async def train(
@@ -35,7 +27,7 @@ async def train(
     lr=0.003,
 ):
     nn = NN(lookup).to(device)
-    torch.compile(nn)
+    # torch.compile(nn)
 
     envs = [create_env() for _ in range(n_envs)]
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
@@ -51,44 +43,47 @@ async def train(
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
     def process_states(states):
-        x = batch_states([decode_state(state, lookup) for state in states], device=device)
-        x["raw"] = states
-        return x
-    
+        return batch_states(
+            [decode_state(state, device) for state in states]
+        )
+
     next_states = process_states(await asyncio.gather(*(env.reset() for env in envs)))
     tot_rewards = torch.zeros(n_envs, device=device)
 
     for iter in range(n_iters):
         for t in range(0, n_steps):
             curr_states = next_states
-            
+
             with torch.no_grad():
                 print(t)
                 states[t] = curr_states
                 logits, values[t] = nn(curr_states)
-                
-                dist = torch.distributions.Categorical(F.softmax(logits, dim= 1))
-                action_idxs = dist.sample()
 
-                log_probs[t] = dist.log_prob(action_idxs)
-                actions[t] = action_idxs
+                dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
+                action_ids = dist.sample()
+
+                log_probs[t] = dist.log_prob(action_ids)
+                actions[t] = action_ids
 
                 steps = await asyncio.gather(
-                    *(env.step(to_choice(state, idx)) for env, state, idx in zip(envs, curr_states["raw"], action_idxs.tolist()))
+                    *(
+                        env.step(action_id)
+                        for env, action_id in zip(envs, action_ids.tolist())
+                    )
                 )
 
-                # curr_rewards, curr_dones, next_states = zip(*steps)
-                # curr_rewards = torch.tensor(curr_rewards, device=device)
-                # curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int)
+                curr_rewards, curr_dones, next_states = zip(*steps)
+                curr_rewards = torch.tensor(curr_rewards, device=device)
+                curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int)
                 next_states = process_states(next_states)
 
-                # tot_rewards += curr_rewards
-                # for env_i in torch.nonzero(curr_dones).flatten().tolist():
-                #     update(tot_rewards[env_i])
-                # tot_rewards *= 1 - curr_dones
+                tot_rewards += curr_rewards
+                for env_i in torch.nonzero(curr_dones).flatten().tolist():
+                    update(tot_rewards[env_i])
+                tot_rewards *= 1 - curr_dones
 
-                # rewards[t] = curr_rewards
-                # dones[t] = curr_dones
+                rewards[t] = curr_rewards
+                dones[t] = curr_dones
 
         with torch.no_grad():
             _, next_values = nn(curr_states)
@@ -103,31 +98,30 @@ async def train(
 
             returns = advantages + values
 
-        b_states = {k: torch.cat([x[k] for x in states]) for k in INPUT_KEYS}
+        b_states = {k: torch.cat([x[k] for x in states]) for k in STATE_FIELDS}
         b_log_probs = log_probs.reshape(-1)
         b_actions = actions.reshape(-1)
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
 
-        x = {"batch_idx": torch.arange(minibatch_size, device=device)}
-
-        for epoch in range(n_epochs):
+        mb_x = {}
+        for _ in range(n_epochs):
             idxs = torch.randperm(n_samples)
             cnt = n_samples // minibatch_size
 
             for start in range(0, cnt):
-                mb_idxs = idxs[start * minibatch_size : (start + 1) * minibatch_size]
-                
-                for k in INPUT_KEYS:
-                    x[k] = b_states[k][mb_idxs]
-                logits, value = nn(x)
+                mb_i = idxs[start * minibatch_size : (start + 1) * minibatch_size]
+
+                for k in STATE_FIELDS:
+                    mb_x[k] = b_states[k][mb_i]
+                logits, value = nn(mb_x)
 
                 dist = torch.distributions.Categorical(logits)
-                new_log_probs = dist.log_prob(b_actions[mb_idxs])
-                log_ratio = new_log_probs - b_log_probs[mb_idxs]
+                new_log_probs = dist.log_prob(b_actions[mb_i])
+                log_ratio = new_log_probs - b_log_probs[mb_i]
                 ratio = log_ratio.exp()
 
-                mb_advantages = b_advantages[mb_idxs]
+                mb_advantages = b_advantages[mb_i]
                 mb_advantages = (mb_advantages - mb_advantages.mean()) / (
                     mb_advantages.std() + 1e-8
                 )
@@ -138,7 +132,7 @@ async def train(
                 )
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
-                v_loss = 0.5 * ((value - b_returns[mb_idxs]) ** 2).mean()
+                v_loss = 0.5 * ((value - b_returns[mb_i]) ** 2).mean()
 
                 loss = pg_loss + vf_coef * v_loss
 
@@ -150,9 +144,11 @@ async def train(
 
 DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
 
+
 async def main():
     connector = aiohttp.TCPConnector(limit=1000)
     async with aiohttp.ClientSession(connector=connector) as session:
+
         def create_env():
             return Environment(session, "http://172.31.50.187:3000")
 
