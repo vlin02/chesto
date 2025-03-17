@@ -116,7 +116,7 @@ export function encodeBattle(obs: Observer) {
   const { ally, gen } = obs
 
   const activeIdx: number[] = zeros([2])
-  const partyEnc: number[][] = zeros([7])
+  const partyEnc: number[][] = zeros([2, 7])
   const userEnc: number[][][] = zeros([2, 6, 28])
   const moveChoiceIdx: number[] = zeros([4])
   const moveMask: number[][] = zeros([4, 2])
@@ -156,6 +156,7 @@ export function encodeBattle(obs: Observer) {
   for (let i = 0; i < 6; i++) {
     if (switches.includes(teamK[i])) switchMask[i] = 1
   }
+  console.log(partyEnc)
 
   return {
     partyEnc,
