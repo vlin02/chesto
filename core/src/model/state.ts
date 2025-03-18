@@ -1,5 +1,5 @@
 import { Generation } from "@pkmn/data"
-import { MOVE_CATEGORIES, STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
+import { STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
 import { Party, POVS } from "../parser/side.js"
@@ -15,19 +15,6 @@ function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   }
 
   return stats
-}
-
-export function encodeMove(gen: Generation, move: string) {
-  const { basePower, priority, accuracy, type, category } = gen.moves.get(move)!
-  let x: number[] = []
-
-  x.push(basePower / 100)
-  x.push(...MOVE_CATEGORIES.map((k) => (category === k ? 1 : 0)))
-  x.push((accuracy === true ? 100 : accuracy) / 100)
-  x.push(priority)
-  x.push(...TYPE_NAMES.map((k) => (type === k ? 1 : 0)))
-
-  return x
 }
 
 function encodeUser(gen: Generation, user: User) {
