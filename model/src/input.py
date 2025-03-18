@@ -4,7 +4,8 @@ import numpy as np
 
 user_enc_dim = 28
 move_feat_dim = 246
-move_enc_dim = move_feat_dim
+move_embed_dim = 128
+move_enc_dim = move_feat_dim + move_embed_dim
 party_enc_dim = 7
 
 
@@ -26,7 +27,7 @@ def load_lookup(db, device):
     move_enc = torch.zeros(1000, move_enc_dim, device=device)
 
     for move in moves:
-        move_enc[move["num"]] = torch.tensor(move["x"], device=device)
+        move_enc[move["num"]] = torch.tensor(move["x"] + move["openai"], device=device)
 
     lookup["move_idx"] = move_idx
     lookup["move_enc"] = move_enc

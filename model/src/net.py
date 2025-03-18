@@ -4,7 +4,7 @@ from torch import nn
 from input import move_enc_dim, user_enc_dim, party_enc_dim
 
 battle_emb_dim = 64
-move_emb_dim = 64
+move_emb_dim = 96
 user_emb_dim = 32
 
 
@@ -14,13 +14,17 @@ class NN(nn.Module):
 
         self.lookup = lookup
         self.move_embed_block = nn.Sequential(
-            nn.Linear(move_enc_dim, 128), nn.Tanh(), nn.Linear(128, move_emb_dim)
+            nn.Linear(move_enc_dim, 128),
+            nn.Tanh(),
+            nn.Linear(128, 128),
+            nn.Tanh(),
+            nn.Linear(128, move_emb_dim),
         )
         self.user_block = nn.Sequential(
             nn.Linear(user_enc_dim, 64), nn.Tanh(), nn.Linear(64, user_emb_dim)
         )
         self.battle_block = nn.Sequential(
-            nn.Linear((32 + party_enc_dim) * 2, 64),
+            nn.Linear((user_emb_dim + party_enc_dim) * 2, 64),
             nn.Tanh(),
             nn.Linear(64, battle_emb_dim),
         )

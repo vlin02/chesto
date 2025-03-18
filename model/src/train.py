@@ -11,7 +11,7 @@ def plot_eps(eps, path):
     rewards, turns, wons = zip(*eps)
     
     # Create figure with GridSpec layout
-    fig = plt.figure(figsize=(30, 30))
+    fig = plt.figure(figsize=(20, 20))
     gs = plt.GridSpec(2, 2, height_ratios=[1, 1])
     
     # Top plot - rewards (spanning full width)

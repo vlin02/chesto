@@ -3,12 +3,15 @@ import { Observer } from "../parser/observer.js"
 import { User } from "../parser/user.js"
 
 export function evalUser(users: User[]) {
-  let t = 6 * 8
+  let t = 6 * 10
   for (const { hp, status, boosts } of users) {
-    const ratio = hp[0] / hp[1]
-    if (ratio === 0) t -= 2
-    if (status) t -= 1
-    t -= (1 - ratio) * 5
+    if (hp[0] === 0) {
+      t -= 10
+    } else {
+      const ratio = hp[0] / hp[1]
+      if (status) t -= 2
+      t -= (1 - ratio) * 5
+    }
 
     t += sumBoosts(boosts)
   }
@@ -20,9 +23,9 @@ export function evalBattle(obs: Observer) {
   if (obs.winner && obs.winner !== "tie") t += obs.winner === obs.side ? 5 : -5
 
   const { ally, foe } = obs
-  const [tAlly, tFoe] = [ally, foe].map(({ team, teraUsed, effects }) => {
+  const [tAlly, tFoe] = [ally, foe].map(({ team, effects }) => {
     const { hazards, screens } = sumSideEffects(Object.keys(effects))
-    return evalUser(Object.values(team)) + (teraUsed ? 0 : 3) + 2 * screens - 3 * hazards
+    return evalUser(Object.values(team)) + screens - 2 * hazards
   })
 
   t += tAlly - tFoe
@@ -37,6 +40,7 @@ export function sumBoosts(boosts: Boosts) {
 export function sumSideEffects(effects: string[]) {
   let totHazards = 0
   let totScreens = 0
+  
   for (const effect of effects) {
     if (HAZARDS.includes(effect as any)) totHazards++
     if (SCREENS.includes(effect as any)) totScreens++
