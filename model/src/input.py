@@ -3,7 +3,7 @@ from pybase64 import b64decode
 import numpy as np
 
 user_enc_dim = 28
-move_feat_dim = 26
+move_feat_dim = 246
 move_enc_dim = move_feat_dim
 party_enc_dim = 7
 
@@ -21,12 +21,12 @@ STATE_FIELDS = [
 def load_lookup(db, device):
     lookup = {}
     moves = list(db["moves"].find())
-    move_idx = {x["name"]: x["i"] for x in moves}
+    move_idx = {x["name"]: x["num"] for x in moves}
     move_idx["Recharge"] = 0
     move_enc = torch.zeros(1000, move_enc_dim, device=device)
 
     for move in moves:
-        move_enc[move["i"]] = torch.tensor(move["x"], device=device)
+        move_enc[move["num"]] = torch.tensor(move["x"], device=device)
 
     lookup["move_idx"] = move_idx
     lookup["move_enc"] = move_enc

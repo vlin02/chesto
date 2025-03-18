@@ -8,21 +8,26 @@ def rolling_avg(nums, window):
 
 
 def plot_eps(eps, path):
-    step = max(1, len(eps) // 1000)
-    sample = eps[::step]
-    rewards, turns, wons = zip(*sample)
-
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-
-    axs[0].plot(rewards)
-    axs[0].grid(True)
-
-    axs[1].plot(rolling_avg(np.array(turns), 10))
-    axs[1].grid(True)
-
-    axs[2].plot(rolling_avg(np.array(wons, 10)))
-    axs[2].grid(True)
-
+    rewards, turns, wons = zip(*eps)
+    
+    # Create figure with GridSpec layout
+    fig = plt.figure(figsize=(30, 30))
+    gs = plt.GridSpec(2, 2, height_ratios=[1, 1])
+    
+    # Top plot - rewards (spanning full width)
+    ax_rewards = fig.add_subplot(gs[0, :])
+    ax_rewards.plot(rewards)
+    ax_rewards.grid(True)
+    
+    # Bottom left - turns
+    ax_turns = fig.add_subplot(gs[1, 0])
+    ax_turns.plot(rolling_avg(np.array(turns), 100))
+    ax_turns.grid(True)
+    
+    # Bottom right - wins
+    ax_wins = fig.add_subplot(gs[1, 1])
+    ax_wins.plot(rolling_avg(np.array(wons), 100))
+    ax_wins.grid(True)
+    
     plt.savefig(path)
     plt.close()
-

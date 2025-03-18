@@ -4,7 +4,9 @@ from torch import nn
 from input import move_enc_dim, user_enc_dim, party_enc_dim
 
 battle_emb_dim = 64
-move_emb_dim = 32
+move_emb_dim = 64
+user_emb_dim = 32
+
 
 class NN(nn.Module):
     def __init__(self, lookup):
@@ -12,23 +14,25 @@ class NN(nn.Module):
 
         self.lookup = lookup
         self.move_embed_block = nn.Sequential(
-            nn.Linear(move_enc_dim, 64), nn.Tanh(), nn.Linear(64, 32)
+            nn.Linear(move_enc_dim, 128), nn.Tanh(), nn.Linear(128, move_emb_dim)
         )
         self.user_block = nn.Sequential(
-            nn.Linear(user_enc_dim, 64), nn.Tanh(), nn.Linear(64, 32)
+            nn.Linear(user_enc_dim, 64), nn.Tanh(), nn.Linear(64, user_emb_dim)
         )
         self.battle_block = nn.Sequential(
-            nn.Linear((32 + party_enc_dim) * 2, 64), nn.Tanh(), nn.Linear(64, battle_emb_dim)
+            nn.Linear((32 + party_enc_dim) * 2, 64),
+            nn.Tanh(),
+            nn.Linear(64, battle_emb_dim),
         )
         self.move_logits_block = nn.Sequential(
-            nn.Linear(32 + battle_emb_dim + 1, 64),
+            nn.Linear(move_emb_dim + battle_emb_dim + 1, 64),
             nn.Tanh(),
             nn.Linear(64, 64),
             nn.Tanh(),
             nn.Linear(64, 1),
         )
         self.switch_logits_block = nn.Sequential(
-            nn.Linear(32 + battle_emb_dim, 64),
+            nn.Linear(user_emb_dim + battle_emb_dim, 64),
             nn.Tanh(),
             nn.Linear(64, 64),
             nn.Tanh(),
@@ -39,7 +43,11 @@ class NN(nn.Module):
             "tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1)
         )
         self.critic = nn.Sequential(
-            nn.Linear(battle_emb_dim, 64), nn.Tanh(), nn.Linear(64, 64), nn.Tanh(), nn.Linear(64, 1)
+            nn.Linear(battle_emb_dim, 64),
+            nn.Tanh(),
+            nn.Linear(64, 64),
+            nn.Tanh(),
+            nn.Linear(64, 1),
         )
 
     # @profile
@@ -76,8 +84,12 @@ class NN(nn.Module):
         move_logits = self.move_logits_block(
             torch.cat(
                 [
-                    move_choice_emb.view(batch_dim, 4, 1, move_emb_dim).expand(-1, -1, 2, -1),
-                    battle_emb.view(batch_dim, 1, 1, battle_emb_dim).expand(-1, 4, 2, -1),
+                    move_choice_emb.view(batch_dim, 4, 1, move_emb_dim).expand(
+                        -1, -1, 2, -1
+                    ),
+                    battle_emb.view(batch_dim, 1, 1, battle_emb_dim).expand(
+                        -1, 4, 2, -1
+                    ),
                     self.tera_flag.expand(batch_dim, -1, -1, -1),
                 ],
                 dim=-1,
@@ -86,7 +98,10 @@ class NN(nn.Module):
 
         switch_logits = self.switch_logits_block(
             torch.cat(
-                [user_emb[:, 0], battle_emb.view(batch_dim, 1, battle_emb_dim).expand(-1, 6, -1)],
+                [
+                    user_emb[:, 0],
+                    battle_emb.view(batch_dim, 1, battle_emb_dim).expand(-1, 6, -1),
+                ],
                 dim=-1,
             )
         ).squeeze(-1)

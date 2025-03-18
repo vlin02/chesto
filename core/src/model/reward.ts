@@ -22,7 +22,7 @@ export function evalBattle(obs: Observer) {
   const { ally, foe } = obs
   const [tAlly, tFoe] = [ally, foe].map(({ team, teraUsed, effects }) => {
     const { hazards, screens } = sumSideEffects(Object.keys(effects))
-    return evalUser(Object.values(team)) + (teraUsed ? 0 : 5) + 2 * screens - 3 * hazards
+    return evalUser(Object.values(team)) + (teraUsed ? 0 : 3) + 2 * screens - 3 * hazards
   })
 
   t += tAlly - tFoe
