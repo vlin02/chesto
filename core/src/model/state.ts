@@ -21,7 +21,7 @@ export function encodeMove(gen: Generation, move: string) {
   const { basePower, priority, accuracy, type, category } = gen.moves.get(move)!
   let x: number[] = []
 
-  x.push(basePower / 250)
+  x.push(basePower / 100)
   x.push(...MOVE_CATEGORIES.map((k) => (category === k ? 1 : 0)))
   x.push((accuracy === true ? 100 : accuracy) / 100)
   x.push(priority)
@@ -29,7 +29,6 @@ export function encodeMove(gen: Generation, move: string) {
 
   return x
 }
-type UserF = number[]
 
 function encodeUser(gen: Generation, user: User) {
   const { revealed, hp, lvl, types, forme } = user
@@ -40,8 +39,8 @@ function encodeUser(gen: Generation, user: User) {
   const stats = user.pov === "ally" ? { ...user.stats!, hp: hp[1] } : inferStats(gen, forme, lvl)
   const hpRatio = hp[0] / hp[1]
 
-  x.push((hpRatio * stats.hp) / 600)
-  x.push(...STAT_IDS.map((k) => stats[k] / 600))
+  x.push((hpRatio * stats.hp) / 100)
+  x.push(...STAT_IDS.map((k) => stats[k] / 100))
   x.push(...TYPE_NAMES.map((k) => (types.includes(k) ? 1 : 0)))
 
   return x

@@ -8,7 +8,7 @@ from env import Environment
 from pymongo import MongoClient
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-import numpy as np
+from train import plot_eps
 
 
 @profile
@@ -20,16 +20,16 @@ async def train(
     n_iters=500,
     n_envs=100,
     clip_coef=0.1,
-    gamma=0.9,
+    gamma=0.8,
     vf_coef=0.75,
     n_steps=70,
     n_epochs=15,
-    gae_lambda=0.95,
+    gae_lambda=0.9,
     minibatch_size=256,
-    lr=0.0003,
+    lr=0.001,
 ):
     nn = NN(lookup).to(device)
-    torch.compile(nn)
+    nn = torch.compile(nn, mode="reduce-overhead")
 
     envs = [create_env() for _ in range(n_envs)]
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
@@ -72,18 +72,19 @@ async def train(
                     )
                 )
 
-                curr_rewards, curr_dones, next_states = zip(*steps)
+                curr_rewards, statuses, next_states = zip(*steps)
                 curr_rewards = torch.tensor(curr_rewards, device=device)
-                curr_dones = torch.tensor(curr_dones, device=device, dtype=torch.int32)
                 next_states = process_states(next_states)
 
                 tot_rewards += curr_rewards
-                for env_i in torch.nonzero(curr_dones).flatten().tolist():
-                    update(tot_rewards[env_i])
-                tot_rewards *= 1 - curr_dones
+
+                for i, (done, turn, won) in enumerate(statuses):
+                    if done:
+                        dones[t][i] = 1
+                        update((tot_rewards[i], turn, won))
+                        tot_rewards[i] = 0
 
                 rewards[t] = curr_rewards
-                dones[t] = curr_dones
 
         with torch.no_grad():
             _, next_values = nn(curr_states)
@@ -104,6 +105,9 @@ async def train(
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
 
+        unique, counts = torch.unique(b_actions, return_counts=True)
+        print("iter actions:", zip(unique, counts))
+
         mb_x = {}
         for epoch in range(n_epochs):
             print(epoch)
@@ -115,6 +119,7 @@ async def train(
 
                 for k in STATE_FIELDS:
                     mb_x[k] = b_states[k][mb_i]
+
                 logits, value = nn(mb_x)
 
                 dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
@@ -139,7 +144,6 @@ async def train(
 
                 optimizer.zero_grad()
                 loss.backward()
-
                 optimizer.step()
 
 
@@ -147,25 +151,22 @@ DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
 
 
 async def main():
-    connector = aiohttp.TCPConnector(limit=1000)
+    torch.set_float32_matmul_precision("high")
+
+    connector = aiohttp.TCPConnector(limit=200)
+
     async with aiohttp.ClientSession(connector=connector) as session:
 
         def create_env():
             return Environment(session, "http://172.31.50.187:3000")
 
-        # List to store rewards
-        rewards_list = []
+        eps = []
+        def update(ep):
+            eps.append(ep)
 
-        def update(r):
-            # Convert tensor to float and add to list
-            rewards_list.append(r.item())
-            
-            # Plot and save every 100 updates
-            if len(rewards_list) % 100 == 0:
-                plt.figure(figsize=(10, 6))
-                plt.plot(rewards_list)
-                plt.grid(True)
-                plt.savefig(f'rewards_plot_1.png')
+            if len(eps) % 100 == 0:
+                fig = plot_eps(eps)
+                fig.savefig("rewards_plot_1.png")
                 plt.close()
 
         device = torch.device("cuda")

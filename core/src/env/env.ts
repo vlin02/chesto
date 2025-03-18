@@ -1,4 +1,4 @@
-import { Side, SIDES } from "../battle.js"
+import { Side, SIDES, Winner } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../agents.js"
@@ -17,6 +17,8 @@ type SideUpdate = {
 
 export type EnvUpdate = {
   done: boolean
+  winner: Winner | null
+  turn: number
   p1?: SideUpdate
   p2?: SideUpdate
 }
@@ -74,7 +76,7 @@ export class Environment {
         tera: j === 1
       }
     }
-    
+
     id -= 8
     return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
   }
@@ -86,8 +88,7 @@ export class Environment {
     }
 
     while (true) {
-      let winner = false
-      let turn: number | undefined
+      let winner: Winner | null = null
       const pending: Side[] = []
 
       for (const log of this.logs) {
@@ -101,17 +102,19 @@ export class Environment {
             if (e.error?.startsWith("[Invalid choice]")) {
               throw e.error
             }
-            if (e.winner) winner = true
+            if (e.winner) winner = e.winner
             if (e.pending) pending.push(side)
-            if (e.turn) turn = e.turn
           }
         }
       }
       this.logs = []
 
+      const { turn } = this.p1.obs
       if ((turn && turn > this.turnLimit) || winner) {
         return {
           done: true,
+          turn,
+          winner,
           p1: { reward: this.stepReward("p1")! },
           p2: { reward: this.stepReward("p2")! }
         }
@@ -130,7 +133,7 @@ export class Environment {
       }
 
       if (deferred.length) {
-        const update: EnvUpdate = { done: false }
+        const update: EnvUpdate = { done: false, turn, winner }
         for (const side of deferred) {
           update[side] = {
             reward: this.stepReward(side),

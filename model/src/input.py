@@ -33,7 +33,6 @@ def load_lookup(db, device):
     return lookup
 
 
-@profile
 def decode_state(states, device):
     x = {}
     N = len(states)

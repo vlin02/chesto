@@ -15,7 +15,7 @@ class Environment:
     async def reset(self):
         if self.id:
             await self.session.delete(f"{self.url}/{self.id}")
-        
+
         self.done = False
         self.side = random.choice(SIDES)
 
@@ -33,10 +33,20 @@ class Environment:
         ) as res:
             res = await res.json()
             done = res["done"]
+            turn = res["turn"]
+            winner = res["winner"]
             side = res[self.side]
+
+            won = None
+            if winner == self.side:
+                won = True
+            elif winner == OPP[self.side]:
+                won = False
+
+            status = (done, turn, won)
 
             if done:
                 next_state = await self.reset()
-                return side["reward"], True, next_state
+                return side["reward"], status, next_state
             else:
-                return side["reward"], False, side["state"]
+                return side["reward"], status, side["state"]
