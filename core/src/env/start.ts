@@ -6,7 +6,7 @@ serve({
   fetch: app.fetch,
   port: PORT,
   serverOptions: {
-    keepAliveTimeout: 0, // Disable keep-alive timeout (connections stay open indefinitely)
+    keepAliveTimeout: 0
   }
 })
 

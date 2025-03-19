@@ -27,7 +27,7 @@ function extractBattleId(s: string) {
   return match?.[1]
 }
 
-export class Session {
+export class User {
   challstr!: string
   username!: string
   ws: WebSocket

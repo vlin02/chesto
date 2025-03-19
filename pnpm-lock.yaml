@@ -52,6 +52,9 @@ importers:
       mongodb:
         specifier: ^6.12.0
         version: 6.12.0(socks@2.8.3)
+      nanoid:
+        specifier: ^5.1.5
+        version: 5.1.5
       ndarray:
         specifier: ^1.0.19
         version: 1.0.19
@@ -266,6 +269,11 @@ packages:
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+
+  nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
 
   ndarray@1.0.19:
     resolution: {integrity: sha512-B4JHA4vdyZU30ELBw3g7/p9bZupyew5a7tX1Y/gGeF2hafrPaQZhgrGQfsvgfYbgdFZjYwuEcnaobeM/WMW+HQ==}
@@ -561,6 +569,8 @@ snapshots:
       socks: 2.8.3
 
   ms@2.1.3: {}
+
+  nanoid@5.1.5: {}
 
   ndarray@1.0.19:
     dependencies:
