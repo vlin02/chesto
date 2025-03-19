@@ -1,7 +1,7 @@
 import { Side, SIDES, Winner } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
-import { RandomAgent } from "../agents.js"
+import { RandomAgent } from "../eval/agents.js"
 import { PackedBattle, encodeBattle, packBattle } from "../model/state.js"
 import { Battle, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"

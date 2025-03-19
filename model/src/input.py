@@ -34,7 +34,7 @@ def load_lookup(db, device):
     return lookup
 
 
-def decode_state(states, device):
+def decode_states(states, device):
     x = {}
     N = len(states)
     for _k, k, dtype, shape in [
