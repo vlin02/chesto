@@ -78,7 +78,7 @@ function canTera(gen: Generation, { volatiles }: User) {
 export type Fields = { [k: string]: number }
 export type Weather = { name: WeatherName; turn: number }
 
-type Event = {
+export type BattleEvent = {
   winner?: Side | "tie"
   turn?: number
   pending?: boolean
@@ -197,13 +197,13 @@ export class Observer {
     })
   }
 
-  read(line: string): Event {
+  read(line: string): BattleEvent {
     let p: { args: string[]; i: number }
     p = piped(line, 1)
     const msgType = p.args[0]
 
     const currLine: Line = {}
-    let event: Event = {}
+    let event: BattleEvent = {}
 
     switch (msgType) {
       case "player": {
@@ -217,7 +217,9 @@ export class Observer {
         break
       }
       case "request": {
-        this.req = parseRequest(this.gen, JSON.parse(line.slice(p.i)) as RawRequest)
+        const text = line.slice(p.i)
+        if (text === "") break
+        this.req = parseRequest(this.gen, JSON.parse(text) as RawRequest)
 
         if (this.req.type !== "wait") event.pending = true
 
@@ -1286,6 +1288,7 @@ export class Observer {
   }
 
   formatChoice(choice: Choice) {
+    let s: string
     switch (choice.type) {
       case "move":
         const pfx = `move ${choice.move}`

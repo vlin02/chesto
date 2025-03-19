@@ -61,6 +61,9 @@ importers:
       openai:
         specifier: ^4.80.0
         version: 4.80.0(encoding@0.1.13)(ws@8.18.0)(zod@3.24.1)
+      undici:
+        specifier: ^7.5.0
+        version: 7.5.0
       ws:
         specifier: ^8.18.0
         version: 8.18.0
@@ -344,6 +347,10 @@ packages:
 
   undici-types@6.20.0:
     resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
+
+  undici@7.5.0:
+    resolution: {integrity: sha512-NFQG741e8mJ0fLQk90xKxFdaSM7z4+IQpAgsFI36bCDY9Z2+aXXZjVy2uUksMouWfMI9+w5ejOq5zYYTBCQJDQ==}
+    engines: {node: '>=20.18.1'}
 
   web-streams-polyfill@4.0.0-beta.3:
     resolution: {integrity: sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==}
@@ -634,6 +641,8 @@ snapshots:
   undici-types@5.26.5: {}
 
   undici-types@6.20.0: {}
+
+  undici@7.5.0: {}
 
   web-streams-polyfill@4.0.0-beta.3: {}
 

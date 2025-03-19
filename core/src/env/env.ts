@@ -25,6 +25,22 @@ export type EnvUpdate = {
 
 type Player = { obs: Observer; v?: number }
 
+export function toChoice(obs: Observer, id: number): Choice {
+  const opt = obs.getOption()!
+  if (id < 8) {
+    const j = id % 2
+    const i = (id - j) / 2
+    return {
+      type: "move",
+      move: toMoves(opt.select!)[i],
+      tera: j === 1
+    }
+  }
+
+  id -= 8
+  return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
+}
+
 export class Environment {
   battle: Battle
   p1: Player
@@ -64,27 +80,10 @@ export class Environment {
     return r
   }
 
-  private toChoice({ side, id }: Action): Choice {
-    const { obs } = this[side]
-    const opt = obs.getOption()!
-    if (id < 8) {
-      const j = id % 2
-      const i = (id - j) / 2
-      return {
-        type: "move",
-        move: toMoves(opt.select!)[i],
-        tera: j === 1
-      }
-    }
-
-    id -= 8
-    return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
-  }
-
   step(actions: Action[]): EnvUpdate {
     for (const action of actions) {
-      const { side } = action
-      this.choose(side, this.toChoice(action))
+      const { side, id } = action
+      this.choose(side, toChoice(this[side].obs, id))
     }
 
     while (true) {

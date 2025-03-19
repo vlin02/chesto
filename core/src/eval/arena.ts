@@ -1,6 +1,15 @@
+import { getAnonAssertion } from "../web/binding.js"
 import { User } from "../web/user.js"
+import { WebSocket } from "ws"
 
-export class Arena {
+export async function login(url: string, name: string) {
+  const u = new User(new WebSocket(url))
+  await u.start()
+  await u.trn(name, await getAnonAssertion(name, u.challstr))
+  return u
+}
+
+export class BattlePool {
   u1: User
   u2: User
 

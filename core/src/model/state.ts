@@ -2,9 +2,10 @@ import { Generation } from "@pkmn/data"
 import { STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
 import { User } from "../parser/user.js"
 import { Observer } from "../parser/observer.js"
-import { Party, POVS } from "../parser/side.js"
+import { OPP, Party, POVS } from "../parser/side.js"
 import { toMoves } from "../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
+import { getTypeEffectiveness } from "./types.js"
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!
@@ -17,7 +18,7 @@ function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   return stats
 }
 
-function encodeUser(gen: Generation, user: User) {
+function encodeUser(gen: Generation, user: User, opp: User) {
   const { revealed, hp, lvl, types, forme } = user
   let x: number[] = []
 
@@ -29,6 +30,7 @@ function encodeUser(gen: Generation, user: User) {
   x.push((hpRatio * stats.hp) / 100)
   x.push(...STAT_IDS.map((k) => stats[k] / 100))
   x.push(...TYPE_NAMES.map((k) => (types.includes(k) ? 1 : 0)))
+  x.push(getTypeEffectiveness(types, opp.types))
 
   return x
 }
@@ -95,8 +97,10 @@ export function encodeBattle(obs: Observer) {
 
     const users = Object.values(team)
     for (let j = 0; j < users.length; j++) {
-      userEnc[i][j] = encodeUser(gen, users[j])
-      if (users[j] === active) activeIdx[i] = j
+      userEnc[i][j] = encodeUser(gen, users[j], obs[OPP[pov]].active)
+      if (users[j] === active) {
+        activeIdx[i] = j
+      }
     }
   }
 

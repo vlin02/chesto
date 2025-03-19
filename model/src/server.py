@@ -1,6 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pymongo import MongoClient
-import uvicorn
 import torch
 import torch.nn.functional as F
 
@@ -17,19 +16,26 @@ DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
 client = MongoClient(DB_URL)
 lookup = load_lookup(client["chesto"], device)
 nn = NN(lookup).to(device)
-nn: NN = torch.compile(nn, mode="reduce-overhead")
-nn.load_state_dict(torch.load("__tmp/0-1742265283.pt"))
+# nn: NN = torch.compile(nn, mode="reduce-overhead")
+
+state_dict = torch.load("__tmp/0-1742265283.pt")
+new_state_dict = {}
+for k, v in state_dict.items():
+    name = k.replace("_orig_mod.", "")  # Remove the prefix
+    new_state_dict[name] = v
+nn.load_state_dict(new_state_dict)
 
 
 @app.post("/predict")
-def predict(state):
-    states = decode_states([state], device)
-    logits, _ = nn(states)
-    dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
+async def predict(request: Request):
+    states = await request.json()
+    states = decode_states(states, device)
+    logits, v = nn(states)
+    probs = F.softmax(logits, dim=1)
+    dist = torch.distributions.Categorical(probs)
     action_ids = dist.sample()
 
-    return action_ids[0].item()
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    return [
+        dict(probs=probs, action_id=action_id, v=v)
+        for probs, action_id, v in zip(probs.tolist(), action_ids.tolist(), v.tolist())
+    ]

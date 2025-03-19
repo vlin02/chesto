@@ -1,8 +1,9 @@
 import WebSocket from "ws"
 import { piped } from "../parse.js"
 import assert from "assert"
+import { getAnonAssertion } from "./binding.js"
 
-type Event =
+export type UserEvent =
   | {
       type: "message"
       roomId: string
@@ -33,7 +34,7 @@ export class User {
   ws: WebSocket
   private loginReq?: LogingRequest
   private challengeReq?: ChallengeRequest
-  on: (event: Event) => void = () => {}
+  on: (event: UserEvent) => void = () => {}
 
   constructor(ws: WebSocket) {
     this.ws = ws
@@ -104,7 +105,14 @@ export class User {
     })
   }
 
-  login(name: string, assertion: string) {
+  static async anon(ws: WebSocket, name: string) {
+    const u = new User(ws)
+    await u.start()
+    await u.trn(name, await getAnonAssertion(name, u.challstr))
+    return u
+  }
+
+  trn(name: string, assertion: string) {
     this.ws.send(`|/trn ${name},0,${assertion}`)
     return new Promise<void>((res) => {
       this.loginReq = { next: res }
