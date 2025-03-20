@@ -1,6 +1,5 @@
 
 import asyncio
-from queue import Queue
 import aiohttp
 from net import NN
 import torch
@@ -24,11 +23,11 @@ async def train(
     update,
     create_env,
     n_iters=500,
-    n_envs=1000,
+    n_envs=500,
     clip_coef=0.15,
     gamma=1,
     vf_coef=0.5,
-    n_steps=10,
+    n_steps=50,
     n_epochs=10,
     ent_coef=0.01,
     gae_lambda=0.8,

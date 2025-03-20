@@ -1,5 +1,4 @@
 import torch
-from pybase64 import b64decode
 import numpy as np
 
 user_enc_dim = 28
@@ -44,7 +43,7 @@ def decode_states(states, device):
         ("switchMask", "switch_mask", np.int32, (N, 6,)),
         ("moveChoiceIdx", "move_choice_idx", np.int32, (N, 4,)),
     ]:
-        a = b''.join([b64decode(x[_k]) for x in states])
+        a = b''.join([x[_k] for x in states])
         a = bytearray(a)
         a = np.frombuffer(a, dtype=dtype)
         a = a.reshape(shape)

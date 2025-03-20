@@ -3,9 +3,10 @@ from aiohttp import ClientSession
 import time 
 from env import BatchEnv
 async def main():
-    N = 60
+    N = 500
     async with ClientSession() as session:
-        env = BatchEnv(session, "http://172.31.50.187:3001", N, N // 2)
+        env = BatchEnv(session, "http://172.31.50.187:3001", N, 100)
+        
         await env.reset()
         start = time.perf_counter()
         actions = [0] * N
@@ -14,7 +15,9 @@ async def main():
         
         end = time.perf_counter()
         tot = end - start
-        print (tot, tot / (N * 10000))
+        print(tot, tot / (N * 1000))
+    
+        await env.close()
         
 
 
