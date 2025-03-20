@@ -2,11 +2,45 @@ import { Side, SIDES, Winner } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../eval/agents.js"
-import { PackedBattle, encodeBattle, packBattle } from "../model/state.js"
+import { BattleF, encodeBattle } from "../model/state.js"
 import { Battle, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
 import { evalBattle } from "../model/reward.js"
 import { Choice, toMoves } from "../parser/option.js"
+
+function toBuf(x: any, type: "float" | "int"): Buffer {
+  x = x.flat(Infinity)
+  if (type === "float") x = new Float32Array(x)
+  else x = new Int32Array(x)
+  return Buffer.from(x.buffer)
+}
+
+export type PackedBattle = {
+  partyEnc: Buffer
+  userEnc: Buffer
+  activeIdx: Buffer
+  moveChoiceIdx: Buffer
+  moveMask: Buffer
+  switchMask: Buffer
+}
+
+export function packBattle({
+  partyEnc,
+  userEnc,
+  activeIdx,
+  moveChoiceIdx,
+  moveMask,
+  switchMask
+}: BattleF) {
+  return {
+    partyEnc: toBuf(partyEnc, "float"),
+    userEnc: toBuf(userEnc, "float"),
+    activeIdx: toBuf(activeIdx, "int"),
+    moveChoiceIdx: toBuf(moveChoiceIdx, "int"),
+    moveMask: toBuf(moveMask, "int"),
+    switchMask: toBuf(switchMask, "int")
+  }
+}
 
 export type Action = { side: Side; id: number }
 

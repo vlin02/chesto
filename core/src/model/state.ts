@@ -68,7 +68,7 @@ function zeros(dims: number[]): any {
     .map(() => zeros(dims.slice(1)))
 }
 
-type BattleF = {
+export type BattleF = {
   partyEnc: number[][]
   userEnc: number[][][]
   activeIdx: number[]
@@ -76,6 +76,7 @@ type BattleF = {
   moveMask: number[][]
   switchMask: number[]
 }
+
 
 export function encodeBattle(obs: Observer) {
   const { ally, gen } = obs
@@ -131,40 +132,5 @@ export function encodeBattle(obs: Observer) {
     moveChoiceIdx,
     moveMask,
     switchMask
-  }
-}
-
-function toB64(x: any, type: "float" | "int"): string {
-  x = x.flat(Infinity)
-  if (type === "float") x = new Float32Array(x)
-  else x = new Int32Array(x)
-  return Buffer.from(x.buffer).toString("base64")
-}
-
-export type PackedBattle = {
-  partyEnc: string
-  userEnc: string
-  activeIdx: string
-  moveChoiceIdx: string
-  moveMask: string
-  switchMask: string
-}
-
-export function packBattle({
-  partyEnc,
-  userEnc,
-  activeIdx,
-  moveChoiceIdx,
-  moveMask,
-  switchMask
-}: BattleF) {
-  
-  return {
-    partyEnc: toB64(partyEnc, "float"),
-    userEnc: toB64(userEnc, "float"),
-    activeIdx: toB64(activeIdx, "int"),
-    moveChoiceIdx: toB64(moveChoiceIdx, "int"),
-    moveMask: toB64(moveMask, "int"),
-    switchMask: toB64(switchMask, "int")
   }
 }

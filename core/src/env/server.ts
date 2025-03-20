@@ -6,8 +6,9 @@ import { fileURLToPath } from "url"
 import { EnvUpdate, Action } from "./env.js"
 import { WorkerRequest } from "./worker.js"
 import { Side } from "../battle.js"
+import { encode } from "msgpack-lite"
 
-const NUM_WORKERS = 10
+const NUM_WORKERS = 60
 const __filename = fileURLToPath(import.meta.url)
 const WORKER_PATH = path.join(dirname(__filename), "./worker.js")
 
@@ -56,19 +57,21 @@ app.post("/start", async (c) => {
 app.post("/step", async (c) => {
   const reqs = await c.req.json<[string, Action[]][]>()
 
-  return c.json(
-    await Promise.all(
-      reqs.map(async ([id, actions]) => {
-        const session = sessions.get(id)!
-        const { workerId } = session
+  return new Response(
+    encode(
+      await Promise.all(
+        reqs.map(async ([id, actions]) => {
+          const session = sessions.get(id)!
+          const { workerId } = session
 
-        const update = await new Promise<EnvUpdate>((resolve) => {
-          session.resolve = resolve
-          sendMessage(workerId, [id, { type: "step", actions }])
+          const update = await new Promise<EnvUpdate>((resolve) => {
+            session.resolve = resolve
+            sendMessage(workerId, [id, { type: "step", actions }])
+          })
+
+          return update
         })
-
-        return update
-      })
+      )
     )
   )
 })
