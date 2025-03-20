@@ -87,6 +87,8 @@ async def train(
                     tot_rewards[i] = 0
 
                 curr_states = decode_states(curr_states, device)
+        print(rewards.cpu().tolist())
+        return
 
         with torch.no_grad():
             _, next_values, _ = nn(curr_states)
