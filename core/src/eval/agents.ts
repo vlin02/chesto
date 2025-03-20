@@ -42,7 +42,6 @@ export class RLAgent {
 
     const ret = (await body.json()) as any
     const [{ action_id: actionId }] = ret
-    console.log(ret)
 
     return toChoice(this.obs, actionId)
   }

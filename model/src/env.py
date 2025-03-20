@@ -5,12 +5,14 @@ OPP = {"p1": "p2", "p2": "p1"}
 
 
 class Environment:
-    def __init__(self, session, url):
+    def __init__(self, session, url, t):
         self.session = session
         self.url = url
 
         self.id = None
         self.side = None
+        self.envs = []
+        self.t = t
 
     async def reset(self):
         if self.id:
@@ -19,11 +21,14 @@ class Environment:
         self.done = False
         self.side = random.choice(SIDES)
 
+        sides = [random.choice(SIDES) for _ in range(self.t)]
+
         async with self.session.post(
-            f"{self.url}/start", json=dict(auto=[OPP[self.side]])
+            f"{self.url}/start", json=dict(autos=[[OPP[side]] for side in sides])
         ) as res:
             res = await res.json()
-            self.id = res["id"]
+            
+            
 
             return res["update"][self.side]["state"]
 

@@ -5,7 +5,6 @@ import { Observer } from "../parser/observer.js"
 import { OPP, Party, POVS } from "../parser/side.js"
 import { toMoves } from "../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
-import { getTypeEffectiveness } from "./types.js"
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!

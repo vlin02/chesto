@@ -18,7 +18,7 @@ lookup = load_lookup(client["chesto"], device)
 nn = NN(lookup).to(device)
 # nn: NN = torch.compile(nn, mode="reduce-overhead")
 
-state_dict = torch.load("__tmp/0-1742265283.pt")
+state_dict = torch.load("__tmp/0-1742368836.pt")
 new_state_dict = {}
 for k, v in state_dict.items():
     name = k.replace("_orig_mod.", "")  # Remove the prefix
@@ -30,7 +30,7 @@ nn.load_state_dict(new_state_dict)
 async def predict(request: Request):
     states = await request.json()
     states = decode_states(states, device)
-    logits, v = nn(states)
+    logits, v, _ = nn(states)
     probs = F.softmax(logits, dim=1)
     dist = torch.distributions.Categorical(probs)
     action_ids = dist.sample()

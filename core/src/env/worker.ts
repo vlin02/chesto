@@ -62,7 +62,10 @@ main!.on("message", ([id, body]: WorkerRequest) => {
       const { actions } = body
       const env = envs.get(id)!
 
+      const start = process.hrtime();
       main.postMessage([id, env.step(actions)])
+      const [seconds, nanoseconds] = process.hrtime(start);
+      console.log(seconds + nanoseconds / 1e9)
       break
     }
     case "close": {

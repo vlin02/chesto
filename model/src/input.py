@@ -33,7 +33,6 @@ def load_lookup(db, device):
     lookup["move_enc"] = move_enc
     return lookup
 
-
 def decode_states(states, device):
     x = {}
     N = len(states)
