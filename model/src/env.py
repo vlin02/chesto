@@ -5,97 +5,90 @@ SIDES = ["p1", "p2"]
 OPP = {"p1": "p2", "p2": "p1"}
 
 
-class Environment:
-    def __init__(self, session, url, t):
+class BacthEnv:
+    def __init__(self, session, url, size, buffer_size):
         self.session = session
         self.url = url
 
+        self.size = size
+        self.buffer_size = buffer_size
+        self.buffers = []
         self.envs = []
-        self.new_envs = []
-        self.t = t
-        self.with_reset = None
-        self.delete_ids = []
+        self.done_ids = []
+        self.for_upkeep = None
+        self.n_left = buffer_size
+
+    async def _fetch_buffers(self, n: int):
+        sides = [random.choice(SIDES) for _ in range(n)]
+
+        for_start = self.session.post(
+            f"{self.url}/start", json=[[OPP[side]] for side in range(n)]
+        )
+        return zip(sides, await for_start)
 
     async def reset(self):
         self.envs = []
-        self.with_reset = None
 
-        await self.upkeep()
+        self.buffers.extend(await self._fetch_buffers(self.size + 2 * self.upkeep_freq))
 
         states = []
-        for _ in range(self.t):
-            side, env = self.new_envs.pop()
-            self.envs.append(dict(id=env["id"], side=side))
-            states.append(env["update"][side]["state"])
+        while len(states) < self.size:
+            side, buf = self.buffers.pop()
+            self.envs.append(dict(id=buf["id"], side=side))
+            states.append(buf[side]["state"])
 
         return states
 
     async def upkeep(self):
-        deletes = None
-        if len(self.delete_ids) > self.t:
-            deletes = self.session.delete(f"{self.url}/", json=self.delete_ids)
-            self.delete_ids = []
+        for_delete = self.session.delete(f"{self.url}/", json=self.done_ids)
+        for_buffers = await self._fetch_buffers(self.buffer_size)
+        self.done_ids = []
 
-        to_make = self.t - len(self.new_envs)
-        if to_make <= 0:
-            return
+        self.buffers.extend(for_buffers)
+        await for_delete
 
-        sides = [random.choice(SIDES) for _ in range(max(to_make, self.t))]
-
-        async with self.session.post(
-            f"{self.url}/start", json=[[OPP[side]] for side in sides]
-        ) as res:
-            envs = await res.json()
-            self.new_envs.extend(zip(sides, envs))
-
-        if deletes:
-            await deletes
-    @profile
     async def step(self, actions):
-        all_actions = []
+        batch_step = [
+            dict(id=env["id"], action=action) for env, action in zip(self.envs, actions)
+        ]
+        res = await self.session.post(f"{self.url}/step", json=batch_step)
+        updates = BSON.decode(await res)["updates"]
 
-        for env, action_id in zip(self.envs[: self.t], actions):
-            all_actions.append([env["id"], [dict(side=env["side"], id=action_id)]])
-
-        with_step = self.session.post(f"{self.url}/step", json=all_actions)
-        res = await with_step
-        bytes = await res.read()
-        
-        updates = BSON.decode(bytes)["updates"]
-
-        if self.with_reset:
-            await self.with_reset
-
-        results = []
-
-        for i, (env, update) in enumerate(zip(self.envs, updates)):
-            side = env["side"]
+        transitions = []
+        for i, ((env_id, side), update) in enumerate(zip(self.envs, updates)):
             done = update["done"]
-            turn = update["turn"]
-            winner = update["winner"]
-            curr_update = update[side]
-
-            won = 0
-            if winner == side:
-                won = 1
-            elif winner == OPP[side]:
-                won = -1
-
-            status = (done, turn, won)
+            trn = update[side]
 
             if done:
-                self.delete_ids.append(env["id"])
-                next_side, next_env = self.new_envs.pop()
-                self.envs[i] = dict(id=next_env["id"], side=next_side)
-                results.append(
+                turn = done["turn"]
+                winner = done["winner"]
+
+                won = 0
+                if winner == side:
+                    won = 1
+                elif winner == OPP[side]:
+                    won = -1
+
+                self.n_left -= 1
+                if self.n_left == 0:
+                    if self.for_upkeep:
+                        await self.for_upkeep
+                    self.for_upkeep = self.upkeep()
+                    self.n_left = self.buffer_size
+
+                self.done_ids.append(env_id)
+                buf_side, buf = self.new_envs.pop()
+                self.envs[i] = (buf["id"], buf_side)
+
+                transitions.append(
                     (
-                        curr_update["reward"],
-                        status,
-                        next_env["update"][next_side]["state"],
+                        trn["reward"],
+                        (turn, won),
+                        buf["update"][buf_side]["state"],
                     )
                 )
             else:
-                results.append((curr_update["reward"], status, curr_update["state"]))
+                transitions.append((trn["reward"], None, trn["state"]))
 
         self.with_reset = self.upkeep()
-        return results
+        return transitions
