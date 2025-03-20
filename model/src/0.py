@@ -87,8 +87,6 @@ async def train(
                     tot_rewards[i] = 0
 
                 curr_states = decode_states(curr_states, device)
-        print(rewards.cpu().tolist())
-        return
 
         with torch.no_grad():
             _, next_values, _ = nn(curr_states)
@@ -167,10 +165,9 @@ async def main():
     DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
     torch.set_float32_matmul_precision("high")
 
-    connector = aiohttp.TCPConnector(limit=20000)
     plotter = ThreadPoolExecutor(max_workers=1, thread_name_prefix="plot_thread")
 
-    async with aiohttp.ClientSession(connector=connector) as session:
+    async with aiohttp.ClientSession() as session:
         eps = []
 
         def update(ep):
