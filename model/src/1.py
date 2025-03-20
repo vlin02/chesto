@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 from env import Environment
 async def main():
     async with ClientSession() as session:
-        env = Environment(session, "http://localhost:3001", 10)
+        env = Environment(session, "http://172.31.50.187:3001", 60)
         await env.reset()
         actions = [0] * 10
         for _ in range(200):
