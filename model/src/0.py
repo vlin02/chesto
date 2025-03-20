@@ -14,7 +14,7 @@ import os
 import time
 
 t = time.time()
-exp_name = f"__tmp/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
+exp_name = f"__tmp/0/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
 
 
 async def train(
@@ -24,9 +24,9 @@ async def train(
     update,
     n_iters=500,
     clip_coef=0.15,
-    gamma=0.95,
+    gamma=1,
     vf_coef=0.5,
-    n_steps=200,
+    n_steps=50,
     n_epochs=10,
     ent_coef=0.01,
     gae_lambda=0.8,
@@ -73,12 +73,14 @@ async def train(
                 actions[t] = action_ids
 
                 action_ids.tolist()
-                trns, curr_dones = await env.step(action_ids)
+                trns, curr_dones = await env.step(action_ids.cpu().tolist())
 
                 curr_rewards, curr_states = zip(*trns)
-                rewards[t] = torch.tensor(curr_rewards).to(device)
 
+                curr_rewards = torch.tensor(curr_rewards)
                 tot_rewards += curr_rewards
+                rewards[t] = curr_rewards.to(device)
+
                 for i, turn, won in curr_dones:
                     dones[t][i] = 1
                     update((tot_rewards[i].item(), turn, max(won, 0)))
@@ -109,7 +111,6 @@ async def train(
 
         mb_x = {}
         for epoch in range(n_epochs):
-            print(epoch)
             idxs = torch.randperm(n_samples)
             cnt = n_samples // minibatch_size
             kl = 0
@@ -176,7 +177,7 @@ async def main():
             if len(eps) % 100 == 0:
                 plotter.submit(plot_eps, eps, exp_name)
 
-        env = BatchEnv(session, "http://172.31.50.187:3001", 60, 60)
+        env = BatchEnv(session, "http://172.31.50.187:3001", 500, 100)
 
         device = torch.device("cuda")
         client = MongoClient(DB_URL)
