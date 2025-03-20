@@ -3,9 +3,10 @@ import { Worker } from "worker_threads"
 import { randomUUID } from "crypto"
 import path, { dirname } from "path"
 import { fileURLToPath } from "url"
-import { EnvUpdate, Action } from "./env.js"
+import { Update, Action } from "./env.js"
 import { WorkerRequest } from "./worker.js"
 import { Side } from "../battle.js"
+import { BSON } from "mongodb"
 
 const NUM_WORKERS = 60
 const __filename = fileURLToPath(import.meta.url)
@@ -13,7 +14,7 @@ const WORKER_PATH = path.join(dirname(__filename), "./worker.js")
 
 type Session = {
   workerId: number
-  resolve: (update: EnvUpdate) => void
+  resolve: (update: Update) => void
 }
 
 const sessions = new Map<string, Session>()
@@ -22,7 +23,7 @@ const workers = Array.from({ length: NUM_WORKERS }, () => new Worker(WORKER_PATH
 let i = 0
 
 workers.forEach((worker) => {
-  worker.on("message", ([id, update]: [string, EnvUpdate]) => {
+  worker.on("message", ([id, update]: [string, Update]) => {
     sessions.get(id)!.resolve!(update)
   })
 })
@@ -43,7 +44,7 @@ app.post("/start", async (c) => {
         const workerId = i
         i = (i + 1) % NUM_WORKERS
 
-        const update = await new Promise<EnvUpdate>((resolve) => {
+        const update = await new Promise<Update>((resolve) => {
           sessions.set(envId, { workerId, resolve })
           sendMessage(workerId, [envId, { type: "start", auto }])
         })
@@ -54,22 +55,24 @@ app.post("/start", async (c) => {
 })
 
 app.post("/step", async (c) => {
-  const reqs = await c.req.json<[string, Action[]][]>()
+  const reqs = await c.req.json<{ id: string; action: Action }[]>()
 
-  return c.json(
-    await Promise.all(
-      reqs.map(async ([id, actions]) => {
-        const session = sessions.get(id)!
-        const { workerId } = session
+  return new Response(
+    BSON.serialize({
+      updates: await Promise.all(
+        reqs.map(async ({ id, action }) => {
+          const session = sessions.get(id)!
+          const { workerId } = session
 
-        const update = await new Promise<EnvUpdate>((resolve) => {
-          session.resolve = resolve
-          sendMessage(workerId, [id, { type: "step", actions }])
+          const update = await new Promise<Update>((resolve) => {
+            session.resolve = resolve
+            sendMessage(workerId, [id, { type: "step", action }])
+          })
+
+          return update
         })
-
-        return update
-      })
-    )
+      )
+    })
   )
 })
 

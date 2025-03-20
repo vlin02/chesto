@@ -1,4 +1,4 @@
-import { MOVE_CATEGORIES, TYPE_NAMES } from "../battle.js"
+import { MOVE_CATEGORIES, TYPE_NAMES } from "../../battle.js"
 import { Move } from "@pkmn/data"
 
 const MOVE_FLAGS = [

@@ -2,62 +2,28 @@ import { Side, SIDES, Winner } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../eval/agents.js"
-import { BattleF, encodeBattle } from "../model/state.js"
+import { BattleF, encodeBattle } from "./model/state.js"
 import { Battle, toID } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
-import { evalBattle } from "../model/reward.js"
+import { evalBattle } from "./model/reward.js"
 import { Choice, toMoves } from "../parser/option.js"
+import { resolveChoice } from "./model/option.js"
 
-function toBuf(x: any, type: "float" | "int"): string {
-  x = x.flat(Infinity)
-  if (type === "float") x = new Float32Array(x)
-  else x = new Int32Array(x)
-  return Buffer.from(x.buffer).toString("base64")
-}
+export type Action = { [k in Side]?: number }
 
-export type PackedBattle = {
-  partyEnc: string
-  userEnc: string
-  activeIdx: string
-  moveChoiceIdx: string
-  moveMask: string
-  switchMask: string
-}
-
-export function packBattle({
-  partyEnc,
-  userEnc,
-  activeIdx,
-  moveChoiceIdx,
-  moveMask,
-  switchMask
-}: BattleF) {
-  return {
-    partyEnc: toBuf(partyEnc, "float"),
-    userEnc: toBuf(userEnc, "float"),
-    activeIdx: toBuf(activeIdx, "int"),
-    moveChoiceIdx: toBuf(moveChoiceIdx, "int"),
-    moveMask: toBuf(moveMask, "int"),
-    switchMask: toBuf(switchMask, "int")
-  }
-}
-
-export type Action = { side: Side; id: number }
-
-type SideUpdate = {
+export type Transition = {
   reward?: number
-  state?: PackedBattle
+  state?: any
 }
 
-export type EnvUpdate = {
-  done: boolean
-  winner: Winner | null
-  turn: number
-  p1?: SideUpdate
-  p2?: SideUpdate
+export type Update = {
+  done?: {
+    winner: Winner | null
+    turn: number
+  }
+  p1?: Transition
+  p2?: Transition
 }
-
-type Player = { obs: Observer; v?: number }
 
 export function toChoice(obs: Observer, id: number): Choice {
   const opt = obs.getOption()!
@@ -75,6 +41,8 @@ export function toChoice(obs: Observer, id: number): Choice {
   return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
 }
 
+type Player = { obs: Observer; v?: number }
+
 export class Environment {
   battle: Battle
   p1: Player
@@ -82,8 +50,12 @@ export class Environment {
   auto: Side[]
   logs: Log[]
   turnLimit: number
+  pack: (x: BattleF) => void
 
-  constructor(gen: Generation, auto: Side[], turnLimit: number) {
+  constructor(
+    gen: Generation,
+    { auto, turnLimit, pack }: { auto: Side[]; turnLimit: number; pack: (x: BattleF) => void }
+  ) {
     this.p1 = { obs: new Observer(gen) }
     this.p2 = { obs: new Observer(gen) }
     this.auto = auto
@@ -99,6 +71,7 @@ export class Environment {
 
     this.battle.sendUpdates()
     this.turnLimit = turnLimit
+    this.pack = pack
   }
 
   private choose(side: Side, choice: Choice) {
@@ -114,11 +87,17 @@ export class Environment {
     return r
   }
 
-  step(actions: Action[]): EnvUpdate {
-    for (const action of actions) {
-      const { side, id } = action
-      // this.choose(side, toChoice(this[side].obs, id))
-      this.choose(side, new RandomAgent(this[side].obs).choose())
+  start() {
+    return this.step({})
+  }
+
+  step(action: Action): Update {
+    for (const k in action) {
+      const side = k as Side
+      const choiceId = action[side]!
+
+      // this.choose(side, new RandomAgent(this[side].obs).choose())
+      this.choose(side, resolveChoice(this[side].obs, choiceId))
     }
 
     while (true) {
@@ -146,9 +125,10 @@ export class Environment {
       const { turn } = this.p1.obs
       if ((turn && turn > this.turnLimit) || winner) {
         return {
-          done: true,
-          turn,
-          winner,
+          done: {
+            turn,
+            winner
+          },
           p1: { reward: this.stepReward("p1")! },
           p2: { reward: this.stepReward("p2")! }
         }
@@ -167,14 +147,13 @@ export class Environment {
       }
 
       if (deferred.length) {
-        const update: EnvUpdate = { done: false, turn, winner }
+        const update: Update = {}
         for (const side of deferred) {
           update[side] = {
             reward: this.stepReward(side),
-            state: packBattle(encodeBattle(this[side].obs))
+            state: this.pack(encodeBattle(this[side].obs))
           }
         }
-
         return update
       }
     }

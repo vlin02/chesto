@@ -1,7 +1,7 @@
 import { toChoices } from "../parser/option.js"
 import { Observer } from "../parser/observer.js"
 import { Pool } from "undici"
-import { encodeBattle } from "../model/state.js"
+import { encodeBattle } from "../env/model/state.js"
 import { toChoice } from "../env/env.js"
 
 export class RandomAgent {

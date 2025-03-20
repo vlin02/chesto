@@ -1,9 +1,9 @@
 import { Generation } from "@pkmn/data"
-import { STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
-import { User } from "../parser/user.js"
-import { Observer } from "../parser/observer.js"
-import { OPP, Party, POVS } from "../parser/side.js"
-import { toMoves } from "../parser/option.js"
+import { STAT_IDS, Stats, TYPE_NAMES } from "../../battle.js"
+import { User } from "../../parser/user.js"
+import { Observer } from "../../parser/observer.js"
+import { OPP, Party, POVS } from "../../parser/side.js"
+import { toMoves } from "../../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
 
 function inferStats(gen: Generation, forme: string, lvl: number): Stats {
@@ -29,7 +29,6 @@ function encodeUser(gen: Generation, user: User, opp: User) {
   x.push((hpRatio * stats.hp) / 100)
   x.push(...STAT_IDS.map((k) => stats[k] / 100))
   x.push(...TYPE_NAMES.map((k) => (types.includes(k) ? 1 : 0)))
-  // x.push(getTypeEffectiveness(types, opp.types))
 
   return x
 }
@@ -76,7 +75,6 @@ export type BattleF = {
   moveMask: number[][]
   switchMask: number[]
 }
-
 
 export function encodeBattle(obs: Observer) {
   const { ally, gen } = obs
