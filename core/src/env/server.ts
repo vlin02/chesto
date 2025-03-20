@@ -6,7 +6,7 @@ import { fileURLToPath } from "url"
 import { EnvUpdate, Action } from "./env.js"
 import { WorkerRequest } from "./worker.js"
 import { Side } from "../battle.js"
-import { encode } from "msgpack-lite"
+import { BSON } from "mongodb"
 
 const NUM_WORKERS = 60
 const __filename = fileURLToPath(import.meta.url)
@@ -58,7 +58,7 @@ app.post("/step", async (c) => {
   const reqs = await c.req.json<[string, Action[]][]>()
 
   return new Response(
-    encode(
+    BSON.serialize(
       await Promise.all(
         reqs.map(async ([id, actions]) => {
           const session = sessions.get(id)!
