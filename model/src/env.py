@@ -1,5 +1,6 @@
 from asyncio import create_task
 import random
+from aiohttp import ClientSession
 from bson import BSON
 
 SIDES = ["p1", "p2"]
@@ -7,6 +8,8 @@ OPP = {"p1": "p2", "p2": "p1"}
 
 
 class BatchEnv:
+    session: ClientSession
+
     def __init__(self, session, url, size, upkeep_freq):
         self.session = session
         self.url = url
@@ -44,8 +47,8 @@ class BatchEnv:
 
         return states
 
-    async def upkeep(self):
-        for_delete = self.session.delete(f"{self.url}/", json=self._done_ids)
+    async def upkeep(self, done_ids):
+        for_delete = self.session.delete(f"{self.url}/", json=done_ids)
         for_buffers = self._get_buffers(self.upkeep_freq)
 
         buffers = await for_buffers
@@ -77,12 +80,12 @@ class BatchEnv:
 
                 self._done_ids.append(env_id)
                 env, state = self._buffers.pop()
-                
+
                 if len(self._done_ids) == self.upkeep_freq:
                     if self._upkeep_task:
                         await self._upkeep_task
+                    self._upkeep_task = create_task(self.upkeep(self._done_ids))
                     self._done_ids = []
-                    self._upkeep_task = create_task(self.upkeep())
 
                 self._envs[i] = env
 
@@ -95,6 +98,12 @@ class BatchEnv:
     async def close(self):
         if self._upkeep_task:
             await self._upkeep_task
+
         await self.session.delete(
-            f"{self.url}/", json=[*self._done_ids, *[id for id, _ in self._envs]]
+            f"{self.url}/",
+            json=[
+                *self._done_ids,
+                *[id for id, _ in self._envs],
+                *[id for (id, _), _ in self._buffers],
+            ],
         )

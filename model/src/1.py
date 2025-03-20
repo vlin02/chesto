@@ -3,9 +3,9 @@ from aiohttp import ClientSession
 import time 
 from env import BatchEnv
 async def main():
-    N = 500
+    N = 80
     async with ClientSession() as session:
-        env = BatchEnv(session, "http://172.31.50.187:3001", N, 100)
+        env = BatchEnv(session, "http://172.31.50.187:3001", N, 80)
         
         await env.reset()
         start = time.perf_counter()
