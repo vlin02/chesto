@@ -6,7 +6,7 @@ from net import NN
 import torch
 from torch import optim
 from input import STATE_FIELDS, load_lookup, decode_states
-from env import BacthEnv
+from env import BatchEnv
 from pymongo import MongoClient
 import torch.nn.functional as F
 from train import plot_eps
@@ -200,7 +200,7 @@ async def main():
     async with aiohttp.ClientSession(connector=connector) as session:
 
         def create_env():
-            return BacthEnv(session, "http://172.31.50.187:3001")
+            return BatchEnv(session, "http://172.31.50.187:3001")
 
         eps = []
 

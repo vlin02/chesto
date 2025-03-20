@@ -1,15 +1,15 @@
 from asyncio import run
 from aiohttp import ClientSession
 import time 
-from env import BacthEnv
+from env import BatchEnv
 async def main():
     N = 60
     async with ClientSession() as session:
-        env = BacthEnv(session, "http://172.31.50.187:3001", N)
+        env = BatchEnv(session, "http://172.31.50.187:3001", N, N // 2)
         await env.reset()
         start = time.perf_counter()
         actions = [0] * N
-        for _ in range(1000):
+        for i in range(1000):
             await env.step(actions)
         
         end = time.perf_counter()
