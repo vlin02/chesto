@@ -7,7 +7,7 @@ import { EnvUpdate, Action } from "./env.js"
 import { WorkerRequest } from "./worker.js"
 import { Side } from "../battle.js"
 
-const NUM_WORKERS = 60
+const NUM_WORKERS = 10
 const __filename = fileURLToPath(import.meta.url)
 const WORKER_PATH = path.join(dirname(__filename), "./worker.js")
 

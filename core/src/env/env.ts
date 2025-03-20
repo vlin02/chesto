@@ -3,12 +3,10 @@ import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../eval/agents.js"
 import { PackedBattle, encodeBattle, packBattle } from "../model/state.js"
-import { Battle, Teams } from "@pkmn/sim"
-import { Generation, Generations } from "@pkmn/data"
+import { Battle, toID } from "@pkmn/sim"
+import { Generation } from "@pkmn/data"
 import { evalBattle } from "../model/reward.js"
 import { Choice, toMoves } from "../parser/option.js"
-import { Dex } from "@pkmn/dex"
-import { TeamGenerators } from "@pkmn/randoms"
 
 export type Action = { side: Side; id: number }
 
@@ -51,16 +49,19 @@ export class Environment {
   logs: Log[]
   turnLimit: number
 
-  constructor(battle: Battle, logs: Log[], gen: Generation, auto: Side[], turnLimit: number) {
+  constructor(gen: Generation, auto: Side[], turnLimit: number) {
     this.p1 = { obs: new Observer(gen) }
     this.p2 = { obs: new Observer(gen) }
     this.auto = auto
-    this.logs = logs
-    this.battle = battle
-    //@ts-ignore
-    this.battle.send = (...log: Log) => {
-      this.logs.push(log)
-    }
+    this.logs = []
+    this.battle = new Battle({
+      formatid: toID("gen9randombattle"),
+      p1: { name: "p1" },
+      p2: { name: "p2" },
+      send: (...log) => {
+        this.logs.push(log as Log)
+      }
+    })
 
     this.battle.sendUpdates()
     this.turnLimit = turnLimit
@@ -82,6 +83,7 @@ export class Environment {
   step(actions: Action[]): EnvUpdate {
     for (const action of actions) {
       const { side, id } = action
+      // this.choose(side, toChoice(this[side].obs, id))
       this.choose(side, new RandomAgent(this[side].obs).choose())
     }
 
@@ -144,35 +146,3 @@ export class Environment {
     }
   }
 }
-Teams.setGeneratorFactory(TeamGenerators)
-function run() {
-  const logs: Log[] = []
-  const env = new Environment(
-    ...[
-      new Battle({
-        formatid: "gen9randombattle" as any,
-        p1: { name: "p1" },
-        p2: { name: "p2" },
-        send: (...log) => {
-          logs.push(log as Log)
-        }
-      }),
-      logs
-    ],
-    new Generations(Dex).get(9),
-    ["p1"],
-    100
-  )
-  env.step([])
-  const start = process.hrtime()
-  while (true) {
-    const update = env.step([{ side: "p2", id: 1 }])
-
-    if (update.done) break
-  }
-  const [seconds, nanoseconds] = process.hrtime(start)
-  console.log(seconds + nanoseconds / 1e9)
-}
-
-run()
-run()
