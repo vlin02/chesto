@@ -1,4 +1,3 @@
-
 import asyncio
 import aiohttp
 from net import NN
@@ -17,28 +16,28 @@ import time
 t = time.time()
 exp_name = f"__tmp/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
 
+
 async def train(
+    env: BatchEnv,
     lookup,
     device,
     update,
-    create_env,
     n_iters=500,
-    n_envs=500,
     clip_coef=0.15,
-    gamma=1,
+    gamma=0.95,
     vf_coef=0.5,
-    n_steps=50,
+    n_steps=200,
     n_epochs=10,
     ent_coef=0.01,
     gae_lambda=0.8,
     minibatch_size=512,
     lr=0.0001,
-    target_kl=.01,  # Added parameter for KL divergence threshold
+    target_kl=0.01,
 ):
+    n_envs = env.size
     nn = NN(lookup).to(device)
     # nn = torch.compile(nn, mode="reduce-overhead")
 
-    envs = [create_env() for _ in range(n_envs)]
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
 
     n_samples = n_steps * n_envs
@@ -52,23 +51,17 @@ async def train(
     advantages = torch.zeros((n_steps, n_envs), device=device)
     true_probs = torch.zeros((n_steps, n_envs, 14), device=device)
 
-    def process_states(states):
-        return decode_states(states, device)
-
-    next_states = process_states(await asyncio.gather(*(env.reset() for env in envs)))
+    curr_states = decode_states(await env.reset(), device)
     tot_rewards = torch.zeros(n_envs)
 
-    for iter in range(n_iters):
-
-        s = time.perf_counter()
+    for it in range(n_iters):
         for t in range(0, n_steps):
-            print(t)
-            curr_states = next_states
+            print("it:", it, "t:", t)
 
             with torch.no_grad():
                 states[t] = curr_states
                 logits, values[t], (move_logits, switch_logits) = nn(curr_states)
-                
+
                 true_probs[t] = F.softmax(
                     torch.cat([move_logits.flatten(1), switch_logits], dim=-1), dim=1
                 )
@@ -79,31 +72,19 @@ async def train(
                 log_probs[t] = dist.log_prob(action_ids)
                 actions[t] = action_ids
 
-                tasks = []
                 action_ids.tolist()
-                start = time.perf_counter()
-                for env, action_id in zip(envs, action_ids.tolist()):
-                    task = asyncio.create_task(env.step(action_id))
-                    tasks.append(task)
-                steps = []
-                for task in tasks:
-                    steps.append(await task)
+                trns, curr_dones = await env.step(action_ids)
 
-
-                curr_rewards, statuses, next_states = zip(*steps)
-                curr_rewards = torch.tensor(curr_rewards)
-                next_states = process_states(next_states)
-
+                curr_rewards, curr_states = zip(*trns)
+                rewards[t] = torch.tensor(curr_rewards).to(device)
 
                 tot_rewards += curr_rewards
-                for i, (done, turn, won) in enumerate(statuses):
-                    if done:
-                        dones[t][i] = 1
-                        update((tot_rewards[i].item(), turn, 1 if won else 0))
-                        tot_rewards[i] = 0
+                for i, turn, won in curr_dones:
+                    dones[t][i] = 1
+                    update((tot_rewards[i].item(), turn, max(won, 0)))
+                    tot_rewards[i] = 0
 
-                rewards[t] = curr_rewards.to(device)
-
+                curr_states = decode_states(curr_states, device)
 
         with torch.no_grad():
             _, next_values, _ = nn(curr_states)
@@ -124,18 +105,14 @@ async def train(
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
 
-        unique, counts = torch.unique(b_actions, return_counts=True)
-
-        print("iter", iter)
-        print(true_probs.mean(dim=(0,1)))
-
+        print("it:", it, "probs:", true_probs.mean(dim=(0, 1)))
 
         mb_x = {}
         for epoch in range(n_epochs):
             print(epoch)
             idxs = torch.randperm(n_samples)
             cnt = n_samples // minibatch_size
-            approx_kl = 0  # Track KL divergence
+            kl = 0
 
             for start in range(0, cnt):
                 mb_i = idxs[start * minibatch_size : (start + 1) * minibatch_size]
@@ -150,11 +127,9 @@ async def train(
                 log_ratio = new_log_probs - b_log_probs[mb_i]
                 ratio = log_ratio.exp()
 
-                # Calculate KL divergence
                 with torch.no_grad():
-                    approx_kl = ((ratio - 1) - log_ratio).mean()
+                    kl = ((ratio - 1) - log_ratio).mean()
 
-                # Calculate entropy
                 entropy = dist.entropy().mean()
 
                 mb_advantages = b_advantages[mb_i]
@@ -176,16 +151,12 @@ async def train(
                 loss.backward()
                 optimizer.step()
 
-            # Check if we should stop early due to KL divergence being too high
-            print(approx_kl)
-            if target_kl is not None and approx_kl > target_kl:
-                print(f"Early stopping at epoch {epoch} due to reaching max kl: {approx_kl:.2f}")
+            print("epoch:", epoch, "kl:", kl)
+            if target_kl is not None and kl > target_kl:
+                print("Early stopped")
                 break
 
-        s1 = time.perf_counter()
-        print(s1 - s)
-
-        if iter % 5 == 4:
+        if it % 5 == 4:
             torch.save(nn.state_dict(), f"{exp_name}.pt")
 
 
@@ -197,10 +168,6 @@ async def main():
     plotter = ThreadPoolExecutor(max_workers=1, thread_name_prefix="plot_thread")
 
     async with aiohttp.ClientSession(connector=connector) as session:
-
-        def create_env():
-            return BatchEnv(session, "http://172.31.50.187:3001")
-
         eps = []
 
         def update(ep):
@@ -209,11 +176,13 @@ async def main():
             if len(eps) % 100 == 0:
                 plotter.submit(plot_eps, eps, exp_name)
 
+        env = BatchEnv(session, "http://172.31.50.187:3001", 60, 60)
+
         device = torch.device("cuda")
         client = MongoClient(DB_URL)
         lookup = load_lookup(client["chesto"], device)
 
-        await train(lookup, device, update, create_env)
+        await train(env, lookup, device, update)
 
 
 if __name__ == "__main__":

@@ -64,6 +64,7 @@ class BatchEnv:
         updates = BSON.decode(await res.read())["results"]
 
         transitions = []
+        dones = []
         for i, ((env_id, side), update) in enumerate(zip(self._envs, updates)):
             trn = update[side]
 
@@ -78,6 +79,7 @@ class BatchEnv:
                 elif winner == OPP[side]:
                     won = -1
 
+                dones.append((i, turn, won))
                 self._done_ids.append(env_id)
                 env, state = self._buffers.pop()
 
@@ -89,11 +91,11 @@ class BatchEnv:
 
                 self._envs[i] = env
 
-                transitions.append((trn["reward"], (turn, won), state))
+                transitions.append((trn["reward"], state))
             else:
-                transitions.append((trn["reward"], None, trn["state"]))
+                transitions.append((trn["reward"], trn["state"]))
 
-        return transitions
+        return transitions, dones
 
     async def close(self):
         if self._upkeep_task:
