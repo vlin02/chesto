@@ -190,10 +190,3 @@ export function getTypeEffectiveness(
   
     return bestEffectiveness;
 }
-
-// Example usage
-const attackingTypes: PokemonType[] = ["Fire", "Flying"]
-const defendingTypes: PokemonType[] = ["Grass", "Steel"]
-const effectiveness = getTypeEffectiveness(attackingTypes, defendingTypes)
-console.log(effectiveness)
-// Output: { Fire: 4, Flying: 1 } (Fire is 4x effective against Grass/Steel)

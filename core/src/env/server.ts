@@ -19,6 +19,7 @@ type Session = {
 const sessions = new Map<string, Session>()
 
 const workers = Array.from({ length: NUM_WORKERS }, () => new Worker(WORKER_PATH))
+let i = 0
 
 workers.forEach((worker) => {
   worker.on("message", ([id, update]: [string, EnvUpdate]) => {
@@ -33,40 +34,55 @@ function sendMessage(id: number, req: WorkerRequest) {
 const app = new Hono()
 
 app.post("/start", async (c) => {
-  const envId = randomUUID()
-  const workerId = Math.floor(Math.random() * NUM_WORKERS)
-  const { auto } = await c.req.json<{ auto: Side[] }>()
+  const autos = await c.req.json<Side[][]>()
 
-  const update = await new Promise<EnvUpdate>((resolve) => {
-    sessions.set(envId, { workerId, resolve })
-    sendMessage(workerId, [envId, { type: "start", auto }])
-  })
+  return c.json(
+    await Promise.all(
+      autos.map(async (auto) => {
+        const envId = randomUUID()
+        const workerId = i
+        i = (i + 1) % NUM_WORKERS
 
-  return c.json({ id: envId, update })
+        const update = await new Promise<EnvUpdate>((resolve) => {
+          sessions.set(envId, { workerId, resolve })
+          sendMessage(workerId, [envId, { type: "start", auto }])
+        })
+        return { id: envId, update }
+      })
+    )
+  )
 })
 
-app.post("/:id/step", async (c) => {
-  const envId = c.req.param("id")
-  const actions = await c.req.json<Action[]>()
+app.post("/step", async (c) => {
+  const reqs = await c.req.json<[string, Action[]][]>()
 
-  const session = sessions.get(envId)!
-  const { workerId } = session
+  return c.json(
+    await Promise.all(
+      reqs.map(async ([id, actions]) => {
+        const session = sessions.get(id)!
+        const { workerId } = session
 
-  const update = await new Promise<EnvUpdate>((resolve) => {
-    session.resolve = resolve
-    sendMessage(workerId, [envId, { type: "step", actions }])
-  })
+        const update = await new Promise<EnvUpdate>((resolve) => {
+          session.resolve = resolve
+          sendMessage(workerId, [id, { type: "step", actions }])
+        })
 
-  return c.json(update)
+        return update
+      })
+    )
+  )
 })
 
-app.delete("/:id", async (c) => {
-  const envId = c.req.param("id")
-  const session = sessions.get(envId)!
-  const { workerId } = session
+app.delete("/", async (c) => {
+  const ids = await c.req.json<string[]>()
 
-  sendMessage(workerId, [envId, { type: "close" }])
-  sessions.delete(envId)
+  ids.map((envId) => {
+    const session = sessions.get(envId)!
+    const { workerId } = session
+
+    sendMessage(workerId, [envId, { type: "close" }])
+    sessions.delete(envId)
+  })
 
   return c.json({})
 })

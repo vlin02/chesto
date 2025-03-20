@@ -30,7 +30,7 @@ function encodeUser(gen: Generation, user: User, opp: User) {
   x.push((hpRatio * stats.hp) / 100)
   x.push(...STAT_IDS.map((k) => stats[k] / 100))
   x.push(...TYPE_NAMES.map((k) => (types.includes(k) ? 1 : 0)))
-  x.push(getTypeEffectiveness(types, opp.types))
+  // x.push(getTypeEffectiveness(types, opp.types))
 
   return x
 }
@@ -159,6 +159,7 @@ export function packBattle({
   moveMask,
   switchMask
 }: BattleF) {
+  
   return {
     partyEnc: toB64(partyEnc, "float"),
     userEnc: toB64(userEnc, "float"),
