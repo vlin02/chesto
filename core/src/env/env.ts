@@ -8,20 +8,20 @@ import { Generation } from "@pkmn/data"
 import { evalBattle } from "../model/reward.js"
 import { Choice, toMoves } from "../parser/option.js"
 
-function toBuf(x: any, type: "float" | "int"): Buffer {
+function toBuf(x: any, type: "float" | "int"): string {
   x = x.flat(Infinity)
   if (type === "float") x = new Float32Array(x)
   else x = new Int32Array(x)
-  return Buffer.from(x.buffer)
+  return Buffer.from(x.buffer).toString("base64")
 }
 
 export type PackedBattle = {
-  partyEnc: Buffer
-  userEnc: Buffer
-  activeIdx: Buffer
-  moveChoiceIdx: Buffer
-  moveMask: Buffer
-  switchMask: Buffer
+  partyEnc: string
+  userEnc: string
+  activeIdx: string
+  moveChoiceIdx: string
+  moveMask: string
+  switchMask: string
 }
 
 export function packBattle({
