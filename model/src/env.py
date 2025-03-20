@@ -1,4 +1,5 @@
 import random
+from bson import BSON
 
 SIDES = ["p1", "p2"]
 OPP = {"p1": "p2", "p2": "p1"}
@@ -49,7 +50,7 @@ class Environment:
 
         if deletes:
             await deletes
-
+    @profile
     async def step(self, actions):
         all_actions = []
 
@@ -57,8 +58,11 @@ class Environment:
             all_actions.append([env["id"], [dict(side=env["side"], id=action_id)]])
 
         with_step = self.session.post(f"{self.url}/step", json=all_actions)
+        res = await with_step
+        bytes = await res.read()
+        
+        updates = BSON.decode(bytes)["updates"]
 
-        updates = await (await with_step).json()
         if self.with_reset:
             await self.with_reset
 

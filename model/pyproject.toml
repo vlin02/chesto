@@ -9,8 +9,9 @@ dependencies = [
     "fastapi>=0.115.11",
     "line-profiler>=4.2.0",
     "matplotlib>=3.10.1",
+    "msgpack>=1.1.0",
     "pybase64>=1.4.1",
-    "pymongo>=4.11.2",
+    "pymongo>=4.11.3",
     "torch>=2.6.0",
     "uvicorn>=0.34.0",
 ]
