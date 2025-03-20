@@ -58,8 +58,8 @@ app.post("/step", async (c) => {
   const reqs = await c.req.json<[string, Action[]][]>()
 
   return new Response(
-    BSON.serialize(
-      await Promise.all(
+    BSON.serialize({
+      updates: await Promise.all(
         reqs.map(async ([id, actions]) => {
           const session = sessions.get(id)!
           const { workerId } = session
@@ -72,7 +72,7 @@ app.post("/step", async (c) => {
           return update
         })
       )
-    )
+    })
   )
 })
 
