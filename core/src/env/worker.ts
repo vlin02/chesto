@@ -29,7 +29,6 @@ main!.on("message", ([id, body]: WorkerRequest) => {
       const env = new Environment(gen, { auto, turnLimit: TURN_LIMIT, pack: packBinary })
       envs.set(id, env)
       main.postMessage([id, env.step({})])
-
       break
     }
     case "step": {

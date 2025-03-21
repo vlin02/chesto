@@ -95,8 +95,6 @@ export class Environment {
     for (const k in action) {
       const side = k as Side
       const choiceId = action[side]!
-
-      // this.choose(side, new RandomAgent(this[side].obs).choose())
       this.choose(side, resolveChoice(this[side].obs, choiceId))
     }
 
@@ -113,6 +111,8 @@ export class Environment {
             const e = obs.read(line)
 
             if (e.error?.startsWith("[Invalid choice]")) {
+              console.log(JSON.stringify(this.battle.inputLog))
+              
               throw e.error
             }
             if (e.winner) winner = e.winner
@@ -120,6 +120,7 @@ export class Environment {
           }
         }
       }
+
       this.logs = []
 
       const { turn } = this.p1.obs

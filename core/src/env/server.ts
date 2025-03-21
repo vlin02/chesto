@@ -37,46 +37,48 @@ const app = new Hono()
 app.post("/start", async (c) => {
   const autos = await c.req.json<Side[][]>()
 
-  return c.json(
-    await Promise.all(
-      autos.map(async (auto) => {
-        const envId = randomUUID()
-        const workerId = i
-        i = (i + 1) % NUM_WORKERS
-
-        const update = await new Promise<Update>((resolve) => {
-          sessions.set(envId, { workerId, resolve })
-          sendMessage(workerId, [envId, { type: "start", auto }])
-        })
-        return { id: envId, update }
-      })
-    )
-  )
-})
-
-app.post("/step", async (c) => {
-  const reqs = await c.req.json<{ id: string; action: Action }[]>()
-
   return new Response(
     BSON.serialize({
-      updates: await Promise.all(
-        reqs.map(async ({ id, action }) => {
-          const session = sessions.get(id)!
-          const { workerId } = session
+      results: await Promise.all(
+        autos.map(async (auto) => {
+          const workerId = i
+          i = (i + 1) % NUM_WORKERS
 
+          const envId = randomUUID()
           const update = await new Promise<Update>((resolve) => {
-            session.resolve = resolve
-            sendMessage(workerId, [id, { type: "step", action }])
+            sessions.set(envId, { workerId, resolve })
+            sendMessage(workerId, [envId, { type: "start", auto }])
           })
-
-          return update
+          return { id: envId, update }
         })
       )
     })
   )
 })
 
-app.delete("/", async (c) => {
+app.post("/step", async (c) => {
+  const reqs = await c.req.json<{ id: string; action: Action }[]>()
+
+  const x = BSON.serialize({
+    results: await Promise.all(
+      reqs.map(async ({ id: envId, action }) => {
+        const session = sessions.get(envId)!
+        const { workerId } = session
+
+        const update = await new Promise<Update>((resolve) => {
+          session.resolve = resolve
+          sendMessage(workerId, [envId, { type: "step", action }])
+        })
+
+        return update
+      })
+    )
+  })
+
+  return new Response(x)
+})
+
+app.post("/close", async (c) => {
   const ids = await c.req.json<string[]>()
 
   ids.map((envId) => {
@@ -88,6 +90,12 @@ app.delete("/", async (c) => {
   })
 
   return c.json({})
+})
+
+app.get("/count", async (c) => {
+  return c.json({
+    count: sessions.size
+  })
 })
 
 export default app
