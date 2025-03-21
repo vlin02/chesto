@@ -2,10 +2,10 @@ from asyncio import create_task
 import random
 from aiohttp import ClientSession
 from bson import BSON
+import time
 
 SIDES = ["p1", "p2"]
 OPP = {"p1": "p2", "p2": "p1"}
-
 
 class BatchEnv:
     session: ClientSession

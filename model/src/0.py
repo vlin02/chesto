@@ -8,7 +8,8 @@ from env import BatchEnv
 from pymongo import MongoClient
 import torch.nn.functional as F
 from train import plot_eps
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Manager
 
 import os
 import time
@@ -26,7 +27,7 @@ async def train(
     clip_coef=0.15,
     gamma=1,
     vf_coef=0.5,
-    n_steps=50,
+    n_steps=100,
     n_epochs=10,
     ent_coef=0.01,
     gae_lambda=0.8,
@@ -51,14 +52,13 @@ async def train(
     advantages = torch.zeros((n_steps, n_envs), device=device)
     true_probs = torch.zeros((n_steps, n_envs, 14), device=device)
 
-    curr_states = decode_states(await env.reset(), device)
+    next_states = decode_states(await env.reset(), device)
     tot_rewards = torch.zeros(n_envs)
 
     for it in range(n_iters):
         for t in range(0, n_steps):
-            print("it:", it, "t:", t)
-
             with torch.no_grad():
+                curr_states = next_states
                 states[t] = curr_states
                 logits, values[t], (move_logits, switch_logits) = nn(curr_states)
 
@@ -73,9 +73,11 @@ async def train(
                 actions[t] = action_ids
 
                 action_ids.tolist()
+
                 trns, curr_dones = await env.step(action_ids.cpu().tolist())
 
-                curr_rewards, curr_states = zip(*trns)
+                curr_rewards, next_states = zip(*trns)
+                next_states = decode_states(next_states, device)
 
                 curr_rewards = torch.tensor(curr_rewards)
                 tot_rewards += curr_rewards
@@ -86,10 +88,8 @@ async def train(
                     update((tot_rewards[i].item(), turn, max(won, 0)))
                     tot_rewards[i] = 0
 
-                curr_states = decode_states(curr_states, device)
-
         with torch.no_grad():
-            _, next_values, _ = nn(curr_states)
+            _, next_values, _ = nn(next_states)
 
             gae = 0
             not_dones = 1 - dones
@@ -116,10 +116,17 @@ async def train(
             kl = 0
 
             for start in range(0, cnt):
+                s = time.perf_counter()
+                x = []
                 mb_i = idxs[start * minibatch_size : (start + 1) * minibatch_size]
+                x.append(time.perf_counter() - s)
+                for k in STATE_FIELDS:
+                    b_states[k]
+                x.append(time.perf_counter() - s)
 
                 for k in STATE_FIELDS:
                     mb_x[k] = b_states[k][mb_i]
+                x.append(time.perf_counter() - s)
 
                 logits, value, _ = nn(mb_x)
 
@@ -145,12 +152,18 @@ async def train(
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
                 v_loss = 0.5 * ((value - b_returns[mb_i]) ** 2).mean()
+                x.append(time.perf_counter() - s)
 
                 loss = pg_loss + vf_coef * v_loss - ent_coef * entropy
+
+                x.append(time.perf_counter() - s)
 
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+
+                x.append(time.perf_counter() - s)
+                print(x)
 
             print("epoch:", epoch, "kl:", kl)
             if target_kl is not None and kl > target_kl:
@@ -165,18 +178,19 @@ async def main():
     DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
     torch.set_float32_matmul_precision("high")
 
-    plotter = ThreadPoolExecutor(max_workers=1, thread_name_prefix="plot_thread")
+    manager = Manager()
+    shared_eps = manager.list()
+    
+    plotter = ProcessPoolExecutor(max_workers=1)
 
     async with aiohttp.ClientSession() as session:
-        eps = []
-
         def update(ep):
-            eps.append(ep)
+            shared_eps.append(ep)
 
-            if len(eps) % 100 == 0:
-                plotter.submit(plot_eps, eps, exp_name)
+            if len(shared_eps) % 100 == 0:
+                plotter.submit(plot_eps, shared_eps, exp_name)
 
-        env = BatchEnv(session, "http://172.31.50.187:3001", 500, 100)
+        env = BatchEnv(session, "http://172.31.50.187:3001", 100, 50)
 
         device = torch.device("cuda")
         client = MongoClient(DB_URL)
