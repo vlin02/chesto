@@ -3,11 +3,12 @@ import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { RandomAgent } from "../eval/agents.js"
 import { BattleF, encodeBattle } from "./model/state.js"
-import { Battle, toID } from "@pkmn/sim"
+import { Battle } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
 import { evalBattle } from "./model/reward.js"
 import { Choice, toMoves } from "../parser/option.js"
 import { resolveChoice } from "./model/option.js"
+import { startBattle } from "../sim.js"
 
 export type Action = { [k in Side]?: number }
 
@@ -60,13 +61,11 @@ export class Environment {
     this.p2 = { obs: new Observer(gen) }
     this.auto = auto
     this.logs = []
-    this.battle = new Battle({
-      formatid: toID("gen9randombattle"),
-      p1: { name: "p1" },
-      p2: { name: "p2" },
-      send: (...log) => {
-        this.logs.push(log as Log)
-      }
+    this.battle = startBattle({
+      formatId: "gen9randombattle",
+      p1: "p1",
+      p2: "p2",
+      send: (x) => this.logs.push(x)
     })
 
     this.battle.sendUpdates()
@@ -107,12 +106,13 @@ export class Environment {
 
         for (const side of SIDES) {
           const { obs } = this[side]
+
           for (const line of ch[side]) {
             const e = obs.read(line)
 
             if (e.error?.startsWith("[Invalid choice]")) {
               console.log(JSON.stringify(this.battle.inputLog))
-              
+
               throw e.error
             }
             if (e.winner) winner = e.winner
