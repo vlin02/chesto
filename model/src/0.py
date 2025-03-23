@@ -37,7 +37,7 @@ async def train(
 ):
     n_envs = env.size
     nn = NN(lookup).to(device)
-    # nn = torch.compile(nn, mode="reduce-overhead")
+    nn = torch.compile(nn, mode="reduce-overhead")
 
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
 

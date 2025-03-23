@@ -29,7 +29,7 @@ class NN(nn.Module):
             nn.Linear(64, battle_emb_dim),
         )
         self.move_logits_block = nn.Sequential(
-            nn.Linear(move_emb_dim + battle_emb_dim + 1, 64),
+            nn.Linear(move_emb_dim + battle_emb_dim + 1 + user_emb_dim, 64),
             nn.Tanh(),
             nn.Linear(64, 64),
             nn.Tanh(),
@@ -53,6 +53,7 @@ class NN(nn.Module):
             nn.Tanh(),
             nn.Linear(64, 1),
         )
+        
 
     # @profile
     def forward(self, x):
@@ -71,14 +72,16 @@ class NN(nn.Module):
 
         user_emb = self.user_block(user_enc)
 
-        battle_emb = self.battle_block(
-            torch.cat(
-                [
-                    user_emb[
+        active_emb = user_emb[
                         batch_idx.view(batch_dim, 1).expand(-1, 2),
                         self.party_idx.expand(batch_dim, -1),
                         active_idx,
-                    ].reshape(batch_dim, -1),
+                    ]
+
+        battle_emb = self.battle_block(
+            torch.cat(
+                [
+                    active_emb.reshape(batch_dim, -1),
                     party_enc.reshape(batch_dim, -1),
                 ],
                 dim=-1,
@@ -94,6 +97,7 @@ class NN(nn.Module):
                     battle_emb.view(batch_dim, 1, 1, battle_emb_dim).expand(
                         -1, 4, 2, -1
                     ),
+                    active_emb[:, 1].view(batch_dim, 1, 1, user_emb_dim).expand(-1, 4, 2, -1),
                     self.tera_flag.expand(batch_dim, -1, -1, -1),
                 ],
                 dim=-1,

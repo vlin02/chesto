@@ -13,6 +13,7 @@ export function resolveChoice(obs: Observer, id: number): Choice {
     }
   }
 
+
   id -= 8
   return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
 }

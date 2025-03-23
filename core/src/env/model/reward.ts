@@ -30,19 +30,18 @@ export function evalUser(users: User[]) {
 
 export function evalBattle(obs: Observer) {
   let t = 0
-  if (obs.winner && obs.winner !== "tie") t += obs.winner === obs.side ? 1 : -1
-
+  
   const { ally, foe } = obs
   const [tAlly, tFoe] = [ally, foe].map(({ team }) => {
-    let totAlive = 6
+    let tothp = 6
     for (const k in team) {
-      if (team[k].hp[0] === 0) totAlive -= 1
+      const {hp} = team[k]
+      tothp += hp[0] / hp[1] - 1
     }
-    return totAlive
+    return tothp
   })
-
-  // return tAlly - tFoe
-  return t
+  if (obs.winner && obs.winner !== "tie") return tAlly - tFoe
+  return 0
 }
 
 export function sumBoosts(boosts: Boosts) {

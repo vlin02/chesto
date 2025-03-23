@@ -18,7 +18,7 @@ export function testSide(version: Version, obs: Observer, replay: Replay, side: 
     const logs = outputs[i]
 
     if (input.type === "choose") {
-      const choice = obs.resolveInputChoice(input.choice)
+      const choice = obs.toChoice(input.choice)
 
       if (input.side === side) {
         const opt = obs.getOption()!

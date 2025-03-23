@@ -2,7 +2,7 @@ import { Generation } from "@pkmn/data"
 import { STAT_IDS, Stats, TYPE_NAMES } from "../../battle.js"
 import { User } from "../../parser/user.js"
 import { Observer } from "../../parser/observer.js"
-import { OPP, Party, POVS } from "../../parser/side.js"
+import { OPP, Team, POVS } from "../../parser/side.js"
 import { toMoves } from "../../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
 
@@ -33,7 +33,7 @@ function encodeUser(gen: Generation, user: User, opp: User) {
   return x
 }
 
-function encodeParty({ team, effects, teraUsed }: Party) {
+function encodeParty({ team, effects, teraUsed }: Team) {
   let x: number[] = []
   let totHp = 6
   let totAlive = 6
@@ -41,7 +41,7 @@ function encodeParty({ team, effects, teraUsed }: Party) {
   let totStatus = 0
   for (const k in team) {
     const { hp, boosts, status } = team[k]
-    totHp - 1 + hp[0] / hp[1]
+    totHp += hp[0] / hp[1] -1
     totBoosts += sumBoosts(boosts)
     if (status) totStatus++
     if (hp[0] === 0) totAlive -= 1

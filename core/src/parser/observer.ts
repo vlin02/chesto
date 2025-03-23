@@ -9,7 +9,7 @@ import {
 } from "./protocol.js"
 import { Side, Winner } from "../battle.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
-import { Ally, Foe, OPP, POV, POVS } from "./side.js"
+import { Ally, Foe, OPP, POV, POVS, Team } from "./side.js"
 import { User, MoveSet } from "./user.js"
 import { getMaxPP, isLocking, triggersPressure } from "../move.js"
 import {
@@ -259,8 +259,7 @@ export class Observer {
             team,
             isReviving: false,
             teraUsed: false,
-            slots,
-            turnMoves: 0
+            slots
           }
         }
 
@@ -349,8 +348,7 @@ export class Observer {
             this.foe = {
               effects: {},
               team: { [species]: user },
-              active: user,
-              turnMoves: 0
+              active: user
             }
           }
         }
@@ -1106,8 +1104,6 @@ export class Observer {
           const side = this[pov]
           const { effects: conditions } = side
 
-          side.turnMoves = 0
-
           const {
             active: { lastBerry, volatiles, status }
           } = side
@@ -1287,8 +1283,7 @@ export class Observer {
     return { select, switches }
   }
 
-  formatChoice(choice: Choice) {
-    let s: string
+  toInput(choice: Choice) {
     switch (choice.type) {
       case "move":
         const pfx = `move ${choice.move}`
@@ -1300,7 +1295,7 @@ export class Observer {
     }
   }
 
-  resolveInputChoice(input: InputChoice): Choice {
+  toChoice(input: InputChoice): Choice {
     const { gen, ally } = this
 
     switch (input.type) {
@@ -1317,5 +1312,39 @@ export class Observer {
         return { type: "switch", species: ally.slots[i - 1].species }
       }
     }
+  }
+
+  snapshot() {
+    const { turn, fields, weather, winner } = this
+
+    function getTeam({ delayedAttack, effects, active, team, wish, teraUsed, isReviving }: Team) {
+      const teamSnap: { [k: string]: any } = {}
+      for (const k in team) {
+        teamSnap[k] = team[k].snapshot()
+      }
+
+      return {
+        delayedAttack,
+        effects,
+        active: active.species,
+        team: teamSnap,
+        wish,
+        teraUsed,
+        isReviving
+      }
+    }
+
+    return {
+      turn,
+      fields,
+      weather,
+      winner,
+      ally: getTeam(this.ally),
+      foe: getTeam(this.foe)
+    }
+  }
+
+  ready() {
+    return this.ally && this.foe
   }
 }

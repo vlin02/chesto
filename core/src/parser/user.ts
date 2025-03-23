@@ -293,4 +293,44 @@ export class User {
 
     return typing
   }
+
+  snapshot() {
+    const {
+      lvl,
+      hp,
+      item,
+      revealed,
+      status,
+      formeChange,
+      species,
+      stats,
+      init,
+      teraType,
+      flags,
+      lastMove,
+      lastBerry,
+      volatiles,
+      boosts,
+      isTera
+    } = this
+
+    return {
+      lvl,
+      hp,
+      item,
+      revealed,
+      status,
+      formeChange,
+      species,
+      stats,
+      init,
+      teraType,
+      flags,
+      lastMove,
+      lastBerry,
+      volatiles,
+      boosts,
+      isTera
+    }
+  }
 }

@@ -1,7 +1,6 @@
 import { Side, SIDES, Winner } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
-import { RandomAgent } from "../eval/agents.js"
 import { BattleF, encodeBattle } from "./model/state.js"
 import { Battle } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
@@ -9,6 +8,7 @@ import { evalBattle } from "./model/reward.js"
 import { Choice, toMoves } from "../parser/option.js"
 import { resolveChoice } from "./model/option.js"
 import { startBattle } from "../sim.js"
+import { chooseRandom } from "../agents/random.js"
 
 export type Action = { [k in Side]?: number }
 
@@ -74,7 +74,7 @@ export class Environment {
   }
 
   private choose(side: Side, choice: Choice) {
-    this.battle.choose(side, this[side].obs.formatChoice(choice))
+    this.battle.choose(side, this[side].obs.toInput(choice))
     this.battle.sendUpdates()
   }
 
@@ -140,8 +140,7 @@ export class Environment {
       for (const side of pending) {
         if (this.auto.includes(side)) {
           const { obs } = this[side]
-          const choice = new RandomAgent(obs).choose()
-          this.choose(side, choice)
+          this.choose(side, chooseRandom(obs))
         } else {
           deferred.push(side)
         }
