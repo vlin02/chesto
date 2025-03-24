@@ -7,10 +7,11 @@ async def main():
     async with ClientSession() as session:
         env = BatchEnv(session, "http://172.31.50.187:3001", 1, 1)
         
-        await env.reset()
+        states = await env.reset()
+        print(states)
         start = time.perf_counter()
         actions = [0] * N
-        for i in range(100):
+        for i in range(1):
             _, done = await env.step(actions)
             print(i, done)
         

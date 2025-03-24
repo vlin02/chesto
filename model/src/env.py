@@ -2,10 +2,10 @@ from asyncio import create_task
 import random
 from aiohttp import ClientSession
 from bson import BSON
-import time
 
 SIDES = ["p1", "p2"]
 OPP = {"p1": "p2", "p2": "p1"}
+
 
 class BatchEnv:
     session: ClientSession
@@ -25,7 +25,8 @@ class BatchEnv:
         sides = [random.choice(SIDES) for _ in range(n)]
 
         res = await self.session.post(
-            f"{self.url}/start", json=[[OPP[side]] for side in sides]
+            f"{self.url}/start",
+            json=[dict(auto={OPP[side]: "heuristic"}) for side in sides],
         )
         seeds = BSON.decode(await res.read())["results"]
 

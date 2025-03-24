@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from input import move_enc_dim, user_enc_dim, party_enc_dim
+from input import move_enc_dim, user_enc_dim, team_enc_dim
 
 battle_emb_dim = 64
 move_emb_dim = 96
@@ -18,13 +18,12 @@ class NN(nn.Module):
             nn.Tanh(),
             nn.Linear(128, 128),
             nn.Tanh(),
-            nn.Linear(128, move_emb_dim),
         )
         self.user_block = nn.Sequential(
             nn.Linear(user_enc_dim, 64), nn.Tanh(), nn.Linear(64, user_emb_dim)
         )
         self.battle_block = nn.Sequential(
-            nn.Linear((user_emb_dim + party_enc_dim) * 2, 64),
+            nn.Linear((user_emb_dim + team_enc_dim) * 2, 64),
             nn.Tanh(),
             nn.Linear(64, battle_emb_dim),
         )
@@ -114,10 +113,10 @@ class NN(nn.Module):
             )
         ).squeeze(-1)
 
-
         logits = (move_logits.clone().detach(), switch_logits.clone().detach())
-        move_logits += (move_mask - 1) * 1e9
-        switch_logits += (switch_mask - 1) * 1e9
+        with torch.no_grad():
+            move_logits += (move_mask - 1) * 1e9
+            switch_logits += (switch_mask - 1) * 1e9
 
         return (
             torch.cat([move_logits.flatten(1), switch_logits], dim=-1),

@@ -1,6 +1,5 @@
 import asyncio
 import aiohttp
-from net import NN
 import torch
 from torch import optim
 from input import STATE_FIELDS, load_lookup, decode_states
@@ -10,6 +9,7 @@ import torch.nn.functional as F
 from train import plot_eps
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
+from net_h import Config, Net
 
 import os
 import time
@@ -27,18 +27,19 @@ async def train(
     clip_coef=0.1,
     gamma=1,
     vf_coef=0.5,
-    n_steps=50,
-    n_epochs=20,
+    n_steps=100,
+    n_epochs=10,
     ent_coef=0.01,
     gae_lambda=0.8,
-    minibatch_size=256,
-    lr=1e-4,
+    minibatch_size=512,
+    lr=5e-4,
     target_kl=0.02,
 ):
     n_envs = env.size
-    nn = NN(lookup).to(device)
-    # nn = torch.compile(nn, mode="reduce-overhead")
-    # nn.load_state_dict(torch.load("__tmp/2/0-1742650669.pt"))
+    
+    nn = Net(lookup, Config()).to(device)
+    nn = torch.compile(nn, mode="reduce-overhead")
+    # nn.load_state_dict(torch.load("__tmp/3/2-1742801808.pt"))
 
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
 

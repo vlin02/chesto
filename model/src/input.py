@@ -1,11 +1,11 @@
+from attr import dataclass
 import torch
 import numpy as np
 
-user_enc_dim = 28
-move_feat_dim = 246
-move_embed_dim = 128
-move_enc_dim = move_feat_dim + move_embed_dim
-party_enc_dim = 7
+user_enc_dim = 52
+move_enc_dim = 30
+team_enc_dim = 9
+type_count = 20
 
 
 STATE_FIELDS = [
@@ -14,30 +14,30 @@ STATE_FIELDS = [
     "move_mask",
     "switch_mask",
     "move_choice_idx",
-    "party_enc",
+    "team_enc",
 ]
 
+@dataclass
+class Lookup:
+    move_enc: any
 
 def load_lookup(db, device):
     lookup = {}
     moves = list(db["moves"].find())
-    move_idx = {x["name"]: x["num"] for x in moves}
-    move_idx["Recharge"] = 0
     move_enc = torch.zeros(1000, move_enc_dim, device=device)
 
     for move in moves:
-        move_enc[move["num"]] = torch.tensor(move["x"] + move["openai"], device=device)
+        move_enc[move["num"]] = torch.tensor(move["x"], device=device)
 
-    lookup["move_idx"] = move_idx
     lookup["move_enc"] = move_enc
-    return lookup
+    return Lookup(move_enc=move_enc)
 
 def decode_states(states, device):
     x = {}
     N = len(states)
     for _k, k, dtype, shape in [
-        ("userEnc", "user_enc", np.float32, (N, 2, 6, user_enc_dim)),
-        ("partyEnc", "party_enc", np.float32, (N, 2, party_enc_dim)),
+        ("userEnc", "user_enc", np.float32, (N, 7, user_enc_dim)),
+        ("teamEnc", "team_enc", np.float32, (N, 2, team_enc_dim)),
         ("activeIdx", "active_idx", np.int32, (N, 2,)),
         ("moveMask", "move_mask", np.int32, (N, 4, 2)),
         ("switchMask", "switch_mask", np.int32, (N, 6,)),
