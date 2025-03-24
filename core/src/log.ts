@@ -1,6 +1,7 @@
 import { piped, spaced } from "./parse.js"
 import { FOE } from "./parser/protocol.js"
 import { SIDES, Side } from "./battle.js"
+import { PRNGSeed } from "@pkmn/sim"
 
 export type Log = ["update", string[]] | ["sideupdate", string] | ["end", string]
 
@@ -66,7 +67,11 @@ export type InputChoice =
       i: number
     }
 
-export type Seed = number[]
+export type ChoiceInput = {
+  type: "choose"
+  side: Side
+  choice: string
+}
 
 export type Input =
   | {
@@ -79,20 +84,20 @@ export type Input =
     }
   | {
       type: "start"
-      seed: number[]
+      seed: PRNGSeed
       formatId: string
       rated: boolean
     }
   | {
       type: "choose"
       side: Side
-      choice: InputChoice
+      choice: string
     }
   | {
       type: "end"
       winner: Side | null
     }
-  | { type: "player"; side: Side; seed: Seed; rating: number }
+  | { type: "player"; side: Side; seed: PRNGSeed; rating: number }
   | { type: "chat" }
 
 export function parseInput(line: string): Input {
@@ -110,7 +115,7 @@ export function parseInput(line: string): Input {
     case ">player":
       p = spaced(line, p.i)
       const [side] = p.args as [Side]
-      const { seed, rating } = JSON.parse(line.slice(p.i)) as { seed: Seed; rating: number }
+      const { seed, rating } = JSON.parse(line.slice(p.i)) as { seed: PRNGSeed; rating: number }
 
       return { type: "player", side, seed, rating }
     case ">start": {
@@ -119,21 +124,7 @@ export function parseInput(line: string): Input {
     }
     case ">p1":
     case ">p2": {
-      p = spaced(line, p.i, -1)
-
-      let choice: InputChoice
-      switch (p.args[0]) {
-        case "move":
-          choice = { type: "move", move: p.args[1], tera: p.args[2] === "terastallize" }
-          break
-        case "switch":
-          choice = { type: "switch", i: Number(p.args[1]) }
-          break
-        default:
-          throw Error()
-      }
-
-      return { type: "choose", side: pfx.slice(1) as Side, choice: choice }
+      return { type: "choose", side: pfx.slice(1) as Side, choice: line.slice(p.i) }
     }
     case ">forcelose": {
       p = spaced(line, p.i)

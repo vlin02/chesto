@@ -1,146 +1,260 @@
-import { Battle, Teams, toID } from "@pkmn/sim"
-import { Log, split } from "../log.js"
+import { Battle, Teams } from "@pkmn/sim"
+import { ChoiceInput, Log, parseInput, split } from "../log.js"
 import { Side, SIDES, Winner } from "../battle.js"
 import { Observer } from "../parser/observer.js"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
-import { Pool } from "undici"
 import { TeamGenerators } from "@pkmn/randoms"
-import { Choice } from "../parser/option.js"
+import { BattleSeed, startBattle } from "../sim.js"
+import { encodeBattle, tagBattle } from "../env/model/heuristic-state.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 const gen = new Generations(Dex).get(9)
 
-type Seed = {
-  battle: any
-  p1: any
-  p2: any
+type Transition = {
+  pending: Side[]
+  logs: Log[]
 }
 
-type Trial = {
+// function parseSeed(lines: string[]): BattleSeed {
+//   const all = []
+//   for (let i = 0; i < 3; i++) {
+//     all.push(JSON.parse(lines[i].slice(spaced(lines[i], 0, i === 0 ? 1 : 2).i)).seed as PRNGSeed)
+//   }
+
+//   const [battle, p1, p2] = all
+//   return { battle, p1, p2 }
+// }
+
+class Trial {
   logs: Log[]
-  fullLog: any[]
-  results: any[]
-  p1: { obs: Observer; snapshot: any }
-  p2: { obs: Observer; snapshot: any }
+  p1: Observer
+  p2: Observer
   battle: Battle
   winner: Winner | null
-}
 
-function start(seed?: Seed) {
-  const trial: Trial = {
-    logs: [],
-    winner: null,
-    fullLog: [],
-    results: [],
-    battle: undefined as any,
-    p1: { obs: new Observer(gen), snapshot: {} },
-    p2: { obs: new Observer(gen), snapshot: {} }
+  constructor(seed?: BattleSeed) {
+    this.logs = []
+    this.winner = null
+    this.battle = undefined as any
+    this.p1 = new Observer(gen)
+    this.p2 = new Observer(gen)
+
+    this.battle = startBattle({
+      seed,
+      formatId: "gen9randombattle",
+      p1: "p1",
+      p2: "p2",
+      send: (log) => {
+        this.logs.push(log as Log)
+      }
+    })
   }
 
-  trial.battle = new Battle({
-    seed: seed?.battle,
-    formatid: toID("gen9randombattle"),
-    p1: { name: "p1", seed: seed?.p1 },
-    p2: { name: "p2", seed: seed?.p2 },
-    send: (...log) => {
-      trial.logs.push(log as Log)
-      trial.fullLog.push(log)
-    }
-  })
-  trial.battle.sendUpdates()
-  return trial
-}
+  transition() {
+    this.battle.sendUpdates()
 
-type Step = {
-  action: string
-  logs: Log[]
-  snapshots: { [k in Side]: any }
-  probs?: number[]
-  value?: number
-}
-
-function choose(trial: Trial, side: Side, choice: Choice) {}
-
-const envs = [...new Array(1)].map(() => start())
-const pool = new Pool("http://172.31.57.228:8000")
-
-while (true) {
-  let all: Trial[] = []
-
-  for (const env of envs) {
-    if (env.winner) continue
     const pending: Side[] = []
-
-    for (const log of env.logs) {
+    for (const log of this.logs) {
       const ch = split(log)
 
       for (const side of SIDES) {
-        const { obs } = env[side]
+        const obs = this[side]
         for (const line of ch[side]) {
           const e = obs.read(line)
 
           if (e.error?.startsWith("[Invalid choice]")) {
             throw e.error
           }
-          if (e.winner) env.winner = e.winner
+          if (e.winner) this.winner = e.winner
           if (e.pending) pending.push(side)
         }
       }
-      for (const side of SIDES) {
-        if (env[side].obs.ready() && env[side].obs.turn === 1) {
-          console.log(env[side].obs.snapshot())
-        }
-        env[side].snapshot
-      }
     }
-    env.logs = []
 
-    for (const side of pending) {
-      if (side === "p1") {
-        choose(env, side, simpleHeuristic(env.p1.obs))
-      } else {
-        choose(env, side, simpleHeuristic(env.p2.obs))
-        // all.push(env)
-      }
+    const trn: Transition = {
+      pending,
+      logs: this.logs
     }
+    this.logs = []
+
+    return trn
   }
-  if (envs.every((x) => x.winner)) break
-
-  // if (all.length) {
-  //   const results = (await predict(
-  //     pool,
-  //     all.map((env) => {
-  //       return env.p2
-  //     }),
-  //     "3/0-1742688539.pt"
-  //   )) as { action_id: number; probs: number[] }[]
-
-  //   for (let i = 0; i < all.length; i++) {
-  //     const env = all[i]
-  //     choose(env, "p2", resolveChoice(env.p2, results[i]["action_id"]))
-  //     env.results.push(results[i])
-  //   }
-  // }
 }
 
-// const cnt = { p1: 0, p2: 0, tie: 0 }
-// let hi = 0
-// let best: Env | null = null
-// for (const env of envs) {
-//   const { winner, p1 } = env
-//   cnt[winner!] += 1
-//   const t = Object.values(p1.ally.team).reduce((acc, x) => acc + x.hp[0] / x.hp[1], 0)
-//   // if (winner === "p1" && t > hi) {
-//   hi = t
-//   best = env
-//   // }
+function replay(inputs: string[]) {
+  const seed: BattleSeed = {} as any
+  for (const line of inputs.slice(0, 3)) {
+    const input = parseInput(line)
+    if (input.type === "start") seed.battle = input.seed
+    if (input.type === "player") seed[input.side] = input.seed
+  }
+
+  const trial = new Trial(seed)
+
+  const choices = inputs.slice(3).map((line) => {
+    const { side, choice } = parseInput(line) as ChoiceInput
+    return [side, choice] as const
+  })
+
+  return [trial, choices] as const
+}
+
+// function r1() {
+//   const trial = new Trial()
+
+//   let pending: Side[] = []
+//   let updates: any[] = [[[], trial.snapshot()]]
+//   function update(trn: Transition) {
+//     updates.push([trn.logs, trial.snapshot()])
+//     pending.push(...trn.pending)
+//   }
+
+//   update(trial.transition())
+//   while (!trial.winner) {
+//     const side = pending.shift()!
+//     trial.step(side, trial[side].toInput(chooseHeuristic(trial[side])))
+//     update(trial.transition())
+//   }
+
+//   for (let i = 1; i < updates.length; i++) {
+//     const [_, prev] = updates[i - 1]
+//     const [logs, curr] = updates[i]
+
+//     for (const log of logs) {
+//       if (log[0] === "update") {
+//         console.log(log[1])
+//       }
+//     }
+//     console.log(diffString(prev.p2, curr.p2))
+//   }
 // }
 
-// console.log(cnt)
+function updatesOnly(logs: Log[]) {
+  return logs.map((log) => (log[0] === "update" ? log[1] : [])).flat()
+}
+function r2() {
+  const [trial, choices] = replay([
+    '>start {"formatid":"gen9randombattle","seed":["sodium","3a95e60f380c22463535d86fb879dd6a"]}',
+    '>player p1 {"name":"p1","seed":["sodium","7af567ef2efd85d82f78ccf6b7ec336c"]}',
+    '>player p2 {"name":"p2","seed":["sodium","c010f4b1a2ac9baa31c676a6b439084e"]}',
+    ">p1 move dragondance",
+    ">p2 move earthquake terastallize",
+    ">p1 move heatcrash",
+    ">p2 switch 2",
+    ">p1 move outrage terastallize",
+    ">p2 switch 2",
+    ">p1 move outrage",
+    ">p2 move slackoff",
+    ">p2 switch 2",
+    ">p1 move outrage",
+    ">p2 switch 6",
+    ">p1 move heatcrash",
+    ">p2 move dynamaxcannon",
+    ">p1 switch 4",
+    ">p1 move flareblitz",
+    ">p2 switch 6",
+    ">p2 switch 4",
+    ">p1 move flareblitz",
+    ">p2 move icebeam",
+    ">p1 move flareblitz",
+    ">p2 switch 5",
+    ">p1 move flareblitz",
+    ">p2 move shadowclaw",
+    ">p1 move flareblitz",
+    ">p2 move shadowclaw",
+    ">p1 switch 5",
+    ">p2 switch 5",
+    ">p1 move liquidation",
+    ">p2 move leafstorm",
+    ">p1 move recover",
+    ">p2 switch 3",
+    ">p1 move recover",
+    ">p2 move focusblast",
+    ">p1 move liquidation",
+    ">p2 move focusblast",
+    ">p1 move liquidation",
+    ">p2 switch 6",
+    ">p1 move liquidation",
+    ">p2 move dynamaxcannon",
+    ">p1 move liquidation",
+    ">p2 move recover",
+    ">p1 move liquidation",
+    ">p2 switch 6",
+    ">p1 move recover",
+    ">p2 move sludgebomb",
+    ">p1 move liquidation",
+    ">p2 switch 6",
+    ">p1 move liquidation",
+    ">p2 move dynamaxcannon",
+    ">p1 move recover",
+    ">p2 move flamethrower",
+    ">p1 move recover",
+    ">p2 move dynamaxcannon",
+    ">p1 move liquidation",
+    ">p2 switch 3",
+    ">p1 move liquidation",
+    ">p2 switch 3",
+    ">p1 move recover",
+    ">p2 move flamethrower",
+    ">p1 move toxic",
+    ">p2 move toxic",
+    ">p1 move recover",
+    ">p2 move flamethrower",
+    ">p1 move recover",
+    ">p2 move dynamaxcannon",
+    ">p1 move toxic",
+    ">p2 move flamethrower",
+    ">p1 move toxic",
+    ">p2 switch 6",
+    ">p1 move toxic",
+    ">p2 move focusblast",
+    ">p1 move toxic",
+    ">p2 move focusblast",
+    ">p2 switch 6",
+    ">p1 move toxic",
+    ">p2 move recover",
+    ">p1 move toxic",
+    ">p2 move recover",
+    ">p1 move toxic",
+    ">p2 move toxic",
+    ">p1 move toxic",
+    ">p2 move dynamaxcannon",
+    ">p1 move toxic",
+    ">p2 move flamethrower",
+    ">p1 move toxic"
+  ])
 
-// if (best) {
-//   const { battle, results } = best!
-//   console.log(hi)
-//   console.log(JSON.stringify({ input: battle.inputLog, results }))
-// }
+  let snap = {}
+  let i = 0
+  for (const choice of [null, ...choices]) {
+    if (choice) trial.battle.choose(...choice)
+    const trn = trial.transition()
+
+    console.log("trn", ++i)
+    if (i > 69) {
+      console.dir(trial.p1.snapshot(), { depth: null, maxArrayLength: null })
+      console.log(trial.p1.getOption())
+      const b = encodeBattle(trial.p1)
+      const { userEnc, ...rest } = b
+      console.log(rest)
+      console.dir(tagBattle(b), {depth: null, maxArrayLength: null})
+      console.log(choice)
+      console.log(updatesOnly(trn.logs))
+      // for (const log of trn.logs) {
+      //   console.log(log)
+
+      // }
+
+      console.log(trial.p1.ally.active.moveSet)
+
+      const _snap = trial.p1.snapshot()
+      // if (choice) console.log(diffString(snap, _snap))
+      snap = _snap
+
+      console.log()
+    }
+  }
+}
+
+r2()

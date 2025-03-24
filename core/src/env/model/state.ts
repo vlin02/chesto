@@ -6,7 +6,7 @@ import { OPP, Team, POVS } from "../../parser/side.js"
 import { toMoves } from "../../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
 
-function inferStats(gen: Generation, forme: string, lvl: number): Stats {
+export function inferStats(gen: Generation, forme: string, lvl: number): Stats {
   const { baseStats } = gen.species.get(forme)!
 
   const stats: any = {}
@@ -59,7 +59,7 @@ function encodeParty({ team, effects, teraUsed }: Team) {
   return x
 }
 
-function zeros(dims: number[]): any {
+export function zeros(dims: number[]): any {
   if (dims.length === 1) return Array(dims[0]).fill(0)
 
   return Array(dims[0])

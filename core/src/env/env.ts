@@ -1,13 +1,13 @@
 import { Side, SIDES, Winner } from "../battle.js"
 import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
-import { BattleF, encodeBattle } from "./model/state.js"
 import { Battle } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
 import { evalBattle } from "./model/reward.js"
-import { Choice, toMoves } from "../parser/option.js"
+import { Choice } from "../parser/option.js"
 import { resolveChoice } from "./model/option.js"
-import { startBattle } from "../sim.js"
+import { BattleSeed, startBattle } from "../sim.js"
+import { chooseHeuristic } from "../agents/heuristic.js"
 import { chooseRandom } from "../agents/random.js"
 
 export type Action = { [k in Side]?: number }
@@ -26,36 +26,33 @@ export type Update = {
   p2?: Transition
 }
 
-export function toChoice(obs: Observer, id: number): Choice {
-  const opt = obs.getOption()!
-  if (id < 8) {
-    const j = id % 2
-    const i = (id - j) / 2
-    return {
-      type: "move",
-      move: toMoves(opt.select!)[i],
-      tera: j === 1
-    }
-  }
-
-  id -= 8
-  return { type: "switch", species: [...Object.keys(obs.ally.team)][id] }
-}
-
+export type Auto = { [K in Side]?: "random" | "heuristic" }
 type Player = { obs: Observer; v?: number }
 
 export class Environment {
   battle: Battle
   p1: Player
   p2: Player
-  auto: Side[]
+  auto: Auto
   logs: Log[]
   turnLimit: number
-  pack: (x: BattleF) => void
+  packState: (x: Observer) => void
+  resolveChoice: (obs: Observer, id: number) => Choice
 
   constructor(
     gen: Generation,
-    { auto, turnLimit, pack }: { auto: Side[]; turnLimit: number; pack: (x: BattleF) => void }
+    {
+      auto,
+      seed,
+      turnLimit,
+      packState
+    }: {
+      auto: Auto
+      seed?: BattleSeed
+      turnLimit: number
+      packState: (obs: Observer) => void
+      resolveChoice: (obs: Observer, id: number) => Choice
+    }
   ) {
     this.p1 = { obs: new Observer(gen) }
     this.p2 = { obs: new Observer(gen) }
@@ -65,12 +62,14 @@ export class Environment {
       formatId: "gen9randombattle",
       p1: "p1",
       p2: "p2",
+      seed,
       send: (x) => this.logs.push(x)
     })
 
     this.battle.sendUpdates()
     this.turnLimit = turnLimit
-    this.pack = pack
+    this.packState = packState
+    this.resolveChoice = resolveChoice
   }
 
   private choose(side: Side, choice: Choice) {
@@ -94,7 +93,7 @@ export class Environment {
     for (const k in action) {
       const side = k as Side
       const choiceId = action[side]!
-      this.choose(side, resolveChoice(this[side].obs, choiceId))
+      this.choose(side, this.resolveChoice(this[side].obs, choiceId))
     }
 
     while (true) {
@@ -138,9 +137,12 @@ export class Environment {
       const deferred: Side[] = []
 
       for (const side of pending) {
-        if (this.auto.includes(side)) {
+        if (this.auto[side]) {
           const { obs } = this[side]
-          this.choose(side, chooseRandom(obs))
+          this.choose(
+            side,
+            { heuristic: chooseHeuristic, random: chooseRandom }[this.auto[side]](obs)
+          )
         } else {
           deferred.push(side)
         }
@@ -151,7 +153,7 @@ export class Environment {
         for (const side of deferred) {
           update[side] = {
             reward: this.stepReward(side),
-            state: this.pack(encodeBattle(this[side].obs))
+            state: this.packState(this[side].obs)
           }
         }
         return update

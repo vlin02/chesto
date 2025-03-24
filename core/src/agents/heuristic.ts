@@ -103,7 +103,7 @@ function statEstimation(mon: User, stat: "atk" | "def" | "spa" | "spd" | "spe"):
 }
 
 // Main heuristic function
-export function simpleHeuristic(obs: Observer): Choice {
+export function chooseHeuristic(obs: Observer): Choice {
   const option = obs.getOption()
   if (!option) return { type: "move", move: "Struggle", tera: false }
 

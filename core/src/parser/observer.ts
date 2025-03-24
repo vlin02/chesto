@@ -10,7 +10,7 @@ import {
 import { Side, Winner } from "../battle.js"
 import { parseRequest, RawRequest, Request } from "./request.js"
 import { Ally, Foe, OPP, POV, POVS, Team } from "./side.js"
-import { User, MoveSet } from "./user.js"
+import { User, MoveSet, Status } from "./user.js"
 import { getMaxPP, isLocking, triggersPressure } from "../move.js"
 import {
   StatusId,
@@ -62,6 +62,14 @@ function resolveSwaps(a: string[], b: string[]) {
   }
 
   return switches
+}
+
+function initializeStatus(id: StatusId): Status {
+  return {
+    id,
+    turn: id === "tox" ? 0 : undefined,
+    attempt: id === "slp" ? 0 : undefined
+  }
 }
 
 function canTera(gen: Generation, { volatiles }: User) {
@@ -128,7 +136,7 @@ export class Observer {
     return { pov: side === this.side ? "ally" : "foe", species }
   }
 
-  clear(user: User) {
+  switchOut(user: User) {
     const { volatiles, boosts, lastBerry, lastMove, formeChange, pov } = user
     const recover = { volatiles, boosts, lastBerry, lastMove, formeChange }
 
@@ -152,8 +160,9 @@ export class Observer {
     return recover
   }
 
-  onSwitchIn(user: User) {
-    if (user.pov === "ally") user.revealed = true
+  switchIn(user: User) {
+    user.revealed = true
+    this[user.pov].active = user
   }
 
   deref({ pov, species }: Ref) {
@@ -244,10 +253,7 @@ export class Observer {
 
           for (const member of this.req.team) {
             const user = new User(this.gen, { pov: "ally", member })
-            if (member.active) {
-              this.onSwitchIn(user)
-              active = user
-            }
+            if (member.active) active = user
 
             team[user.species] = user
             slots.push(user)
@@ -309,7 +315,7 @@ export class Observer {
         user.hp[0] = 0
         user.status = undefined
 
-        this.clear(user)
+        this.switchOut(user)
         break
       }
       case "switch":
@@ -332,6 +338,7 @@ export class Observer {
         }
 
         const label = parseLabel(p.args[1])
+        const health = parseHealth(p.args[2])!
 
         let user: User
 
@@ -353,6 +360,11 @@ export class Observer {
           }
         }
 
+        user.hp = health.hp
+        if (health.status !== user.status?.id) {
+          user.status = health.status ? initializeStatus(health.status) : undefined
+        }
+
         const { active: prev } = this[pov]
 
         p = piped(line, p.i, -1)
@@ -371,8 +383,8 @@ export class Observer {
           user.volatiles["Substitute"] = prev.volatiles["Substitute"]
         }
 
-        this.clear(prev)
-        this.onSwitchIn(user)
+        this.switchOut(prev)
+        user.revealed = true
         this[pov].active = user
         break
       }
@@ -447,12 +459,8 @@ export class Observer {
         p = piped(line, p.i, -1)
         const { from, of } = parseTags(p.args)
 
-        user.status = {
-          id,
-          turn: id === "tox" ? 0 : undefined,
-          attempt: id === "slp" ? 0 : undefined
-        }
-
+        user.status = initializeStatus(id)
+        
         const src = of ? this.deref(this.toRef(of)) : user
         const { ability, item } = parseEntity(from)
 
@@ -1334,14 +1342,16 @@ export class Observer {
       }
     }
 
-    return {
-      turn,
-      fields,
-      weather,
-      winner,
-      ally: getTeam(this.ally),
-      foe: getTeam(this.foe)
-    }
+    return JSON.parse(
+      JSON.stringify({
+        turn,
+        fields,
+        weather,
+        winner,
+        ally: getTeam(this.ally),
+        foe: getTeam(this.foe)
+      })
+    )
   }
 
   ready() {

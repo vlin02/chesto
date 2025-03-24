@@ -1,6 +1,6 @@
 import { BattleF } from "./model/state.js"
 
-function toBuf(x: any, type: "float" | "int"): Buffer {
+export function toBuf(x: any, type: "float" | "int"): Buffer {
   x = x.flat(Infinity)
   if (type === "float") x = new Float32Array(x)
   else x = new Int32Array(x)

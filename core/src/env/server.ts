@@ -3,10 +3,10 @@ import { Worker } from "worker_threads"
 import { randomUUID } from "crypto"
 import path, { dirname } from "path"
 import { fileURLToPath } from "url"
-import { Update, Action } from "./env.js"
+import { Update, Action, Auto } from "./env.js"
 import { WorkerRequest } from "./worker.js"
-import { Side } from "../battle.js"
 import { BSON } from "mongodb"
+import { BattleSeed } from "../sim.js"
 
 const NUM_WORKERS = 60
 const __filename = fileURLToPath(import.meta.url)
@@ -35,19 +35,19 @@ function sendMessage(id: number, req: WorkerRequest) {
 const app = new Hono()
 
 app.post("/start", async (c) => {
-  const autos = await c.req.json<Side[][]>()
+  const autos = await c.req.json<{auto: Auto, seed?: BattleSeed}[]>()
 
   return new Response(
     BSON.serialize({
       results: await Promise.all(
-        autos.map(async (auto) => {
+        autos.map(async (options) => {
           const workerId = i
           i = (i + 1) % NUM_WORKERS
 
           const envId = randomUUID()
           const update = await new Promise<Update>((resolve) => {
             sessions.set(envId, { workerId, resolve })
-            sendMessage(workerId, [envId, { type: "start", auto }])
+            sendMessage(workerId, [envId, { type: "start", ...options }])
           })
           return { id: envId, update }
         })

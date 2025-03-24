@@ -1,17 +1,21 @@
 import { parentPort } from "worker_threads"
-import { Side } from "../battle.js"
 import { Teams } from "@pkmn/sim"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
-import { Environment, Action } from "./env.js"
+import { Environment, Action, Auto } from "./env.js"
 import { TeamGenerators } from "@pkmn/randoms"
-import { packBinary } from "./transport.js"
+import { BattleSeed } from "../sim.js"
+import { toBinary, encodeBattle, resolveChoice } from "./model/heuristic-state.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 
 export type WorkerRequest = [
   string,
-  { type: "start"; auto: Side[] } | { type: "step"; action: Action } | { type: "close" }
+  (
+    | { type: "start"; auto: Auto; seed?: BattleSeed }
+    | { type: "step"; action: Action }
+    | { type: "close" }
+  )
 ]
 
 const envs = new Map<string, Environment>()
@@ -24,9 +28,15 @@ const TURN_LIMIT = 100
 main!.on("message", ([id, body]: WorkerRequest) => {
   switch (body.type) {
     case "start": {
-      const { auto } = body
+      const { auto, seed } = body
 
-      const env = new Environment(gen, { auto, turnLimit: TURN_LIMIT, pack: packBinary })
+      const env = new Environment(gen, {
+        auto,
+        seed,
+        turnLimit: TURN_LIMIT,
+        packState: (obs) => toBinary(encodeBattle(obs)),
+        resolveChoice
+      })
       envs.set(id, env)
       main.postMessage([id, env.step({})])
       break
