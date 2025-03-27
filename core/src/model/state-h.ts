@@ -1,6 +1,6 @@
 import { Generation, Move } from "@pkmn/data"
-import { Observer } from "../../parser/observer.js"
-import { User } from "../../parser/user.js"
+import { Observer } from "../parser/observer.js"
+import { User } from "../parser/user.js"
 import {
   Boosts,
   HAZARDS,
@@ -9,11 +9,11 @@ import {
   SCREENS,
   STAT_IDS,
   TYPE_NAMES
-} from "../../battle.js"
+} from "../battle.js"
 import { inferStats, zeros } from "./state.js"
-import { POVS, Team } from "../../parser/side.js"
-import { Choice, toMoves } from "../../parser/option.js"
-import { toBuf } from "../transport.js"
+import { POVS, Team } from "../parser/side.js"
+import { toMoves } from "../parser/option.js"
+import { toArrayBuffer, Transport } from "./transport.js"
 
 function netBoosts(boosts: Boosts) {
   let t = 0
@@ -145,7 +145,7 @@ export function encodeBattle(obs: Observer) {
   }
 
   {
-    const species = Object.keys(ally.team)
+    const species = ally.slots.map((x) => x.species)
     for (let i = 0; i < 6; i++) {
       if (!switches.includes(species[i])) continue
       switchMask[i] = 1
@@ -162,45 +162,32 @@ export function encodeBattle(obs: Observer) {
   }
 }
 
-export type PackedBattle = {
-  partyEnc: Buffer
-  userEnc: Buffer
-  activeIdx: Buffer
-  moveChoiceIdx: Buffer
-  moveMask: Buffer
-  switchMask: Buffer
-}
-
-export function toBinary({
-  teamEnc,
-  userEnc,
-  activeIdx,
-  moveChoiceIdx,
-  moveMask,
-  switchMask
-}: BattleF) {
-  return {
-    teamEnc: toBuf(teamEnc, "float"),
-    userEnc: toBuf(userEnc, "float"),
-    activeIdx: toBuf(activeIdx, "int"),
-    moveChoiceIdx: toBuf(moveChoiceIdx, "int"),
-    moveMask: toBuf(moveMask, "int"),
-    switchMask: toBuf(switchMask, "int")
-  }
-}
-
-export function resolveChoice(obs: Observer, id: number): Choice {
-  const opt = obs.getOption()!
-  if (id < 8) {
-    const j = id % 2
-    const i = (id - j) / 2
+export const transportH: Transport<BattleF> = {
+  encodeMove,
+  encodeBattle,
+  packBattle: ({ teamEnc, userEnc, activeIdx, moveChoiceIdx, moveMask, switchMask }: BattleF) => {
     return {
-      type: "move",
-      move: toMoves(opt.select!)[i],
-      tera: j === 1
+      teamEnc: toArrayBuffer(teamEnc, "float"),
+      userEnc: toArrayBuffer(userEnc, "float"),
+      activeIdx: toArrayBuffer(activeIdx, "int"),
+      moveChoiceIdx: toArrayBuffer(moveChoiceIdx, "int"),
+      moveMask: toArrayBuffer(moveMask, "int"),
+      switchMask: toArrayBuffer(switchMask, "int")
     }
-  }
+  },
+  decodeChoice: (obs: Observer, id: number) => {
+    const opt = obs.getOption()!
+    if (id < 8) {
+      const j = id % 2
+      const i = (id - j) / 2
+      return {
+        type: "move",
+        move: toMoves(opt.select!)[i],
+        tera: j === 1
+      }
+    }
 
-  id -= 8
-  return { type: "switch", species: obs.ally.slots[id].species }
+    id -= 8
+    return { type: "switch", species: obs.ally.slots[id].species }
+  }
 }

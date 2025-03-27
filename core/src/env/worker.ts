@@ -5,7 +5,9 @@ import { Dex } from "@pkmn/dex"
 import { Environment, Action, Auto } from "./env.js"
 import { TeamGenerators } from "@pkmn/randoms"
 import { BattleSeed } from "../sim.js"
-import { toBinary, encodeBattle, resolveChoice } from "./model/heuristic-state.js"
+import { transportH } from "../model/state-h.js"
+
+const { packBattle, encodeBattle, decodeChoice } = transportH
 
 Teams.setGeneratorFactory(TeamGenerators)
 
@@ -34,8 +36,7 @@ main!.on("message", ([id, body]: WorkerRequest) => {
         auto,
         seed,
         turnLimit: TURN_LIMIT,
-        packState: (obs) => toBinary(encodeBattle(obs)),
-        resolveChoice
+        transport: transportH
       })
       envs.set(id, env)
       main.postMessage([id, env.step({})])

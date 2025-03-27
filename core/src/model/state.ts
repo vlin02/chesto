@@ -1,9 +1,9 @@
 import { Generation } from "@pkmn/data"
-import { STAT_IDS, Stats, TYPE_NAMES } from "../../battle.js"
-import { User } from "../../parser/user.js"
-import { Observer } from "../../parser/observer.js"
-import { OPP, Team, POVS } from "../../parser/side.js"
-import { toMoves } from "../../parser/option.js"
+import { STAT_IDS, Stats, TYPE_NAMES } from "../battle.js"
+import { User } from "../parser/user.js"
+import { Observer } from "../parser/observer.js"
+import { OPP, Team, POVS } from "../parser/side.js"
+import { toMoves } from "../parser/option.js"
 import { sumBoosts, sumSideEffects } from "./reward.js"
 
 export function inferStats(gen: Generation, forme: string, lvl: number): Stats {

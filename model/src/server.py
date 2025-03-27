@@ -18,7 +18,7 @@ DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
 client = MongoClient(DB_URL)
 lookup = load_lookup(client["chesto"], device)
 
-cache = {}
+model_cache = {}
 
 
 def load(path):
@@ -36,12 +36,12 @@ def load(path):
 async def predict(request: Request):
     with torch.no_grad():
         body = BSON.decode(await request.body())
-        path = body["path"]
+        model_path = body["modelPath"]
         states = body["states"]
 
-        if path not in cache:
-            cache[path] = load(path)
-        nn = cache[path]
+        if model_path not in model_cache:
+            model_cache[model_path] = load(model_path)
+        nn = model_cache[model_path]
 
         states = decode_states(states, device)
         logits, v, _ = nn(states)

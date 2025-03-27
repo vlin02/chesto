@@ -6,7 +6,7 @@ import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { TeamGenerators } from "@pkmn/randoms"
 import { BattleSeed, startBattle } from "../sim.js"
-import { encodeBattle, tagBattle } from "../env/model/heuristic-state.js"
+import { encode, tagBattle } from "../model/state-h.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 const gen = new Generations(Dex).get(9)
@@ -81,6 +81,7 @@ class Trial {
     return trn
   }
 }
+
 
 function replay(inputs: string[]) {
   const seed: BattleSeed = {} as any
@@ -235,7 +236,7 @@ function r2() {
     if (i > 69) {
       console.dir(trial.p1.snapshot(), { depth: null, maxArrayLength: null })
       console.log(trial.p1.getOption())
-      const b = encodeBattle(trial.p1)
+      const b = encode(trial.p1)
       const { userEnc, ...rest } = b
       console.log(rest)
       console.dir(tagBattle(b), {depth: null, maxArrayLength: null})
@@ -257,4 +258,3 @@ function r2() {
   }
 }
 
-r2()

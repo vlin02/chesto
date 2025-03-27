@@ -1,5 +1,5 @@
 
-export type Selection =
+export type MoveSelection =
   | { type: "struggle" | "recharge"; tera?: undefined }
   | {
       type: "default"
@@ -9,7 +9,7 @@ export type Selection =
     }
 
 export type Option = {
-  select: Selection | null
+  select: MoveSelection | null
   switches: string[]
 }
 
@@ -25,7 +25,7 @@ export type Choice =
     }
 
 
-export function toMoves(select: Selection) {
+export function toMoves(select: MoveSelection) {
   if (select.type === "default") return select.moves
   return [{ struggle: "Struggle", recharge: "Recharge" }[select.type]]
 }

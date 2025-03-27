@@ -1,5 +1,5 @@
-import { Observer } from "../../parser/observer.js"
-import { Choice, toMoves } from "../../parser/option.js"
+import { Observer } from "../parser/observer.js"
+import { Choice, toMoves } from "../parser/option.js"
 
 export function resolveChoice(obs: Observer, id: number): Choice {
   const opt = obs.getOption()!

@@ -1,19 +1,8 @@
 import WebSocket from "ws"
 import { piped } from "../parse.js"
 import assert from "assert"
-import { getAnonAssertion } from "./binding.js"
-
-export type UserEvent =
-  | {
-      type: "message"
-      roomId: string
-      logs: string[]
-    }
-  | {
-      type: "request"
-      username: string
-      format: string
-    }
+import { getAnonAssertion } from "./api.js"
+import { EventEmitter } from "node:events"
 
 type LogingRequest = {
   next: () => void
@@ -22,6 +11,10 @@ type LogingRequest = {
 type ChallengeRequest =
   | { status: "inflight"; next: (p: Promise<string | null>) => void }
   | { status: "pending"; next: (id: string | null) => void }
+
+type SearchRequest =
+  | { status: "inflight"; next: (p: Promise<void>) => void }
+  | { status: "pending"; next: () => void }
 
 function extractBattleId(s: string) {
   const match = s.match(/href="\/([^"]+)"/)
@@ -34,10 +27,19 @@ export class User {
   ws: WebSocket
   private loginReq?: LogingRequest
   private challengeReq?: ChallengeRequest
-  on: (event: UserEvent) => void = () => {}
+  private searchReqs: Map<string, SearchRequest>
+
+  global: EventEmitter<{
+    search: [string[]]
+  }>
+
+  room: EventEmitter<{ [k: string]: [string[]] }>
 
   constructor(ws: WebSocket) {
     this.ws = ws
+    this.global = new EventEmitter()
+    this.room = new EventEmitter()
+    this.searchReqs = new Map()
   }
 
   start() {
@@ -48,7 +50,7 @@ export class User {
 
         if (msg.startsWith(">")) {
           const [roomId, ...logs] = msg.slice(1).split("\n")
-          this.on({ type: "message", roomId, logs })
+          this.room.emit(roomId, logs)
         }
 
         switch (p.args[0]) {
@@ -61,9 +63,6 @@ export class User {
             p = piped(msg, p.i)
             this.loginReq?.next()
             this.username = p.args[0]
-            break
-
-          case "updatechallenges":
             break
 
           case "pm":
@@ -99,6 +98,26 @@ export class User {
             break
 
           case "updatesearch":
+            const { searching, games } = JSON.parse(msg.slice(p.i)) as {
+              searching: string[]
+              games: null | { [k: string]: string }
+            }
+            this.global.emit("search", games ? [...Object.keys(games)] : [])
+
+            for (const [formatId, req] of this.searchReqs) {
+              if (searching.includes(formatId) && req.status === "inflight") {
+                const p = new Promise<void>((res) => {
+                  this.searchReqs.set(formatId, { status: "pending", next: res })
+                })
+                req.next(p)
+              }
+
+              if (!searching.includes(formatId) && req.status === "pending") {
+                req.next()
+                this.searchReqs.delete(formatId)
+              }
+            }
+
             break
         }
       })
@@ -139,4 +158,24 @@ export class User {
   send(roomId: string, msg: string) {
     this.ws.send(`${roomId}|${msg}`)
   }
+
+  cancelSearch() {
+    this.ws.send(`|/cancelSearch`)
+  }
+
+  search(formatId: string) {
+    const p = new Promise<() => Promise<void>>((res) => {
+      this.searchReqs.set(formatId, { status: "inflight", next: (x) => res(() => x) })
+    })
+    this.ws.send(`|/utm null`)
+    this.ws.send(`|/search ${formatId}`)
+    return p
+  }
+}
+
+export async function loginAnon(ws: WebSocket, name: string) {
+  const u = new User(ws)
+  await u.start()
+  await u.trn(name, await getAnonAssertion(name, u.challstr))
+  return u
 }

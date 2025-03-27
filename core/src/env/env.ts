@@ -3,12 +3,12 @@ import { Log, split } from "../log.js"
 import { Observer } from "../parser/observer.js"
 import { Battle } from "@pkmn/sim"
 import { Generation } from "@pkmn/data"
-import { evalBattle } from "./model/reward.js"
+import { evalBattle } from "../model/reward.js"
 import { Choice } from "../parser/option.js"
-import { resolveChoice } from "./model/option.js"
 import { BattleSeed, startBattle } from "../sim.js"
-import { chooseHeuristic } from "../agents/heuristic.js"
-import { chooseRandom } from "../agents/random.js"
+import { chooseHeuristic } from "../agent/heuristic.js"
+import { chooseRandom } from "../agent/random.js"
+import { Transport } from "../model/transport.js"
 
 export type Action = { [k in Side]?: number }
 
@@ -36,8 +36,7 @@ export class Environment {
   auto: Auto
   logs: Log[]
   turnLimit: number
-  packState: (x: Observer) => void
-  resolveChoice: (obs: Observer, id: number) => Choice
+  tp: Transport<any>
 
   constructor(
     gen: Generation,
@@ -45,13 +44,12 @@ export class Environment {
       auto,
       seed,
       turnLimit,
-      packState
+      transport
     }: {
       auto: Auto
       seed?: BattleSeed
       turnLimit: number
-      packState: (obs: Observer) => void
-      resolveChoice: (obs: Observer, id: number) => Choice
+      transport: Transport<any>
     }
   ) {
     this.p1 = { obs: new Observer(gen) }
@@ -68,8 +66,7 @@ export class Environment {
 
     this.battle.sendUpdates()
     this.turnLimit = turnLimit
-    this.packState = packState
-    this.resolveChoice = resolveChoice
+    this.tp = transport
   }
 
   private choose(side: Side, choice: Choice) {
@@ -93,7 +90,7 @@ export class Environment {
     for (const k in action) {
       const side = k as Side
       const choiceId = action[side]!
-      this.choose(side, this.resolveChoice(this[side].obs, choiceId))
+      this.choose(side, this.tp.decodeChoice(this[side].obs, choiceId))
     }
 
     while (true) {
@@ -153,7 +150,7 @@ export class Environment {
         for (const side of deferred) {
           update[side] = {
             reward: this.stepReward(side),
-            state: this.packState(this[side].obs)
+            state: this.tp.packBattle(this.tp.encodeBattle(this[side].obs))
           }
         }
         return update

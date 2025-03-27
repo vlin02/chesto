@@ -26,7 +26,7 @@ import {
 } from "../battle.js"
 import { piped } from "../parse.js"
 import { InputChoice } from "../log.js"
-import { Option, Choice, Selection } from "./option.js"
+import { Option, Choice, MoveSelection } from "./option.js"
 
 type Ref = {
   species: string
@@ -884,7 +884,7 @@ export class Observer {
               break
             }
             default:
-              throw Error(name)
+              throw Error(line)
           }
         }
 
@@ -1153,7 +1153,7 @@ export class Observer {
     return event
   }
 
-  getSelection(): Selection {
+  getSelection(): MoveSelection {
     const {
       gen,
       ally: { active, teraUsed }
@@ -1265,7 +1265,7 @@ export class Observer {
 
   getOption(): Option | null {
     let switches: string[] = []
-    let select: Selection | null = null
+    let select: MoveSelection | null = null
 
     const {
       req,
