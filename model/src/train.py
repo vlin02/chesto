@@ -16,17 +16,17 @@ def plot_eps(eps, path):
     
     # Top plot - rewards (spanning full width)
     ax_rewards = fig.add_subplot(gs[0, :])
-    ax_rewards.plot(rewards)
+    ax_rewards.plot(rolling_avg(np.array(rewards), 1000))
     ax_rewards.grid(True)
     
     # Bottom left - turns
     ax_turns = fig.add_subplot(gs[1, 0])
-    ax_turns.plot(rolling_avg(np.array(turns), 100))
+    ax_turns.plot(rolling_avg(np.array(turns), 1000))
     ax_turns.grid(True)
     
     # Bottom right - wins
     ax_wins = fig.add_subplot(gs[1, 1])
-    ax_wins.plot(rolling_avg(np.array(wons), 100))
+    ax_wins.plot(rolling_avg(np.array(wons), 1000))
     ax_wins.grid(True)
     
     plt.savefig(path)

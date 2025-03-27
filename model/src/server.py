@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import uvicorn
 
 from input import decode_states, load_lookup
-from net import NN
+from net_h import Config, Net
 
 app = FastAPI()
 
@@ -22,7 +22,7 @@ model_cache = {}
 
 
 def load(path):
-    nn = NN(lookup).to(device)
+    nn = Net(lookup, Config(hidden_dim=128)).to(device)
     state_dict = torch.load(f"__tmp/{path}")
     new_state_dict = {}
     for k, v in state_dict.items():

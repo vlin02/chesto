@@ -24,22 +24,22 @@ async def train(
     device,
     update,
     n_iters=500,
-    clip_coef=0.1,
+    clip_coef=5e-5,
     gamma=1,
     vf_coef=0.5,
     n_steps=100,
-    n_epochs=10,
+    n_epochs=20,
     ent_coef=0.01,
-    gae_lambda=0.8,
-    minibatch_size=512,
-    lr=5e-4,
-    target_kl=0.02,
+    gae_lambda=1,
+    minibatch_size=256,
+    lr=1e-5,
+    target_kl=0.005,
 ):
     n_envs = env.size
     
-    nn = Net(lookup, Config()).to(device)
+    nn = Net(lookup, Config(hidden_dim=128)).to(device)
     nn = torch.compile(nn, mode="reduce-overhead")
-    # nn.load_state_dict(torch.load("__tmp/3/2-1742801808.pt"))
+    nn.load_state_dict(torch.load("__tmp/3/2-1742815543.pt"))
 
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
 
@@ -172,9 +172,10 @@ async def train(
                     break
 
             print("epoch:", epoch, "kl:", kl.item())
-            if kl_reached:
-                print("Early stopped")
-                break
+            # if kl_reached:
+            #     print("Early stopped")
+            #     break
+            
 
         if it % 5 == 4:
             torch.save(nn.state_dict(), f"{exp_name}.pt")
@@ -194,10 +195,10 @@ async def main():
         def update(ep):
             shared_eps.append(ep)
 
-            if len(shared_eps) % 100 == 0:
+            if len(shared_eps) % 500 == 0:
                 plotter.submit(plot_eps, shared_eps, exp_name)
 
-        env = BatchEnv(session, "http://172.31.50.187:3001", 200, 100)
+        env = BatchEnv(session, "http://172.31.50.187:3001", 100, 100)
 
         device = torch.device("cuda")
         client = MongoClient(DB_URL)
