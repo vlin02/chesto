@@ -37,6 +37,7 @@ export class Environment {
   logs: Log[]
   turnLimit: number
   tp: Transport<any>
+  choiceLog: [Side, Choice][]
 
   constructor(
     gen: Generation,
@@ -63,6 +64,7 @@ export class Environment {
       seed,
       send: (x) => this.logs.push(x)
     })
+    this.choiceLog = []
 
     this.battle.sendUpdates()
     this.turnLimit = turnLimit
@@ -70,6 +72,7 @@ export class Environment {
   }
 
   private choose(side: Side, choice: Choice) {
+    this.choiceLog.push([side, choice])
     this.battle.choose(side, this[side].obs.toInput(choice))
     this.battle.sendUpdates()
   }
@@ -107,6 +110,7 @@ export class Environment {
             const e = obs.read(line)
 
             if (e.error?.startsWith("[Invalid choice]")) {
+              console.log(this.choiceLog)
               console.log(JSON.stringify(this.battle.inputLog))
 
               throw e.error

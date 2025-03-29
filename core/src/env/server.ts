@@ -7,6 +7,28 @@ import { Update, Action, Auto } from "./env.js"
 import { WorkerRequest } from "./worker.js"
 import { BSON } from "mongodb"
 import { BattleSeed } from "../sim.js"
+import { Generations } from "@pkmn/data"
+import { Dex } from "@pkmn/dex"
+import { encodeMove } from "../model/state-h.js"
+
+// const DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
+
+// const mongo = await new MongoClient(DB_URL).connect()
+// const chesto = mongo.db("chesto")
+
+function getMoves() {
+  const gen = new Generations(Dex).get(9)
+  return [...gen.moves].map((move) => {
+    const { name, num } = move
+    return {
+      name,
+      num,
+      x: encodeMove(move)
+    }
+  })
+}
+
+const MOVES = getMoves()
 
 const NUM_WORKERS = 60
 const __filename = fileURLToPath(import.meta.url)
@@ -35,7 +57,7 @@ function sendMessage(id: number, req: WorkerRequest) {
 const app = new Hono()
 
 app.post("/start", async (c) => {
-  const autos = await c.req.json<{auto: Auto, seed?: BattleSeed}[]>()
+  const autos = await c.req.json<{ auto: Auto; seed?: BattleSeed }[]>()
 
   return new Response(
     BSON.serialize({
@@ -95,6 +117,12 @@ app.post("/close", async (c) => {
 app.get("/count", async (c) => {
   return c.json({
     count: sessions.size
+  })
+})
+
+app.get("/moves", async (c) => {
+  return c.json({
+    moves: MOVES
   })
 })
 
