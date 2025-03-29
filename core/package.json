@@ -21,6 +21,7 @@
     "@types/ws": "^8.5.14",
     "bson": "^6.10.3",
     "hono": "^4.7.4",
+    "https-proxy-agent": "^7.0.6",
     "json-diff": "^1.0.6",
     "mongodb": "^6.12.0",
     "msgpack-lite": "^0.1.26",
