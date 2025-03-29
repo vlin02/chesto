@@ -46,6 +46,7 @@ export class User {
     return new Promise<void>((res) => {
       this.ws.on("message", (data: WebSocket.RawData) => {
         const msg = data.toString()
+        console.log(msg)
         let p = piped(msg, 1)
 
         if (msg.startsWith(">")) {
