@@ -1,3 +1,4 @@
+from aiohttp import ClientSession
 from attr import dataclass
 import torch
 import numpy as np
@@ -21,9 +22,11 @@ STATE_FIELDS = [
 class Lookup:
     move_enc: any
 
-def load_lookup(db, device):
+async def load_lookup(session: ClientSession, device):
+    res = await session.get("/moves")
+    moves = (await res.json())["moves"]
+    
     lookup = {}
-    moves = list(db["moves"].find())
     move_enc = torch.zeros(1000, move_enc_dim, device=device)
 
     for move in moves:

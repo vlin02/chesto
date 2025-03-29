@@ -24,7 +24,6 @@ async def train(
     device,
     update,
     n_iters=500,
-    clip_coef=5e-5,
     gamma=1,
     vf_coef=0.5,
     n_steps=100,
@@ -32,6 +31,7 @@ async def train(
     ent_coef=0.01,
     gae_lambda=1,
     minibatch_size=256,
+    clip_coef=5e-5,
     lr=1e-5,
     target_kl=0.005,
 ):
@@ -190,7 +190,7 @@ async def main():
 
     plotter = ProcessPoolExecutor(max_workers=1)
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(base_url="http://172.31.50.187:3001") as session:
 
         def update(ep):
             shared_eps.append(ep)
@@ -198,11 +198,10 @@ async def main():
             if len(shared_eps) % 500 == 0:
                 plotter.submit(plot_eps, shared_eps, exp_name)
 
-        env = BatchEnv(session, "http://172.31.50.187:3001", 100, 100)
+        env = BatchEnv(session, 100, 100)
 
         device = torch.device("cuda")
-        client = MongoClient(DB_URL)
-        lookup = load_lookup(client["chesto"], device)
+        lookup = await load_lookup(session, device)
 
         await train(env, lookup, device, update)
 
