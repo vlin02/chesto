@@ -1,87 +1,63 @@
 import torch
 from torch import nn
 
-from input import move_enc_dim, user_enc_dim, team_enc_dim
-
-battle_emb_dim = 64
-move_emb_dim = 96
-user_emb_dim = 32
+from config import Config
+from state import Lookup
 
 
-class NN(nn.Module):
-    def __init__(self, lookup):
+class Net(nn.Module):
+    def __init__(self, lookup: Lookup, c: Config):
         super().__init__()
-
         self.lookup = lookup
         self.move_embed_block = nn.Sequential(
-            nn.Linear(move_enc_dim, 128),
-            nn.Tanh(),
-            nn.Linear(128, 128),
+            nn.Linear(c.move_feat_dim, c.hidden_dim),
             nn.Tanh(),
         )
-        self.user_block = nn.Sequential(
-            nn.Linear(user_enc_dim, 64), nn.Tanh(), nn.Linear(64, user_emb_dim)
-        )
-        self.battle_block = nn.Sequential(
-            nn.Linear((user_emb_dim + team_enc_dim) * 2, 64),
-            nn.Tanh(),
-            nn.Linear(64, battle_emb_dim),
-        )
+        self.user_matchup_block = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
+        self.team_embed_block = nn.Sequential(nn.Linear(c.team_feat_dim, c.hidden_dim), nn.Tanh())
         self.move_logits_block = nn.Sequential(
-            nn.Linear(move_emb_dim + battle_emb_dim + 1 + user_emb_dim, 64),
+            nn.Linear(4 * c.hidden_dim + 1, c.hidden_dim),
             nn.Tanh(),
-            nn.Linear(64, 64),
+            nn.Linear(c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
-            nn.Linear(64, 1),
+            nn.Linear(c.hidden_dim, 1),
         )
+        self.register_buffer("tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1))
         self.switch_logits_block = nn.Sequential(
-            nn.Linear(user_emb_dim + battle_emb_dim, 64),
+            nn.Linear(c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
-            nn.Linear(64, 64),
+            nn.Linear(c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
-            nn.Linear(64, 1),
-        )
-        self.register_buffer("party_idx", torch.arange(2, dtype=torch.long).view(1, 2))
-        self.register_buffer(
-            "tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1)
+            nn.Linear(c.hidden_dim, 1),
         )
         self.critic = nn.Sequential(
-            nn.Linear(battle_emb_dim, 64),
+            nn.Linear(c.hidden_dim * 3, c.hidden_dim),
             nn.Tanh(),
-            nn.Linear(64, 64),
+            nn.Linear(c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
-            nn.Linear(64, 1),
+            nn.Linear(c.hidden_dim, 1),
         )
-        
+        self.c = c
 
-    # @profile
     def forward(self, x):
-        user_enc = x["user_enc"]
-        active_idx = x["active_idx"]
+        user_feat = x["user_feat"]
         move_mask = x["move_mask"]
         switch_mask = x["switch_mask"]
         move_choice_idx = x["move_choice_idx"]
-        party_enc = x["party_enc"]
-        batch_dim = user_enc.shape[0]
-        batch_idx = torch.arange(batch_dim, device=user_enc.device)
+        team_feat = x["team_feat"]
+        batch_size = user_feat.shape[0]
 
-        move_choice_emb = self.move_embed_block(
-            self.lookup["move_enc"][move_choice_idx]
-        )
+        move_choice_emb = self.move_embed_block(self.lookup.move_feat[move_choice_idx])
+        team_emb = self.team_embed_block(team_feat)
 
-        user_emb = self.user_block(user_enc)
+        user_emb = self.user_embed_block(user_feat)
+        foe_active = user_emb[:, 6]
 
-        active_emb = user_emb[
-                        batch_idx.view(batch_dim, 1).expand(-1, 2),
-                        self.party_idx.expand(batch_dim, -1),
-                        active_idx,
-                    ]
-
-        battle_emb = self.battle_block(
+        match_up_emb = self.user_matchup_block(
             torch.cat(
                 [
-                    active_emb.reshape(batch_dim, -1),
-                    party_enc.reshape(batch_dim, -1),
+                    user_emb[:, :6],
+                    foe_active.view(batch_size, 1, self.c.hidden_dim).expand(-1, 6, -1),
                 ],
                 dim=-1,
             )
@@ -90,36 +66,22 @@ class NN(nn.Module):
         move_logits = self.move_logits_block(
             torch.cat(
                 [
-                    move_choice_emb.view(batch_dim, 4, 1, move_emb_dim).expand(
-                        -1, -1, 2, -1
-                    ),
-                    battle_emb.view(batch_dim, 1, 1, battle_emb_dim).expand(
-                        -1, 4, 2, -1
-                    ),
-                    active_emb[:, 1].view(batch_dim, 1, 1, user_emb_dim).expand(-1, 4, 2, -1),
-                    self.tera_flag.expand(batch_dim, -1, -1, -1),
+                    match_up_emb[:, 0].view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
+                    team_emb.view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
+                    move_choice_emb.view(batch_size, 4, 1, self.c.hidden_dim).expand(-1, -1, 2, -1),
+                    self.tera_flag.expand(batch_size, -1, -1, -1),
                 ],
                 dim=-1,
             )
         ).squeeze(-1)
+        switch_logits = self.switch_logits_block(match_up_emb).squeeze(-1)
 
-        switch_logits = self.switch_logits_block(
-            torch.cat(
-                [
-                    user_emb[:, 0],
-                    battle_emb.view(batch_dim, 1, battle_emb_dim).expand(-1, 6, -1),
-                ],
-                dim=-1,
-            )
-        ).squeeze(-1)
+        base_logits = move_logits, switch_logits
 
-        logits = (move_logits.clone().detach(), switch_logits.clone().detach())
-        with torch.no_grad():
-            move_logits += (move_mask - 1) * 1e9
-            switch_logits += (switch_mask - 1) * 1e9
+        move_logits = move_logits + (move_mask - 1) * 1e9
+        switch_logits = switch_logits + (switch_mask - 1) * 1e9
+        logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
 
-        return (
-            torch.cat([move_logits.flatten(1), switch_logits], dim=-1),
-            self.critic(battle_emb).squeeze(-1),
-            logits,
-        )
+        value = self.critic(torch.cat([match_up_emb[:, 0], team_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
+
+        return logits, value, base_logits

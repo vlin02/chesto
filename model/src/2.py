@@ -2,20 +2,19 @@ import asyncio
 import aiohttp
 import torch
 from torch import optim
-from input import STATE_FIELDS, load_lookup, decode_states
+from state import STATE_FIELDS, load_lookup, decode_states
 from env import BatchEnv
-from pymongo import MongoClient
 import torch.nn.functional as F
-from train import plot_eps
+from trial import plot_eps
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
-from net_h import Config, Net
+from net import Config, Net
 
 import os
 import time
 
 t = time.time()
-exp_name = f"__tmp/3/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
+exp_name = f"__tmp/4/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
 
 
 async def train(
@@ -27,7 +26,7 @@ async def train(
     gamma=1,
     vf_coef=0.5,
     n_steps=100,
-    n_epochs=20,
+    n_epochs=15,
     ent_coef=0.01,
     gae_lambda=1,
     minibatch_size=256,
@@ -39,7 +38,7 @@ async def train(
     
     nn = Net(lookup, Config(hidden_dim=128)).to(device)
     nn = torch.compile(nn, mode="reduce-overhead")
-    nn.load_state_dict(torch.load("__tmp/3/2-1742815543.pt"))
+    # nn.load_state_dict(torch.load("__tmp/4/2-1742815543.pt"))
 
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
 
@@ -182,7 +181,6 @@ async def train(
 
 
 async def main():
-    DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
     torch.set_float32_matmul_precision("high")
 
     manager = Manager()

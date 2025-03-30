@@ -5,8 +5,8 @@ import torch
 import torch.nn.functional as F
 import uvicorn
 
-from input import decode_states, load_lookup
-from net_h import Config, Net
+from state import decode_states, load_lookup
+from net import Config, Net
 
 app = FastAPI()
 

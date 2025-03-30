@@ -25,3 +25,7 @@ package-dir = {"" = "src"}
 ext-modules = [
     {name = "streaming_form_data._parser", sources = ["src/streaming_form_data/_parser.c"]}
 ]
+
+
+[tool.ruff]
+line-length = 120
