@@ -16,14 +16,14 @@ STATE_FIELDS = [
 
 @dataclass
 class Lookup:
-    move_feat: torch.ndar
+    move_feat: torch.Tensor
 
 async def load_lookup(c: Config, api: ClientSession, device: torch.device):
     res = await api.get("/moves")
     moves = (await res.json())["moves"]
     
     lookup = {}
-    move_feat = torch.zeros(1000, c.user_feat_dim, device=device)
+    move_feat = torch.zeros(1000, c.move_feat_dim, device=device)
 
     for move in moves:
         move_feat[move["num"]] = torch.tensor(move["x"], device=device)

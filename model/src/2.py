@@ -35,7 +35,7 @@ async def train(
     target_kl=0.005,
 ):
     n_envs = env.size
-    
+
     nn = Net(lookup, Config(hidden_dim=128)).to(device)
     nn = torch.compile(nn, mode="reduce-overhead")
     # nn.load_state_dict(torch.load("__tmp/4/2-1742815543.pt"))
@@ -67,9 +67,7 @@ async def train(
                 states[t] = curr_states
                 logits, values[t], (move_logits, switch_logits) = nn(curr_states)
 
-                true_probs[t] = F.softmax(
-                    torch.cat([move_logits.flatten(1), switch_logits], dim=-1), dim=1
-                )
+                true_probs[t] = F.softmax(torch.cat([move_logits.flatten(1), switch_logits], dim=-1), dim=1)
 
                 dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
                 action_ids = dist.sample()
@@ -90,7 +88,7 @@ async def train(
 
                 for i, turn, won in curr_dones:
                     dones[t][i] = 1
-                    update((tot_rewards[i].item(), turn, 0 if won == -1 else 1 ))
+                    update((tot_rewards[i].item(), turn, 0 if won == -1 else 1))
                     tot_rewards[i] = 0
 
         with torch.no_grad():
@@ -112,9 +110,7 @@ async def train(
         b_advantages = advantages.reshape(-1)
         b_returns = returns.reshape(-1)
 
-        b_advantages = (b_advantages - b_advantages.mean()) / (
-            b_advantages.std() + 1e-8
-        )
+        b_advantages = (b_advantages - b_advantages.mean()) / (b_advantages.std() + 1e-8)
 
         print("it:", it, "probs:", true_probs.mean(dim=(0, 1)).tolist())
 
@@ -171,10 +167,6 @@ async def train(
                     break
 
             print("epoch:", epoch, "kl:", kl.item())
-            # if kl_reached:
-            #     print("Early stopped")
-            #     break
-            
 
         if it % 5 == 4:
             torch.save(nn.state_dict(), f"{exp_name}.pt")
@@ -187,8 +179,9 @@ async def main():
     shared_eps = manager.list()
 
     plotter = ProcessPoolExecutor(max_workers=1)
+    c = Config()
 
-    async with aiohttp.ClientSession(base_url="http://172.31.50.187:3001") as session:
+    async with aiohttp.ClientSession(base_url="http://172.31.50.187:3001") as api:
 
         def update(ep):
             shared_eps.append(ep)
@@ -196,10 +189,10 @@ async def main():
             if len(shared_eps) % 500 == 0:
                 plotter.submit(plot_eps, shared_eps, exp_name)
 
-        env = BatchEnv(session, 100, 100)
+        env = BatchEnv(api, 100, 100)
 
         device = torch.device("cuda")
-        lookup = await load_lookup(session, device)
+        lookup = await load_lookup(c=c, api=api, device=device)
 
         await train(env, lookup, device, update)
 

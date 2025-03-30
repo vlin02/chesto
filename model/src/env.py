@@ -8,13 +8,13 @@ OPP = {"p1": "p2", "p2": "p1"}
 
 
 class BatchEnv:
-    session: ClientSession
+    api: ClientSession
 
-    def __init__(self, session: ClientSession, size: int, upkeep_freq: int):
-        self.session = session
-
+    def __init__(self, api: ClientSession, size: int, upkeep_freq: int):
+        self.api = api
         self.size = size
         self.upkeep_freq = upkeep_freq
+
         self._buffers = []
         self._envs = []
         self._done_ids = []
@@ -23,7 +23,7 @@ class BatchEnv:
     async def _get_buffers(self, n: int):
         sides = [random.choice(SIDES) for _ in range(n)]
 
-        res = await self.session.post(
+        res = await self.api.post(
             "/start",
             json=[dict(auto={OPP[side]: "heuristic"}) for side in sides],
         )
@@ -48,7 +48,7 @@ class BatchEnv:
         return states
 
     async def upkeep(self, done_ids):
-        for_delete = self.session.delete("/", json=done_ids)
+        for_delete = self.api.delete("/", json=done_ids)
         for_buffers = self._get_buffers(self.upkeep_freq)
 
         buffers = await for_buffers
@@ -60,7 +60,7 @@ class BatchEnv:
             {"id": env_id, "action": {side: choice_id}}
             for (env_id, side), choice_id in zip(self._envs, choice_ids)
         ]
-        res = await self.session.post("/step", json=batch_step)
+        res = await self.api.post("/step", json=batch_step)
         updates = BSON.decode(await res.read())["results"]
 
         transitions = []
@@ -101,7 +101,7 @@ class BatchEnv:
         if self._upkeep_task:
             await self._upkeep_task
 
-        await self.session.delete(
+        await self.api.delete(
             "/",
             json=[
                 *self._done_ids,
