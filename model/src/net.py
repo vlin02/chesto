@@ -5,15 +5,12 @@ from config import Config
 from state import Lookup
 
 
-class Net(nn.Module):
+class BattleNet(nn.Module):
     def __init__(self, lookup: Lookup, c: Config):
         super().__init__()
-        self.lookup = lookup
 
-        self.move_embed_block = nn.Sequential(
-            nn.Linear(c.move_feat_dim, c.hidden_dim),
-            nn.Tanh(),
-        )
+        self.c = c
+        self.lookup = lookup
         self.user_embed_block = nn.Sequential(
             nn.Linear(c.user_feat_dim, c.hidden_dim),
             nn.Tanh(),
@@ -21,7 +18,41 @@ class Net(nn.Module):
         self.party_embed_block = nn.Sequential(nn.Linear(c.party_feat_dim, c.hidden_dim), nn.Tanh())
 
         self.user_matchup_block = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
-        
+
+    def forward(self, x):
+        user_feat = x["user_feat"]
+        party_feat = x["party_feat"]
+        batch_size = user_feat.shape[0]
+
+        party_emb = self.party_embed_block(party_feat)
+
+        user_emb = self.user_embed_block(user_feat)
+        foe_active = user_emb[:, 6]
+
+        match_up_emb = self.user_matchup_block(
+            torch.cat(
+                [
+                    user_emb[:, :6],
+                    foe_active.view(batch_size, 1, self.c.hidden_dim).expand(-1, 6, -1),
+                ],
+                dim=-1,
+            )
+        )
+
+        return match_up_emb, party_emb
+
+
+class Actor(nn.Module):
+    def __init__(self, lookup: Lookup, c: Config):
+        super().__init__()
+        self.lookup = lookup
+
+        self.battle_block = BattleNet(lookup, c)
+        self.move_embed_block = nn.Sequential(
+            nn.Linear(c.move_feat_dim, c.hidden_dim),
+            nn.Tanh(),
+        )
+
         self.register_buffer("tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1))
         self.move_logits_block = nn.Sequential(
             nn.Linear(4 * c.hidden_dim + 1, c.hidden_dim),
@@ -39,14 +70,6 @@ class Net(nn.Module):
             nn.Linear(c.hidden_dim, 1),
         )
 
-        self.critic = nn.Sequential(
-            nn.Linear(c.hidden_dim * 3, c.hidden_dim),
-            nn.Tanh(),
-            nn.Linear(c.hidden_dim, c.hidden_dim),
-            nn.Tanh(),
-            nn.Linear(c.hidden_dim, 1),
-        )
-
         self.c = c
 
     def forward(self, x):
@@ -54,24 +77,11 @@ class Net(nn.Module):
         move_mask = x["move_mask"]
         switch_mask = x["switch_mask"]
         move_choice_idx = x["move_choice_idx"]
-        party_feat = x["party_feat"]
         batch_size = user_feat.shape[0]
 
         move_choice_emb = self.move_embed_block(self.lookup.move_feat[move_choice_idx])
-        party_emb = self.party_embed_block(party_feat)
 
-        user_emb = self.user_embed_block(user_feat)
-        foe_active = user_emb[:, 6]
-
-        match_up_emb = self.user_matchup_block(
-            torch.cat(
-                [
-                    user_emb[:, :6],
-                    foe_active.view(batch_size, 1, self.c.hidden_dim).expand(-1, 6, -1),
-                ],
-                dim=-1,
-            )
-        )
+        match_up_emb, party_emb = self.battle_block(x)
 
         move_logits = self.move_logits_block(
             torch.cat(
@@ -92,6 +102,39 @@ class Net(nn.Module):
         switch_logits = switch_logits + (switch_mask - 1) * 1e9
         logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
 
-        value = self.critic(torch.cat([match_up_emb[:, 0], party_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
+        return logits, base_logits
+
+
+class Critic(nn.Module):
+    def __init__(self, lookup: Lookup, c: Config):
+        super().__init__()
+        self.battle_block = BattleNet(lookup, c)
+        self.critic = nn.Sequential(
+            nn.Linear(c.hidden_dim * 3, c.hidden_dim),
+            nn.Tanh(),
+            nn.Linear(c.hidden_dim, c.hidden_dim),
+            nn.Tanh(),
+            nn.Linear(c.hidden_dim, 1),
+        )
+
+    def forward(self, x):
+        user_feat = x["user_feat"]
+        batch_size = user_feat.shape[0]
+        match_up_emb, party_emb = self.battle_block(x)
+
+        return self.critic(torch.cat([match_up_emb[:, 0], party_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
+
+
+class ActorCritic(nn.Module):
+    actor: Actor
+    critic: Critic
+    def __init__(self, lookup: Lookup, c: Config):
+        super().__init__()
+        self.actor = Actor(lookup, c)
+        self.critic = Critic(lookup, c)
+
+    def forward(self, x):
+        logits, base_logits = self.actor(x)
+        value = self.critic(x)
 
         return logits, value, base_logits
