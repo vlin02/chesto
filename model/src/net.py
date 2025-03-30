@@ -15,7 +15,7 @@ class Net(nn.Module):
             nn.Tanh(),
         )
         self.user_embed_block = nn.Sequential(
-            nn.Linear(c.user_enc_dim, c.hidden_dim),
+            nn.Linear(c.user_feat_dim, c.hidden_dim),
             nn.Tanh(),
         )
         self.party_embed_block = nn.Sequential(nn.Linear(c.party_feat_dim, c.hidden_dim), nn.Tanh())
@@ -46,7 +46,7 @@ class Net(nn.Module):
             nn.Tanh(),
             nn.Linear(c.hidden_dim, 1),
         )
-        
+
         self.c = c
 
     def forward(self, x):

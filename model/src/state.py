@@ -11,7 +11,7 @@ STATE_FIELDS = [
     "move_mask",
     "switch_mask",
     "move_choice_idx",
-    "team_feat",
+    "party_feat",
 ]
 
 @dataclass

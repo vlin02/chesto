@@ -9,6 +9,7 @@ from trial import plot_eps
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
 from net import Config, Net
+from torch.optim.lr_scheduler import StepLR
 
 import os
 import time
@@ -31,9 +32,8 @@ async def train(
     ent_coef=0.01,
     gae_lambda=1,
     minibatch_size=256,
-    clip_coef=5e-5,
-    lr=1e-5,
-    target_kl=0.005,
+    clip_coef=0.15,
+    lr=1e-2,
 ):
     n_envs = env.size
 
@@ -42,6 +42,8 @@ async def train(
     # nn.load_state_dict(torch.load("__tmp/4/2-1742815543.pt"))
 
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.1)  # Reduces LR by 90% every 30 epochs
+    clip_ratio = 1
 
     n_samples = n_steps * n_envs
 
@@ -133,7 +135,7 @@ async def train(
                 )
             )
 
-        kl_reached = False
+        clip_coef_r = clip_coef * clip_ratio
         for epoch in range(n_epochs):
             idxs = torch.randperm(n_samples)
 
@@ -149,7 +151,7 @@ async def train(
                 entropy = dist.entropy().mean()
 
                 pg_loss1 = -mb_adv * ratio
-                pg_loss2 = -mb_adv * torch.clamp(ratio, 1 - clip_coef, 1 + clip_coef)
+                pg_loss2 = -mb_adv * torch.clamp(ratio, 1 - clip_coef_r, 1 + clip_coef_r)
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
 
                 v_loss = 0.5 * ((value - mb_returns) ** 2).mean()
@@ -162,12 +164,11 @@ async def train(
 
                 with torch.no_grad():
                     kl = ((ratio - 1) - log_ratio).mean()
-                    if kl > target_kl:
-                        kl_reached = True
-                if kl_reached:
-                    break
 
             print("epoch:", epoch, "kl:", kl.item())
+
+        scheduler.step()
+        clip_ratio *= 0.9
 
         if it % 5 == 4:
             torch.save(nn.state_dict(), f"{exp_name}.pt")
