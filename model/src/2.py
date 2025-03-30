@@ -19,6 +19,7 @@ exp_name = f"__tmp/4/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
 
 async def train(
     env: BatchEnv,
+    c: Config,
     lookup,
     device,
     update,
@@ -53,7 +54,7 @@ async def train(
     dones = torch.zeros((n_steps, n_envs), device=device)
     advantages = torch.zeros((n_steps, n_envs), device=device)
 
-    next_states = decode_states(await env.reset(), device)
+    next_states = decode_states(c, await env.reset(), device)
     tot_rewards = torch.zeros(n_envs)
 
     for it in range(n_iters):
@@ -80,7 +81,7 @@ async def train(
                 trns, curr_dones = await env.step(action_ids.cpu().tolist())
 
                 curr_rewards, next_states = zip(*trns)
-                next_states = decode_states(next_states, device)
+                next_states = decode_states(c, next_states, device)
 
                 curr_rewards = torch.tensor(curr_rewards)
                 tot_rewards += curr_rewards
@@ -194,7 +195,7 @@ async def main():
         device = torch.device("cuda")
         lookup = await load_lookup(c=c, api=api, device=device)
 
-        await train(env, lookup, device, update)
+        await train(env, c, lookup, device, update)
 
 
 if __name__ == "__main__":

@@ -35,8 +35,8 @@ def decode_states(c: Config, states, device):
     x = {}
     N = len(states)
     for _k, k, dtype, shape in [
-        ("userFeat", "user_feat", np.float32, (N, 7, c.hidden_dim)),
-        ("teamFeat", "team_feat", np.float32, (N, 2, c.hidden_dim)),
+        ("userFeat", "user_feat", np.float32, (N, 7, c.user_feat_dim)),
+        ("partyFeat", "party_feat", np.float32, (N, 2, c.party_feat_dim)),
         ("activeIdx", "active_idx", np.int32, (N, 2,)),
         ("moveChoiceIdx", "move_choice_idx", np.int32, (N, 4,)),
         ("moveMask", "move_mask", np.int32, (N, 4, 2)),
