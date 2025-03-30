@@ -9,12 +9,7 @@ import { BSON } from "mongodb"
 import { BattleSeed } from "../sim.js"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
-import { encodeMove } from "../model/state-h.js"
-
-// const DB_URL = "mongodb://admin:4wj62MDCv%25X%5ErU3F@172.31.30.235:27017/"
-
-// const mongo = await new MongoClient(DB_URL).connect()
-// const chesto = mongo.db("chesto")
+import { heuristic } from "../model/transports/heuristic.js"
 
 function getMoves() {
   const gen = new Generations(Dex).get(9)
@@ -23,7 +18,7 @@ function getMoves() {
     return {
       name,
       num,
-      x: encodeMove(move)
+      x: heuristic.getMoveFeat(move)
     }
   })
 }

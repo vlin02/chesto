@@ -6,7 +6,7 @@ import { Observer } from "../parser/observer.js"
 import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { predict } from "./inference.js"
-import { transportH } from "../model/state-h.js"
+import { heuristic } from "../model/transports/heuristic.js"
 const inf = new Pool("http://172.31.57.228:8000")
 
 const ws = new WebSocket("wss://sim3.psim.us/showdown/websocket")
@@ -37,10 +37,10 @@ u.global.on("search", (roomIds) => {
 
       if (ready) {
         const [{ action_id: choiceId }] = await predict(inf, "3/2-1742816842.pt", [
-          transportH.packBattle(transportH.encodeBattle(obs))
+          heuristic.packBattle(heuristic.getBattleFeat(obs))
         ])
 
-        u.send(roomId, "/" + obs.toInput(transportH.decodeChoice(obs, choiceId)))
+        u.send(roomId, "/" + obs.toInput(heuristic.decodeChoice(obs, choiceId)))
         ready = false
       }
 

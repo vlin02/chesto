@@ -6,7 +6,7 @@ import { Generations } from "@pkmn/data"
 import { Dex } from "@pkmn/dex"
 import { TeamGenerators } from "@pkmn/randoms"
 import { BattleSeed, startBattle } from "../sim.js"
-import { encode, tagBattle } from "../model/state-h.js"
+import { encode, tagBattle } from "../model/transports/heuristic.js"
 
 Teams.setGeneratorFactory(TeamGenerators)
 const gen = new Generations(Dex).get(9)

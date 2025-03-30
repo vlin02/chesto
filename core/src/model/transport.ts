@@ -3,8 +3,8 @@ import { Observer } from "../parser/observer.js";
 import { Choice } from "../parser/option.js";
 
 export interface Transport<T> {
-  encodeMove: (move: Move) => any 
-  encodeBattle: (obs: Observer) => T
+  getMoveFeat: (move: Move) => any 
+  getBattleFeat: (obs: Observer) => T
   packBattle: (x: T) => any
   decodeChoice: (obs: Observer, id: number) => Choice
 }

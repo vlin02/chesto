@@ -1,6 +1,6 @@
 import { Generation, Move } from "@pkmn/data"
-import { Observer } from "../parser/observer.js"
-import { User } from "../parser/user.js"
+import { Observer } from "../../parser/observer.js"
+import { User } from "../../parser/user.js"
 import {
   Boosts,
   HAZARDS,
@@ -9,11 +9,11 @@ import {
   SCREENS,
   STAT_IDS,
   TYPE_NAMES
-} from "../battle.js"
-import { inferStats, zeros } from "./state.js"
-import { POVS, Team } from "../parser/side.js"
-import { toMoves } from "../parser/option.js"
-import { toArrayBuffer, Transport } from "./transport.js"
+} from "../../battle.js"
+import { inferStats, zeros } from "./base.js"
+import { POVS, Team } from "../../parser/side.js"
+import { toMoves } from "../../parser/option.js"
+import { toArrayBuffer, Transport } from "../transport.js"
 
 function netBoosts(boosts: Boosts) {
   let t = 0
@@ -26,7 +26,7 @@ function netBoosts(boosts: Boosts) {
 const ENTRY_HAZARDS = ["Spikes", "Stealth Rock", "Sticky Web", "Toxic Spikes"]
 const ANTI_HAZARDS = ["Rapid Spin", "Defog"]
 
-export function encodeMove({ basePower, accuracy, multihit, category, type, self, name }: Move) {
+export function getMoveFeat({ basePower, accuracy, multihit, category, type, self, name }: Move) {
   const x: number[] = []
 
   x.push(basePower / 100)
@@ -43,7 +43,7 @@ export function encodeMove({ basePower, accuracy, multihit, category, type, self
   return x
 }
 
-export function tagBattle({ userEnc }: BattleF) {
+export function tagBattle({ userFeat }: BattleF) {
   const tags = [
     "hpLeft",
     ...TYPE_NAMES.map((k) => `off-${k}`),
@@ -55,7 +55,7 @@ export function tagBattle({ userEnc }: BattleF) {
   const userTagged = zeros([2, 6])
   for (let t = 0; t < 2; t++) {
     for (let n = 0; n < 6; n++) {
-      const x = userEnc[t][n]
+      const x = userFeat[t][n]
       const tagged: [string, number][] = []
       for (let i = 0; i < x.length; i++) {
         tagged.push([tags[i], x[i]])
@@ -67,7 +67,7 @@ export function tagBattle({ userEnc }: BattleF) {
   return userTagged
 }
 
-export function encodeUser(
+export function getUserFeat(
   gen: Generation,
   { offensiveTyping, defensiveTyping, hp, stats, boosts, forme, lvl }: User
 ) {
@@ -85,7 +85,7 @@ export function encodeUser(
   return x
 }
 
-export function encodeTeam(gen: Generation, { team, effects, teraUsed }: Team) {
+export function getTeamFeat(gen: Generation, { team, effects, teraUsed }: Team) {
   const x: number[] = []
 
   let nAlive = 6
@@ -104,11 +104,11 @@ export type BattleF = {
   moveMask: any
   switchMask: any
   moveChoiceIdx: any
-  teamEnc: any
-  userEnc: any
+  teamFeat: any
+  userFeat: any
 }
 
-export function encodeBattle(obs: Observer) {
+export function getBattleFeat(obs: Observer) {
   const { gen, ally } = obs
 
   const { select, switches } = obs.getOption()!
@@ -117,19 +117,19 @@ export function encodeBattle(obs: Observer) {
   const moveMask = zeros([4, 2])
   const switchMask = zeros([6])
   const moveChoiceIdx = zeros([4])
-  const teamEnc = zeros([2, 9])
-  const userEnc = zeros([7, 52])
+  const teamFeat = zeros([2, 9])
+  const userFeat = zeros([7, 52])
 
   for (let i = 0; i < 2; i++) {
     const pov = POVS[i]
     const party = obs[pov]
-    teamEnc[i] = encodeTeam(gen, party)
+    teamFeat[i] = getTeamFeat(gen, party)
   }
 
   for (let i = 0; i < 6; i++) {
-    userEnc[i] = encodeUser(gen, obs.ally.slots[i])
+    userFeat[i] = getUserFeat(gen, obs.ally.slots[i])
   }
-  userEnc[6] = encodeUser(gen, obs.foe.active)
+  userFeat[6] = getUserFeat(gen, obs.foe.active)
 
   if (select) {
     const { tera } = select
@@ -158,18 +158,18 @@ export function encodeBattle(obs: Observer) {
     moveMask,
     switchMask,
     moveChoiceIdx,
-    teamEnc,
-    userEnc
+    teamFeat,
+    userFeat
   }
 }
 
-export const transportH: Transport<BattleF> = {
-  encodeMove,
-  encodeBattle,
-  packBattle: ({ teamEnc, userEnc, activeIdx, moveChoiceIdx, moveMask, switchMask }: BattleF) => {
+export const heuristic: Transport<BattleF> = {
+  getMoveFeat,
+  getBattleFeat,
+  packBattle: ({ teamFeat, userFeat, activeIdx, moveChoiceIdx, moveMask, switchMask }: BattleF) => {
     return {
-      teamEnc: toArrayBuffer(teamEnc, "float"),
-      userEnc: toArrayBuffer(userEnc, "float"),
+      teamFeat: toArrayBuffer(teamFeat, "float"),
+      userFeat: toArrayBuffer(userFeat, "float"),
       activeIdx: toArrayBuffer(activeIdx, "int"),
       moveChoiceIdx: toArrayBuffer(moveChoiceIdx, "int"),
       moveMask: toArrayBuffer(moveMask, "int"),

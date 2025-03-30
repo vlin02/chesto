@@ -154,7 +154,7 @@ export class Environment {
         for (const side of deferred) {
           update[side] = {
             reward: this.stepReward(side),
-            state: this.tp.packBattle(this.tp.encodeBattle(this[side].obs))
+            state: this.tp.packBattle(this.tp.getBattleFeat(this[side].obs))
           }
         }
         return update
