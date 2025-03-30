@@ -37,7 +37,7 @@ async def train(
     n_envs = env.size
 
     nn = Net(lookup, Config(hidden_dim=128)).to(device)
-    nn = torch.compile(nn, mode="reduce-overhead")
+    # nn = torch.compile(nn, mode="reduce-overhead")
     # nn.load_state_dict(torch.load("__tmp/4/2-1742815543.pt"))
 
     optimizer = optim.AdamW(nn.parameters(), lr=lr)
