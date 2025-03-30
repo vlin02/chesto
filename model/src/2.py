@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 import aiohttp
 import torch
 from torch import optim
@@ -8,7 +9,7 @@ import torch.nn.functional as F
 from trial import plot_eps
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
-from net import ActorCritic, Config
+from net import Agent, Config
 
 import os
 import time
@@ -38,14 +39,13 @@ async def train(
     hidden_dim=128,
     n_iters=500,
     gamma=1,
-    vf_coef=1,
-    n_steps=100,
+    n_steps=50,
     n_epochs=10,
     ent_coef=0.01,
     gae_lambda=1,
-    minibatch_size=256,
-    clip_coef=0.15,
-    lr=1e-4,
+    minibatch_size=128,
+    clip_coef=0.2,
+    lr=1e-3,
 ):
     c = Config(hidden_dim=hidden_dim)
 
@@ -56,75 +56,98 @@ async def train(
     device = torch.device("cuda")
     lookup = await load_lookup(c=c, api=api, device=device)
 
-    nn = ActorCritic(lookup, c).to(device)
-    nn = torch.compile(nn, mode="reduce-overhead")
-    # nn.load_state_dict(torch.load("__tmp/4/2-1743325331.pt"))
+    agent = Agent(lookup, c).to(device)
+    agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True)
+    # nn.load_state_dict(torch.load("__tmp/4/2-1743373770.pt"))
 
-    actor_opt = optim.AdamW(nn.actor.parameters(), lr=lr)
-    critic_opt = optim.AdamW(nn.critic.parameters(), lr=1e-3)
+    actor_opt = optim.AdamW(agent.actor.parameters(), lr=lr)
+    critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-3)
 
     n_samples = n_steps * n_envs
 
     states = [None] * n_steps
     values = torch.zeros((n_steps, n_envs), device=device)
-    true_probs = torch.zeros((n_steps, n_envs, 14), device=device)
     log_probs = torch.zeros((n_steps, n_envs), device=device)
     actions = torch.zeros((n_steps, n_envs), device=device, dtype=torch.long)
     rewards = torch.zeros((n_steps, n_envs), device=device)
     dones = torch.zeros((n_steps, n_envs), device=device)
     advs = torch.zeros((n_steps, n_envs), device=device)
 
+    raw_move_logits = torch.zeros((n_steps, n_envs, 4, 2), device=device)
+    raw_switch_logits = torch.zeros((n_steps, n_envs, 6), device=device)
+    tot_rewards = torch.zeros((n_envs,), device=device)
+
     next_states = decode_states(c, await env.reset(), device)
-    tot_rewards = torch.zeros(n_envs)
 
     for it in range(n_iters):
         dones *= 0
 
         print("it:", it)
 
-        for tot_v_loss in range(0, n_steps):
-            if tot_v_loss % 10 == 0:
-                print("t:", tot_v_loss)
+        x = defaultdict(int)
+
+        for t in range(0, n_steps):
+            start = time.process_time()
+
+            def stop(k):
+                nonlocal start
+                end = time.process_time()
+                x[k] += end - start
+                start = end
+
+            if t % 10 == 0:
+                print("t:", t)
             with torch.no_grad():
                 curr_states = next_states
-                states[tot_v_loss] = curr_states
-                logits, values[tot_v_loss], (move_logits, switch_logits) = nn(curr_states)
+                stop(0)
+                states[t] = curr_states
+                stop(1)
 
-                true_probs[tot_v_loss] = F.softmax(torch.cat([move_logits.flatten(1), switch_logits], dim=-1), dim=1)
+                dist, values[t], (move_logits, switch_logits) = agent(curr_states)
+                stop(2)
+                raw_move_logits[t] = move_logits
+                stop(3)
+                raw_switch_logits[t] = switch_logits
+                stop(4)
 
-                dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
                 action_ids = dist.sample()
-
-                log_probs[tot_v_loss] = dist.log_prob(action_ids)
-                actions[tot_v_loss] = action_ids
-
-                action_ids.tolist()
+                stop(5)
+                log_probs[t] = dist.log_prob(action_ids)
+                stop(6)
+                actions[t] = action_ids
+                stop(7)
 
                 trns, curr_dones = await env.step(action_ids.cpu().tolist())
+                stop(8)
 
                 curr_rewards, next_states = zip(*trns)
+                stop(9)
                 next_states = decode_states(c, next_states, device)
+                stop(10)
 
-                curr_rewards = torch.tensor(curr_rewards)
-                tot_rewards += curr_rewards
-                rewards[tot_v_loss] = curr_rewards.to(device)
+                rewards[t] = torch.tensor(curr_rewards).to(device)
+                stop(11)
+                tot_rewards += rewards[t]
+                stop(12)
 
                 for i, turn, won in curr_dones:
-                    win = 0 if won == -1 else 1
-                    dones[tot_v_loss][i] = 1
-                    update((tot_rewards[i].item(), turn, win))
+                    won = max(0, won)
+                    update((tot_rewards[i].cpu().item(), turn, won))
+
+                    dones[t][i] = 1
                     tot_rewards[i] = 0
+                stop(13)
 
         with torch.no_grad():
-            _, next_values, _ = nn(next_states)
+            _, next_values, _ = agent(next_states)
 
             gae = 0
             not_dones = 1 - dones
-            for tot_v_loss in reversed(range(n_steps)):
-                not_done = not_dones[tot_v_loss]
-                delta = rewards[tot_v_loss] + not_done * gamma * next_values - values[tot_v_loss]
-                advs[tot_v_loss] = gae = delta + not_done * gae_lambda * gamma * gae
-                next_values = values[tot_v_loss]
+            for t in reversed(range(n_steps)):
+                not_done = not_dones[t]
+                delta = rewards[t] + not_done * gamma * next_values - values[t]
+                advs[t] = gae = delta + not_done * gae_lambda * gamma * gae
+                next_values = values[t]
 
             returns = advs + values
 
@@ -136,15 +159,14 @@ async def train(
 
         b_advantages = (b_advantages - b_advantages.mean()) / (b_advantages.std() + 1e-8)
 
-        print("probs:", true_probs.mean(dim=(0, 1)).tolist())
+        true_probs = torch.cat([raw_move_logits.flatten(-2), raw_switch_logits], dim=-1).mean(dim=0)
+        print("probs:", true_probs.tolist())
 
         idxs = torch.randperm(n_samples)
         mbs = []
         for i in range(0, n_samples, minibatch_size):
             mb_i = idxs[i : i + minibatch_size]
-            mb_x = {}
-            for k in STATE_FIELDS:
-                mb_x[k] = b_states[k][mb_i]
+            mb_x = {k: b_states[k][mb_i] for k in STATE_FIELDS}
 
             mbs.append(
                 (
@@ -158,13 +180,13 @@ async def train(
 
         for epoch in range(n_epochs):
             idxs = torch.randperm(n_samples)
-            tot_v_loss = 0
+            t = 0
             tot_entropy = 0
             tot_pg_loss = 0
             tot_ratio = 0
 
             for mb_x, mb_actions, mb_log_probs, mb_adv, mb_returns in mbs:
-                logits, value, _ = nn(mb_x)
+                logits, value, _ = agent(mb_x)
 
                 dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
                 new_log_probs = dist.log_prob(mb_actions)
@@ -182,7 +204,7 @@ async def train(
                 v_loss = 0.5 * ((value - mb_returns) ** 2).mean()
 
                 loss = pg_loss - ent_coef * entropy + v_loss
-                tot_v_loss += v_loss
+                t += v_loss
                 tot_entropy += ent_coef * entropy
                 tot_pg_loss += pg_loss
 
@@ -192,24 +214,23 @@ async def train(
                 actor_opt.step()
                 critic_opt.step()
 
-            with torch.no_grad():
-                print(
-                    "epoch:",
-                    epoch,
-                    "ratio:",
-                    tot_ratio.item() / len(mbs),
-                    "v_loss:",
-                    tot_v_loss.item() / len(mbs),
-                    "entropy_loss:",
-                    tot_entropy.item() / len(mbs),
-                    "pg_loss:",
-                    tot_pg_loss.item() / len(mbs),
-                )
+            print(
+                "epoch:",
+                epoch,
+                "r:",
+                f"{tot_ratio.item() / len(mbs):.4f}",
+                "v:",
+                f"{t.item() / len(mbs):.4f}",
+                "e:",
+                f"{tot_entropy.item() / len(mbs):.4f}",
+                "pg:",
+                f"{tot_pg_loss.item() / len(mbs):.4f}",
+            )
 
         if it % 20 == 4:
             print("checkpoint")
-            torch.save(nn.state_dict(), f"{exp_name}.pt")
-        
+            torch.save(agent.state_dict(), f"{exp_name}.pt")
+
         print()
 
 

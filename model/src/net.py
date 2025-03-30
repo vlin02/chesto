@@ -3,9 +3,10 @@ from torch import nn
 
 from config import Config
 from state import Lookup
+import torch.nn.functional as F
 
 
-class BattleNet(nn.Module):
+class BattleEncoder(nn.Module):
     def __init__(self, lookup: Lookup, c: Config):
         super().__init__()
 
@@ -47,7 +48,7 @@ class Actor(nn.Module):
         super().__init__()
         self.lookup = lookup
 
-        self.battle_block = BattleNet(lookup, c)
+        self.battle_block = BattleEncoder(lookup, c)
         self.move_embed_block = nn.Sequential(
             nn.Linear(c.move_feat_dim, c.hidden_dim),
             nn.Tanh(),
@@ -74,8 +75,6 @@ class Actor(nn.Module):
 
     def forward(self, x):
         user_feat = x["user_feat"]
-        move_mask = x["move_mask"]
-        switch_mask = x["switch_mask"]
         move_choice_idx = x["move_choice_idx"]
         batch_size = user_feat.shape[0]
 
@@ -96,19 +95,13 @@ class Actor(nn.Module):
         ).squeeze(-1)
         switch_logits = self.switch_logits_block(match_up_emb).squeeze(-1)
 
-        base_logits = move_logits, switch_logits
-
-        move_logits = move_logits + (move_mask - 1) * 1e9
-        switch_logits = switch_logits + (switch_mask - 1) * 1e9
-        logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
-
-        return logits, base_logits
+        return move_logits, switch_logits
 
 
 class Critic(nn.Module):
     def __init__(self, lookup: Lookup, c: Config):
         super().__init__()
-        self.battle_block = BattleNet(lookup, c)
+        self.battle_block = BattleEncoder(lookup, c)
         self.critic = nn.Sequential(
             nn.Linear(c.hidden_dim * 3, c.hidden_dim),
             nn.Tanh(),
@@ -125,16 +118,27 @@ class Critic(nn.Module):
         return self.critic(torch.cat([match_up_emb[:, 0], party_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
 
 
-class ActorCritic(nn.Module):
+class Agent(nn.Module):
     actor: Actor
     critic: Critic
+
     def __init__(self, lookup: Lookup, c: Config):
         super().__init__()
         self.actor = Actor(lookup, c)
         self.critic = Critic(lookup, c)
 
     def forward(self, x):
-        logits, base_logits = self.actor(x)
+        move_mask = x["move_mask"]
+        switch_mask = x["switch_mask"]
+
+        move_logits, switch_logits = self.actor(x)
+        move_logits = move_logits + (move_mask - 1) * 1e9
+        switch_logits = switch_logits + (switch_mask - 1) * 1e9
+        logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
+        dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
+
         value = self.critic(x)
 
-        return logits, value, base_logits
+        raw_logits = (move_logits, switch_logits)
+
+        return dist, value, raw_logits
