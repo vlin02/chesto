@@ -85,7 +85,7 @@ export function encodeUser(
   return x
 }
 
-export function encodeTeam(gen: Generation, { team, effects }: Team) {
+export function encodeTeam(gen: Generation, { team, effects, teraUsed }: Team) {
   const x: number[] = []
 
   let nAlive = 6
@@ -93,6 +93,7 @@ export function encodeTeam(gen: Generation, { team, effects }: Team) {
     if (team[k].hp[0] === 0) nAlive -= 1
   }
   x.push(nAlive)
+  x.push(teraUsed ? 1 : 0)
   x.push(...[...HAZARDS, ...SCREENS].map((k) => (k in effects ? 1 : 0)))
 
   return x
