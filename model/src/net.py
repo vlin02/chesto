@@ -14,7 +14,7 @@ class Net(nn.Module):
             nn.Tanh(),
         )
         self.user_matchup_block = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
-        self.team_embed_block = nn.Sequential(nn.Linear(c.team_feat_dim, c.hidden_dim), nn.Tanh())
+        self.party_embed_block = nn.Sequential(nn.Linear(c.party_feat_dim, c.hidden_dim), nn.Tanh())
         self.move_logits_block = nn.Sequential(
             nn.Linear(4 * c.hidden_dim + 1, c.hidden_dim),
             nn.Tanh(),
@@ -44,11 +44,11 @@ class Net(nn.Module):
         move_mask = x["move_mask"]
         switch_mask = x["switch_mask"]
         move_choice_idx = x["move_choice_idx"]
-        team_feat = x["team_feat"]
+        party_feat = x["party_feat"]
         batch_size = user_feat.shape[0]
 
         move_choice_emb = self.move_embed_block(self.lookup.move_feat[move_choice_idx])
-        team_emb = self.team_embed_block(team_feat)
+        party_emb = self.party_embed_block(party_feat)
 
         user_emb = self.user_embed_block(user_feat)
         foe_active = user_emb[:, 6]
@@ -67,7 +67,7 @@ class Net(nn.Module):
             torch.cat(
                 [
                     match_up_emb[:, 0].view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
-                    team_emb.view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
+                    party_emb.view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
                     move_choice_emb.view(batch_size, 4, 1, self.c.hidden_dim).expand(-1, -1, 2, -1),
                     self.tera_flag.expand(batch_size, -1, -1, -1),
                 ],
@@ -82,6 +82,6 @@ class Net(nn.Module):
         switch_logits = switch_logits + (switch_mask - 1) * 1e9
         logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
 
-        value = self.critic(torch.cat([match_up_emb[:, 0], team_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
+        value = self.critic(torch.cat([match_up_emb[:, 0], party_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
 
         return logits, value, base_logits
