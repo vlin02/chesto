@@ -9,12 +9,20 @@ class Net(nn.Module):
     def __init__(self, lookup: Lookup, c: Config):
         super().__init__()
         self.lookup = lookup
+
         self.move_embed_block = nn.Sequential(
             nn.Linear(c.move_feat_dim, c.hidden_dim),
             nn.Tanh(),
         )
-        self.user_matchup_block = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
+        self.user_embed_block = nn.Sequential(
+            nn.Linear(c.user_enc_dim, c.hidden_dim),
+            nn.Tanh(),
+        )
         self.party_embed_block = nn.Sequential(nn.Linear(c.party_feat_dim, c.hidden_dim), nn.Tanh())
+
+        self.user_matchup_block = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
+        
+        self.register_buffer("tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1))
         self.move_logits_block = nn.Sequential(
             nn.Linear(4 * c.hidden_dim + 1, c.hidden_dim),
             nn.Tanh(),
@@ -22,7 +30,7 @@ class Net(nn.Module):
             nn.Tanh(),
             nn.Linear(c.hidden_dim, 1),
         )
-        self.register_buffer("tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1))
+
         self.switch_logits_block = nn.Sequential(
             nn.Linear(c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
@@ -30,6 +38,7 @@ class Net(nn.Module):
             nn.Tanh(),
             nn.Linear(c.hidden_dim, 1),
         )
+
         self.critic = nn.Sequential(
             nn.Linear(c.hidden_dim * 3, c.hidden_dim),
             nn.Tanh(),
@@ -37,6 +46,7 @@ class Net(nn.Module):
             nn.Tanh(),
             nn.Linear(c.hidden_dim, 1),
         )
+        
         self.c = c
 
     def forward(self, x):
