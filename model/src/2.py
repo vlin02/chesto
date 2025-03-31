@@ -42,14 +42,15 @@ async def train(
     n_iters=500,
     minibatch_size=256,
     n_epochs=10,
-    n_steps=100,
+    n_steps=60,
     gamma=1,
     gae_lambda=1,
 
-    ent_coef=0.02,
+    ent_coef=0.01,
+
     hidden_dim=128,
-    clip_coef=0.2,
-    lr=1e-4,
+    clip_coef=0.05,
+    lr=5e-5,
 ):
     c = Config(hidden_dim=hidden_dim)
 
@@ -62,7 +63,7 @@ async def train(
 
     agent = Agent(lookup).to(device)
     agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
-    # agent.load_state_dict(torch.load("__tmp/5/2-1743405205.pt"))
+    # agent.load_state_dict(torch.load("__tmp/5/2-1743406637.pt"))
 
     actor_opt = optim.AdamW(agent.actor.parameters(), lr=lr)
     critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-3)

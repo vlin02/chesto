@@ -74,7 +74,7 @@ class Actor(nn.Module):
         )
 
         self.switch_logits_block = nn.Sequential(
-            nn.Linear(c.hidden_dim, c.hidden_dim),
+            nn.Linear(4 * c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
             nn.Linear(c.hidden_dim, c.hidden_dim),
             nn.Tanh(),
@@ -105,7 +105,17 @@ class Actor(nn.Module):
                 dim=-1,
             )
         ).squeeze(-1)
-        switch_logits = self.switch_logits_block(match_up_emb).squeeze(-1)
+
+        switch_logits = self.switch_logits_block(
+            torch.cat(
+                [
+                    match_up_emb,
+                    party_emb.view(n, 1, -1).expand(-1, 6, -1),
+                    match_up_emb[:, 0].view(n, 1, -1).expand(-1, 6, -1),
+                ],
+                dim=-1,
+            )
+        ).squeeze(-1)
 
         return move_logits, switch_logits
 
@@ -116,7 +126,7 @@ class Critic(nn.Module):
         c = lookup.c
 
         self.encoder = Encoder(lookup)
-        
+
         self.critic = nn.Sequential(
             nn.Linear(c.hidden_dim * 3, c.hidden_dim),
             nn.Tanh(),
