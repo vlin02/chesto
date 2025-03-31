@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from state import Lookup
+from config import Lookup
 import torch.nn.functional as F
 
 

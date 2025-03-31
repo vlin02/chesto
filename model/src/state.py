@@ -1,36 +1,7 @@
-from aiohttp import ClientSession
-from attr import dataclass
 import torch
 import numpy as np
 
-from lookup import Config
-
-STATE_FIELDS = [
-    "user_feat",
-    "active_idx",
-    "move_mask",
-    "switch_mask",
-    "move_choice_idx",
-    "user_type_feat",
-    "party_feat",
-]
-
-@dataclass
-class Lookup:
-    move_feat: torch.Tensor
-    c: Config
-
-async def load_lookup(c: Config, api: ClientSession, device: torch.device):
-    res = await api.get("/moves")
-    moves = (await res.json())["moves"]
-    
-    move_feat = torch.zeros(1000, c.move_feat_dim, device=device)
-
-    for move in moves:
-        move_feat[move["num"]] = torch.tensor(move["x"], device=device)
-
-    return Lookup(move_feat=move_feat, c=c)
-
+from config import Config
 
 def decode_states(c: Config, states, device):
     x = {}

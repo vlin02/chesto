@@ -1,5 +1,4 @@
 import asyncio
-from collections import defaultdict
 import aiohttp
 import torch
 from torch import optim
@@ -60,9 +59,9 @@ async def train(
     device = torch.device("cuda")
     lookup = await load_lookup(c=c, api=api, device=device)
 
-    agent = Agent(lookup, c).to(device)
-    agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
-    agent.load_state_dict(torch.load("__tmp/5/2-1743380973.pt"))
+    agent = Agent(lookup).to(device)
+    # agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
+    # agent.load_state_dict(torch.load("__tmp/5/2-1743380973.pt"))
 
     actor_opt = optim.AdamW(agent.actor.parameters(), lr=lr)
     critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-3)
