@@ -38,18 +38,18 @@ async def main():
 
 async def train(
     update,
-    n_envs=80,
+    n_envs=60,
     n_iters=500,
     minibatch_size=256,
     n_epochs=10,
-    n_steps=100,
+    n_steps=60,
 
     ent_coef=0.005,
     gamma=1,
     gae_lambda=1,
     hidden_dim=512,
-    clip_coef=0.2,
-    lr=1e-4,
+    clip_coef=0.05,
+    lr=5e-5,
 ):
     c = Config(hidden_dim=hidden_dim)
 
@@ -62,10 +62,10 @@ async def train(
 
     agent = Agent(lookup, c).to(device)
     agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
-    # agent.load_state_dict(torch.load("__tmp/5/2-1743379631.pt"))
+    agent.load_state_dict(torch.load("__tmp/5/2-1743380973.pt"))
 
     actor_opt = optim.AdamW(agent.actor.parameters(), lr=lr)
-    critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-2)
+    critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-3)
 
     n_samples = n_steps * n_envs
 

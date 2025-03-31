@@ -26,8 +26,8 @@ class BattleEncoder(nn.Module):
         batch_size = user_feat.shape[0]
 
         party_emb = self.party_embed_block(party_feat)
-
         user_emb = self.user_embed_block(user_feat)
+        
         foe_active = user_emb[:, 6]
 
         match_up_emb = self.user_matchup_block(
