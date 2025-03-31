@@ -132,6 +132,8 @@ class Agent(nn.Module):
         switch_mask = x["switch_mask"]
 
         move_logits, switch_logits = self.actor(x)
+        raw_logits = (move_logits, switch_logits)
+        
         move_logits = move_logits + (move_mask - 1) * 1e9
         switch_logits = switch_logits + (switch_mask - 1) * 1e9
         logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
@@ -139,6 +141,5 @@ class Agent(nn.Module):
 
         value = self.critic(x)
 
-        raw_logits = (move_logits, switch_logits)
 
         return dist, value, raw_logits

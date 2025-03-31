@@ -15,53 +15,57 @@ import os
 import time
 
 t = time.time()
-exp_name = f"__tmp/4/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
+exp_name = f"__tmp/5/{os.path.basename(__file__).split('.')[0]}-{int(t)}"
 
 
 async def main():
     torch.set_float32_matmul_precision("high")
     manager = Manager()
     shared_eps = manager.list()
+    eps = []
     plotter = ProcessPoolExecutor(max_workers=1)
 
     def update(ep):
-        shared_eps.append(ep)
-
-        if len(shared_eps) % 500 == 0:
+        nonlocal eps
+        eps.append(ep)
+        if len(eps) % 500 == 0:
+            shared_eps.extend(eps)
             plotter.submit(plot_eps, shared_eps, exp_name)
+            eps = []
 
-    await train(update, hidden_dim=256)
+    await train(update)
 
 
 async def train(
     update,
-    n_envs=200,
-    hidden_dim=128,
+    n_envs=80,
     n_iters=500,
-    gamma=1,
-    n_steps=50,
+    minibatch_size=256,
     n_epochs=10,
-    ent_coef=0.01,
+    n_steps=100,
+
+    ent_coef=0.005,
+    gamma=1,
     gae_lambda=1,
-    minibatch_size=128,
+    hidden_dim=512,
     clip_coef=0.2,
-    lr=1e-3,
+    lr=1e-4,
 ):
     c = Config(hidden_dim=hidden_dim)
 
     api = aiohttp.ClientSession(base_url="http://172.31.50.187:3001")
 
-    env = BatchEnv(api=api, size=n_envs, upkeep_freq=100)
+    env = BatchEnv(api=api, size=n_envs, upkeep_freq=n_envs)
 
     device = torch.device("cuda")
     lookup = await load_lookup(c=c, api=api, device=device)
 
     agent = Agent(lookup, c).to(device)
-    agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True)
-    # nn.load_state_dict(torch.load("__tmp/4/2-1743373770.pt"))
+    agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
+    # agent.load_state_dict(torch.load("__tmp/5/2-1743379631.pt"))
 
     actor_opt = optim.AdamW(agent.actor.parameters(), lr=lr)
-    critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-3)
+    critic_opt = optim.AdamW(agent.critic.parameters(), lr=1e-2)
 
     n_samples = n_steps * n_envs
 
@@ -84,51 +88,29 @@ async def train(
 
         print("it:", it)
 
-        x = defaultdict(int)
-
         for t in range(0, n_steps):
-            start = time.process_time()
-
-            def stop(k):
-                nonlocal start
-                end = time.process_time()
-                x[k] += end - start
-                start = end
-
             if t % 10 == 0:
                 print("t:", t)
+            
             with torch.no_grad():
                 curr_states = next_states
-                stop(0)
                 states[t] = curr_states
-                stop(1)
 
                 dist, values[t], (move_logits, switch_logits) = agent(curr_states)
-                stop(2)
                 raw_move_logits[t] = move_logits
-                stop(3)
                 raw_switch_logits[t] = switch_logits
-                stop(4)
 
                 action_ids = dist.sample()
-                stop(5)
                 log_probs[t] = dist.log_prob(action_ids)
-                stop(6)
                 actions[t] = action_ids
-                stop(7)
 
                 trns, curr_dones = await env.step(action_ids.cpu().tolist())
-                stop(8)
 
                 curr_rewards, next_states = zip(*trns)
-                stop(9)
                 next_states = decode_states(c, next_states, device)
-                stop(10)
 
                 rewards[t] = torch.tensor(curr_rewards).to(device)
-                stop(11)
                 tot_rewards += rewards[t]
-                stop(12)
 
                 for i, turn, won in curr_dones:
                     won = max(0, won)
@@ -136,7 +118,6 @@ async def train(
 
                     dones[t][i] = 1
                     tot_rewards[i] = 0
-                stop(13)
 
         with torch.no_grad():
             _, next_values, _ = agent(next_states)
@@ -159,8 +140,10 @@ async def train(
 
         b_advantages = (b_advantages - b_advantages.mean()) / (b_advantages.std() + 1e-8)
 
-        true_probs = torch.cat([raw_move_logits.flatten(-2), raw_switch_logits], dim=-1).mean(dim=0)
-        print("probs:", true_probs.tolist())
+        true_probs = F.softmax(torch.cat([raw_move_logits.flatten(-2), raw_switch_logits], dim=-1), dim=-1).mean(
+            dim=(0, 1)
+        )
+        print("probs:", [f"{i}: {p:.4f}" for i,p in enumerate(true_probs)])
 
         idxs = torch.randperm(n_samples)
         mbs = []
@@ -180,18 +163,16 @@ async def train(
 
         for epoch in range(n_epochs):
             idxs = torch.randperm(n_samples)
-            t = 0
+            tot_v_loss = 0
             tot_entropy = 0
             tot_pg_loss = 0
             tot_ratio = 0
 
             for mb_x, mb_actions, mb_log_probs, mb_adv, mb_returns in mbs:
-                logits, value, _ = agent(mb_x)
+                dist, value, _ = agent(mb_x)
 
-                dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
-                new_log_probs = dist.log_prob(mb_actions)
-                log_ratio = new_log_probs - mb_log_probs
-                ratio = log_ratio.exp()
+                curr_log_probs = dist.log_prob(mb_actions)
+                ratio = (curr_log_probs - mb_log_probs).exp()
 
                 tot_ratio += (1 - ratio).abs().mean()
 
@@ -204,8 +185,9 @@ async def train(
                 v_loss = 0.5 * ((value - mb_returns) ** 2).mean()
 
                 loss = pg_loss - ent_coef * entropy + v_loss
-                t += v_loss
-                tot_entropy += ent_coef * entropy
+                
+                tot_v_loss += v_loss
+                tot_entropy += entropy
                 tot_pg_loss += pg_loss
 
                 actor_opt.zero_grad()
@@ -220,7 +202,7 @@ async def train(
                 "r:",
                 f"{tot_ratio.item() / len(mbs):.4f}",
                 "v:",
-                f"{t.item() / len(mbs):.4f}",
+                f"{tot_v_loss.item() / len(mbs):.4f}",
                 "e:",
                 f"{tot_entropy.item() / len(mbs):.4f}",
                 "pg:",
