@@ -124,14 +124,14 @@ class Critic(nn.Module):
             nn.Linear(c.hidden_dim, 1),
         )
 
-    def forward(self, x, N):
+    def forward(self, x, n):
         user_feat = x["user_feat"]
         user_type = x["user_type"]
 
         party_emb = self.encoder.party(x["party_feat"])
 
         user_emb = self.encoder.user(user_feat, user_type)
-        match_up_emb = self.encoder.matchup(user_emb[0], user_emb[6])
+        match_up_emb = self.encoder.matchup(user_emb[:, 0], user_emb[:, 6])
 
         return self.critic(torch.cat([match_up_emb, party_emb.flatten(1)], dim=-1)).squeeze(-1)
 
@@ -160,6 +160,6 @@ class Agent(nn.Module):
         logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
         dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
 
-        value = self.critic(x)
+        value = self.critic(x, n)
 
         return dist, value, raw_logits

@@ -38,11 +38,11 @@ async def main():
 
 async def train(
     update,
-    n_envs=60,
+    n_envs=100,
     n_iters=500,
     minibatch_size=256,
     n_epochs=10,
-    n_steps=60,
+    n_steps=50,
 
     ent_coef=0.005,
     gamma=1,
@@ -61,7 +61,7 @@ async def train(
     lookup = await load_lookup(c=c, api=api, device=device)
 
     agent = Agent(lookup).to(device)
-    # agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
+    agent = torch.compile(agent, mode="reduce-overhead", fullgraph=True, dynamic=False)
     # agent.load_state_dict(torch.load("__tmp/5/2-1743380973.pt"))
 
     actor_opt = optim.AdamW(agent.actor.parameters(), lr=lr)
@@ -147,8 +147,8 @@ async def train(
 
         idxs = torch.randperm(n_samples)
         mbs = []
-        for i in range(0, n_samples, minibatch_size):
-            mb_i = idxs[i : i + minibatch_size]
+        for i in range(n_samples // minibatch_size):
+            mb_i = idxs[i * minibatch_size : (i + 1) * minibatch_size]
             mb_x = {k: b_states[k][mb_i] for k in STATE_FIELDS}
 
             mbs.append(
