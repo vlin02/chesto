@@ -2,13 +2,14 @@ import asyncio
 import aiohttp
 import torch
 from torch import optim
-from state import STATE_FIELDS, load_lookup, decode_states
+from lookup import STATE_FIELDS, Config, load_lookup
 from env import BatchEnv
 import torch.nn.functional as F
+from state import decode_states
 from trial import plot_eps
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Manager
-from net import Agent, Config
+from net import Agent
 
 import os
 import time
@@ -95,7 +96,7 @@ async def train(
                 curr_states = next_states
                 states[t] = curr_states
 
-                dist, values[t], (move_logits, switch_logits) = agent(curr_states)
+                dist, values[t], (move_logits, switch_logits) = agent(curr_states, n_envs)
                 raw_move_logits[t] = move_logits
                 raw_switch_logits[t] = switch_logits
 
@@ -119,7 +120,7 @@ async def train(
                     tot_rewards[i] = 0
 
         with torch.no_grad():
-            _, next_values, _ = agent(next_states)
+            _, next_values, _ = agent(next_states, n_envs)
 
             gae = 0
             not_dones = 1 - dones
@@ -168,7 +169,7 @@ async def train(
             tot_ratio = 0
 
             for mb_x, mb_actions, mb_log_probs, mb_adv, mb_returns in mbs:
-                dist, value, _ = agent(mb_x)
+                dist, value, _ = agent(mb_x, minibatch_size)
 
                 curr_log_probs = dist.log_prob(mb_actions)
                 ratio = (curr_log_probs - mb_log_probs).exp()

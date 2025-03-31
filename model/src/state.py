@@ -1,13 +1,13 @@
 import torch
 import numpy as np
 
-from config import Config
+from lookup import Config
 
 def decode_states(c: Config, states, device):
     x = {}
     N = len(states)
     for _k, k, dtype, shape in [
-        ("userTypeFeat", "user_type_feat", np.float32, (N, 7, 2, c.n_types)),
+        ("userType", "user_type", np.float32, (N, 7, 2, c.n_types)),
         ("userFeat", "user_feat", np.float32, (N, 7, c.user_feat_dim)),
         ("partyFeat", "party_feat", np.float32, (N, 2, c.party_feat_dim)),
         ("activeIdx", "active_idx", np.int32, (N, 2,)),
