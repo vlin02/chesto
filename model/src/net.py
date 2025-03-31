@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 
-from config import Config
 from state import Lookup
 import torch.nn.functional as F
 
@@ -22,7 +21,7 @@ class Encoder(nn.Module):
         )
 
         self.user = nn.Sequential(
-            nn.Linear(c.hidden_dim + c.user_feat_dim, c.hidden_dim),
+            nn.Linear(2 * c.hidden_dim + c.user_feat_dim, c.hidden_dim),
             nn.Tanh(),
         )
 
@@ -34,22 +33,21 @@ class Encoder(nn.Module):
     def party(self, x):
         return self.party(x)
 
-    def user(self, feat, type_data):
-        type_emb = self.type(type_data)
-        return self.user(torch.cat([feat, type_emb], dim=-1))
+    def user(self, feat, types):
+        type_emb = self.type(types)
+        return self.user(torch.cat([feat, type_emb.flatten(-2)], dim=-1))
 
     def matchup(self, ally, foe):
         return self.matchup(torch.cat([ally, foe], dim=-1))
 
 
 class Actor(nn.Module):
-    c: Config
     move_feat: torch.Tensor
 
     def __init__(self, lookup: Lookup, encoder: Encoder):
         super().__init__()
-        
-        self.c = c = lookup.c
+
+        c = lookup.c
         self.move_feat = lookup.move_feat
         self.encoder = encoder
 
@@ -105,11 +103,9 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    c: Config
-
     def __init__(self, lookup: Lookup, encoder: Encoder):
         super().__init__()
-        self.c = c = lookup.c
+        c = lookup.c
 
         self.encoder = encoder
 

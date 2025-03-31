@@ -46,7 +46,6 @@ async def predict(request: Request):
         states = decode_states(states, device)
         logits, v, _ = nn(states)
         probs = F.softmax(logits, dim=1)
-        # dist = torch.distributions.Categorical(probs)
         action_ids = torch.max(logits, dim=1).indices
 
         return [

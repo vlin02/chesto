@@ -3,7 +3,7 @@ from attr import dataclass
 import torch
 import numpy as np
 
-from config import Config
+from lookup import Config
 
 STATE_FIELDS = [
     "user_feat",
@@ -11,6 +11,7 @@ STATE_FIELDS = [
     "move_mask",
     "switch_mask",
     "move_choice_idx",
+    "user_type_feat",
     "party_feat",
 ]
 
@@ -23,19 +24,19 @@ async def load_lookup(c: Config, api: ClientSession, device: torch.device):
     res = await api.get("/moves")
     moves = (await res.json())["moves"]
     
-    lookup = {}
     move_feat = torch.zeros(1000, c.move_feat_dim, device=device)
 
     for move in moves:
         move_feat[move["num"]] = torch.tensor(move["x"], device=device)
 
-    lookup["move_feat"] = move_feat
     return Lookup(move_feat=move_feat, c=c)
+
 
 def decode_states(c: Config, states, device):
     x = {}
     N = len(states)
     for _k, k, dtype, shape in [
+        ("userTypeFeat", "user_type_feat", np.float32, (N, 7, 2, c.n_types)),
         ("userFeat", "user_feat", np.float32, (N, 7, c.user_feat_dim)),
         ("partyFeat", "party_feat", np.float32, (N, 2, c.party_feat_dim)),
         ("activeIdx", "active_idx", np.int32, (N, 2,)),

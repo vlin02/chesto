@@ -47,7 +47,7 @@ async def train(
     ent_coef=0.005,
     gamma=1,
     gae_lambda=1,
-    hidden_dim=512,
+    hidden_dim=256,
     clip_coef=0.05,
     lr=5e-5,
 ):
