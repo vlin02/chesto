@@ -44,14 +44,13 @@ class Encoder(nn.Module):
 
 class Actor(nn.Module):
     c: Config
-    lookup: Lookup
+    move_feat: torch.Tensor
 
     def __init__(self, lookup: Lookup, encoder: Encoder):
         super().__init__()
+        
         self.c = c = lookup.c
-        self.lookup = lookup
-
-        # Use shared encoder
+        self.move_feat = lookup.move_feat
         self.encoder = encoder
 
         self.move_embed_block = nn.Sequential(
@@ -85,7 +84,7 @@ class Actor(nn.Module):
         user_emb = self.encoder.user(user_feat, user_type)
         party_emb = self.encoder.party(x["party_feat"])
 
-        move_choice_emb = self.move_embed_block(self.lookup.move_feat[move_choice_idx])
+        move_choice_emb = self.move_embed_block(self.move_feat[move_choice_idx])
 
         match_up_emb = self.encoder.matchup(user_emb[:, :6], user_emb[:, 6].view(n, 1, -1).expand(-1, 6, -1))
 
