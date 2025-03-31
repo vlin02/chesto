@@ -17,6 +17,7 @@ STATE_FIELDS = [
 @dataclass
 class Lookup:
     move_feat: torch.Tensor
+    c: Config
 
 async def load_lookup(c: Config, api: ClientSession, device: torch.device):
     res = await api.get("/moves")
@@ -29,7 +30,7 @@ async def load_lookup(c: Config, api: ClientSession, device: torch.device):
         move_feat[move["num"]] = torch.tensor(move["x"], device=device)
 
     lookup["move_feat"] = move_feat
-    return Lookup(move_feat=move_feat)
+    return Lookup(move_feat=move_feat, c=c)
 
 def decode_states(c: Config, states, device):
     x = {}

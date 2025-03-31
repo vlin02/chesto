@@ -6,55 +6,59 @@ from state import Lookup
 import torch.nn.functional as F
 
 
-class BattleEncoder(nn.Module):
-    def __init__(self, lookup: Lookup, c: Config):
+class Encoder(nn.Module):
+    def __init__(self, lookup: Lookup):
         super().__init__()
+        c = lookup.c
 
-        self.c = c
-        self.lookup = lookup
-        self.user_embed_block = nn.Sequential(
-            nn.Linear(c.user_feat_dim, c.hidden_dim),
+        self.type = nn.Sequential(
+            nn.Linear(c.n_types, c.hidden_dim),
             nn.Tanh(),
         )
-        self.party_embed_block = nn.Sequential(nn.Linear(c.party_feat_dim, c.hidden_dim), nn.Tanh())
 
-        self.user_matchup_block = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
-
-    def forward(self, x):
-        user_feat = x["user_feat"]
-        party_feat = x["party_feat"]
-        batch_size = user_feat.shape[0]
-
-        party_emb = self.party_embed_block(party_feat)
-        user_emb = self.user_embed_block(user_feat)
-        
-        foe_active = user_emb[:, 6]
-
-        match_up_emb = self.user_matchup_block(
-            torch.cat(
-                [
-                    user_emb[:, :6],
-                    foe_active.view(batch_size, 1, self.c.hidden_dim).expand(-1, 6, -1),
-                ],
-                dim=-1,
-            )
+        self.party = nn.Sequential(
+            nn.Linear(c.party_feat_dim, c.hidden_dim),
+            nn.Tanh(),
         )
 
-        return match_up_emb, party_emb
+        self.user = nn.Sequential(
+            nn.Linear(c.hidden_dim + c.user_feat_dim, c.hidden_dim),
+            nn.Tanh(),
+        )
+
+        self.matchup = nn.Sequential(nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.Tanh())
+
+    def type(self, x):
+        return self.type(x)
+
+    def party(self, x):
+        return self.party(x)
+
+    def user(self, feat, type_data):
+        type_emb = self.type(type_data)
+        return self.user(torch.cat([feat, type_emb], dim=-1))
+
+    def matchup(self, ally, foe):
+        return self.matchup(torch.cat([ally, foe], dim=-1))
 
 
 class Actor(nn.Module):
-    def __init__(self, lookup: Lookup, c: Config):
+    c: Config
+    lookup: Lookup
+
+    def __init__(self, lookup: Lookup, encoder: Encoder):
         super().__init__()
+        self.c = c = lookup.c
         self.lookup = lookup
 
-        self.battle_block = BattleEncoder(lookup, c)
+        # Use shared encoder
+        self.encoder = encoder
+
         self.move_embed_block = nn.Sequential(
-            nn.Linear(c.move_feat_dim, c.hidden_dim),
+            nn.Linear(c.hidden_dim + c.move_feat_dim, c.hidden_dim),
             nn.Tanh(),
         )
 
-        self.register_buffer("tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1))
         self.move_logits_block = nn.Sequential(
             nn.Linear(4 * c.hidden_dim + 1, c.hidden_dim),
             nn.Tanh(),
@@ -71,24 +75,27 @@ class Actor(nn.Module):
             nn.Linear(c.hidden_dim, 1),
         )
 
-        self.c = c
+        self.register_buffer("tera_flag", torch.arange(2).view(1, 1, 2, 1).expand(-1, 4, -1, -1))
 
-    def forward(self, x):
+    def forward(self, x, n):
         user_feat = x["user_feat"]
+        user_type = x["user_type"]
         move_choice_idx = x["move_choice_idx"]
-        batch_size = user_feat.shape[0]
+
+        user_emb = self.encoder.user(user_feat, user_type)
+        party_emb = self.encoder.party(x["party_feat"])
 
         move_choice_emb = self.move_embed_block(self.lookup.move_feat[move_choice_idx])
 
-        match_up_emb, party_emb = self.battle_block(x)
+        match_up_emb = self.encoder.matchup(user_emb[:, :6], user_emb[:, 6].view(n, 1, -1).expand(-1, 6, -1))
 
         move_logits = self.move_logits_block(
             torch.cat(
                 [
-                    match_up_emb[:, 0].view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
-                    party_emb.view(batch_size, 1, 1, -1).expand(-1, 4, 2, -1),
-                    move_choice_emb.view(batch_size, 4, 1, self.c.hidden_dim).expand(-1, -1, 2, -1),
-                    self.tera_flag.expand(batch_size, -1, -1, -1),
+                    match_up_emb[:, 0].view(n, 1, 1, -1).expand(-1, 4, 2, -1),
+                    party_emb.view(n, 1, 1, -1).expand(-1, 4, 2, -1),
+                    move_choice_emb.view(n, 4, 1, self.c.hidden_dim).expand(-1, -1, 2, -1),
+                    self.tera_flag.expand(n, -1, -1, -1),
                 ],
                 dim=-1,
             )
@@ -99,9 +106,14 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, lookup: Lookup, c: Config):
+    c: Config
+
+    def __init__(self, lookup: Lookup, encoder: Encoder):
         super().__init__()
-        self.battle_block = BattleEncoder(lookup, c)
+        self.c = c = lookup.c
+
+        self.encoder = encoder
+
         self.critic = nn.Sequential(
             nn.Linear(c.hidden_dim * 3, c.hidden_dim),
             nn.Tanh(),
@@ -110,22 +122,29 @@ class Critic(nn.Module):
             nn.Linear(c.hidden_dim, 1),
         )
 
-    def forward(self, x):
+    def forward(self, x, N):
         user_feat = x["user_feat"]
-        batch_size = user_feat.shape[0]
-        match_up_emb, party_emb = self.battle_block(x)
+        user_type = x["user_type"]
 
-        return self.critic(torch.cat([match_up_emb[:, 0], party_emb.view(batch_size, -1)], dim=-1)).squeeze(-1)
+        party_emb = self.encoder.party(x["party_feat"])
+
+        user_emb = self.encoder.user(user_feat, user_type)
+        match_up_emb = self.encoder.matchup(user_emb[0], user_emb[6])
+
+        return self.critic(torch.cat([match_up_emb, party_emb.flatten(1)], dim=-1)).squeeze(-1)
 
 
 class Agent(nn.Module):
     actor: Actor
     critic: Critic
 
-    def __init__(self, lookup: Lookup, c: Config):
+    def __init__(self, lookup: Lookup):
         super().__init__()
-        self.actor = Actor(lookup, c)
-        self.critic = Critic(lookup, c)
+
+        self.encoder = Encoder(lookup)
+
+        self.actor = Actor(lookup, self.encoder)
+        self.critic = Critic(lookup, self.encoder)
 
     def forward(self, x):
         move_mask = x["move_mask"]
@@ -133,13 +152,12 @@ class Agent(nn.Module):
 
         move_logits, switch_logits = self.actor(x)
         raw_logits = (move_logits, switch_logits)
-        
+
         move_logits = move_logits + (move_mask - 1) * 1e9
         switch_logits = switch_logits + (switch_mask - 1) * 1e9
         logits = torch.cat([move_logits.flatten(1), switch_logits], dim=-1)
         dist = torch.distributions.Categorical(F.softmax(logits, dim=1))
 
         value = self.critic(x)
-
 
         return dist, value, raw_logits

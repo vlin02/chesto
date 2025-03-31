@@ -17,3 +17,5 @@ class Config:
     party_feat_dim: int = PARTY_FEAT_DIM
 
     hidden_dim: int = HIDDEN_DIM
+
+    
