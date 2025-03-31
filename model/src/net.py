@@ -58,12 +58,12 @@ class Encoder(nn.Module):
 class Actor(nn.Module):
     move_feat: torch.Tensor
 
-    def __init__(self, lookup: Lookup, encoder: Encoder):
+    def __init__(self, lookup: Lookup):
         super().__init__()
 
         c = lookup.c
         self.move_feat = lookup.move_feat
-        self.encoder = encoder
+        self.encoder = Encoder(lookup)
 
         self.move_logits_block = nn.Sequential(
             nn.Linear(4 * c.hidden_dim + 1, c.hidden_dim),
@@ -87,9 +87,10 @@ class Actor(nn.Module):
         user_feat = x["user_feat"]
         user_type = x["user_type"]
         move_choice_idx = x["move_choice_idx"]
+        party_feat = x["party_feat"]
 
         user_emb = self.encoder.user(user_feat, user_type)
-        party_emb = self.encoder.party(x["party_feat"])
+        party_emb = self.encoder.party(party_feat)
         move_choice_emb = self.encoder.move(move_choice_idx)
         match_up_emb = self.encoder.matchup(user_emb[:, :6], user_emb[:, 6].view(n, 1, -1).expand(-1, 6, -1))
 
@@ -110,12 +111,12 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, lookup: Lookup, encoder: Encoder):
+    def __init__(self, lookup: Lookup):
         super().__init__()
         c = lookup.c
 
-        self.encoder = encoder
-
+        self.encoder = Encoder(lookup)
+        
         self.critic = nn.Sequential(
             nn.Linear(c.hidden_dim * 3, c.hidden_dim),
             nn.Tanh(),
@@ -143,10 +144,8 @@ class Agent(nn.Module):
     def __init__(self, lookup: Lookup):
         super().__init__()
 
-        self.encoder = Encoder(lookup)
-
-        self.actor = Actor(lookup, self.encoder)
-        self.critic = Critic(lookup, self.encoder)
+        self.actor = Actor(lookup)
+        self.critic = Critic(lookup)
 
     def forward(self, x, n):
         move_mask = x["move_mask"]
